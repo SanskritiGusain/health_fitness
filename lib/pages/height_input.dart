@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:test_app/pages/location_select.dart';
-
-import '../pages/weight_input.dart'; // Make sure this import path is correct
+import '../pages/weight_input.dart';
 
 class HeightInputPage extends StatefulWidget {
   const HeightInputPage({super.key});
@@ -15,10 +13,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
   bool isCm = true;
   int selectedHeightCm = 165;
   int selectedHeightInch = 165;
-  bool _isButtonEnabled = false;
+  bool _isButtonEnabled = true;
 
-  final List<int> cmValues = List.generate(200, (index) => index + 20); // 50 - 200
-  final List<int> inchValues = List.generate(151, (index) => index + 20); // 20 - 79
+  final List<int> cmValues = List.generate(200, (index) => index + 20);
+  final List<int> inchValues = List.generate(151, (index) => index + 20);
 
   late FixedExtentScrollController _controllerCm;
   late FixedExtentScrollController _controllerIn;
@@ -37,16 +35,15 @@ class _HeightInputPageState extends State<HeightInputPage> {
     super.dispose();
   }
 
-    void _submit() {
- Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => WeightInputPage(
-      height: isCm ? selectedHeightCm.toDouble() : selectedHeightInch * 2.54,
-    ),
-  ),
-);
-
+  void _submit() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WeightInputPage(
+          height: isCm ? selectedHeightCm.toDouble() : selectedHeightInch * 2.54,
+        ),
+      ),
+    );
   }
 
   @override
@@ -54,61 +51,65 @@ class _HeightInputPageState extends State<HeightInputPage> {
     final controller = isCm ? _controllerCm : _controllerIn;
     final values = isCm ? cmValues : inchValues;
 
+    final size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+    final double screenHeight = size.height;
+
     return Scaffold(
-      backgroundColor: Color(0xFFF8FBFB),
+      backgroundColor: const Color(0xFFF8FBFB),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Back button
+            // Back button and Progress bar in same row
             Padding(
-              padding: const EdgeInsets.only(bottom: 10.0),
-              child: IconButton(
-                  icon: Image.asset(
-                'assets/icons/Group(2).png',
-                width: 24,
-                height: 24,
-              ),
-           onPressed: () {
-                           Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LocationSelectionPage()),
-      );/// Go back to previous screen
-                },
+              padding: const EdgeInsets.only(left: 10, top: 28, right: 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Image.asset(
+                      'assets/icons/Group(2).png',
+                      width: screenWidth * 0.06,
+                      height: screenWidth * 0.06,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LocationSelectionPage()),
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: const LinearProgressIndicator(
+                        value: 0.35,
+                        minHeight: 6,
+                        backgroundColor: Color(0xFFECEFEE),
+                        color: Color(0xFF0C0C0C),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-
-            // Progress bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: 0.35,
-                  minHeight: 6,
-                backgroundColor: const Color(0xFFECEFEE),
-                color: const Color(0xFF0C0C0C),
-                
-              ),
-            ),
-            ),
-            const SizedBox(height: 16),
+            SizedBox(height: screenHeight * 0.03),
 
             // Title
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              child: const Text(
                 "Height",
                 style: TextStyle(
                   fontFamily: 'Merriweather',
-                 fontSize: 20,
-                height: 2.8,
-                color: Color(0xFF222326),
+                  fontSize: 20,
+                  height: 2.8,
+                  color: Color(0xFF222326),
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: screenHeight * 0.015),
 
             // Toggle switch
             Row(
@@ -119,7 +120,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                 GestureDetector(
                   onTap: () => setState(() => isCm = !isCm),
                   child: Container(
-                    width: 48,
+                    width: screenWidth * 0.12,
                     height: 28,
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -133,8 +134,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                         width: 20,
                         height: 20,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFFFFFFF)
-,
+                          color: Colors.white,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -142,10 +142,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text('in', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,color: Color(0xFF222326))),
+                const Text('in', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF222326))),
               ],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: screenHeight * 0.01),
 
             // Height Picker Section
             Expanded(
@@ -154,29 +154,20 @@ class _HeightInputPageState extends State<HeightInputPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Selected value label
-                   Text.rich(
-  TextSpan(
-    children: [
-      TextSpan(
-        text: isCm ? '$selectedHeightCm' : '$selectedHeightInch',
-        style: const TextStyle(
-          fontSize: 20, // Big value
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF222326),
-        ),
-      ),
-      TextSpan(
-        text: isCm ? ' cm' : ' in',
-        style: const TextStyle(
-          fontSize: 14, // Smaller unit
-          fontWeight: FontWeight.w400,
-          color: Color(0xFF222326),
-        ),
-      ),
-    ],
-  ),
-),
-
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: isCm ? '$selectedHeightCm' : '$selectedHeightInch',
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFF222326)),
+                          ),
+                          TextSpan(
+                            text: isCm ? ' cm' : ' in',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF222326)),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(width: 24),
 
                     // Picker with ruler
@@ -184,43 +175,40 @@ class _HeightInputPageState extends State<HeightInputPage> {
                       alignment: Alignment.center,
                       children: [
                         Container(
-                          width: 180,
-                          height: 420,
+                          width: screenWidth * 0.45,
+                          height: screenHeight * 0.52,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFFFFF),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                                   boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1), // Soft shadow
-            spreadRadius: 2,
-            blurRadius: 6,
-            offset: const Offset(0, 4), // Shadow position
-          ),
-        ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                spreadRadius: 2,
+                                blurRadius: 6,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                         ),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: SizedBox(
-                            width: 180,
-                            height: 400,
+                            width: screenWidth * 0.45,
+                            height: screenHeight * 0.48,
                             child: ListWheelScrollView.useDelegate(
                               controller: controller,
                               itemExtent: 20,
                               diameterRatio: 100,
                               physics: const FixedExtentScrollPhysics(),
-                           onSelectedItemChanged: (index) {
-  setState(() {
-    if (isCm) {
-      selectedHeightCm = cmValues[index];
-      _isButtonEnabled = selectedHeightCm != 165;
-    } else {
-      selectedHeightInch = inchValues[index];
-      _isButtonEnabled = selectedHeightInch != 165;
-    }
-  });
-},
-
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  if (isCm) {
+                                    selectedHeightCm = cmValues[index];
+                                  } else {
+                                    selectedHeightInch = inchValues[index];
+                                  }
+                                });
+                              },
                               childDelegate: ListWheelChildBuilderDelegate(
                                 childCount: values.length,
                                 builder: (context, index) {
@@ -237,8 +225,8 @@ class _HeightInputPageState extends State<HeightInputPage> {
                                           alignment: Alignment.centerLeft,
                                           child: Container(
                                             width: isLong ? 60 : 35,
-                                            height: isLong ? 1 : 1,
-                                            color: isLong ? Color(0xFF222326):Color(0xFF9EA3A9),
+                                            height: 1,
+                                            color: isLong ? const Color(0xFF222326) : const Color(0xFF9EA3A9),
                                           ),
                                         ),
                                       ),
@@ -255,7 +243,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                         Positioned(
                           left: 45,
                           right: 65,
-                          child: Container(height: 2, color: Color(0xFF0C0C0C)),
+                          child: Container(height: 2, color: const Color(0xFF0C0C0C)),
                         ),
                       ],
                     ),
@@ -263,18 +251,21 @@ class _HeightInputPageState extends State<HeightInputPage> {
                 ),
               ),
             ),
- // Next Button
+
+            // Next Button
             Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 45),
+              padding: EdgeInsets.only(
+                left: screenWidth * 0.04,
+                right: screenWidth * 0.04,
+                bottom: screenHeight * 0.05,
+              ),
               child: SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled ? _submit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isButtonEnabled
-                        ? const Color(0xFF0C0C0C)
-                        : const Color(0xFF7F8180),
+                    backgroundColor: _isButtonEnabled ? const Color(0xFF0C0C0C) : const Color(0xFF7F8180),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -286,7 +277,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                       fontSize: 15,
                       height: 1.2,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFFFFFFFF),
+                      color: Colors.white,
                     ),
                   ),
                 ),

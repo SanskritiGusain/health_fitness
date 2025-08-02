@@ -4,7 +4,7 @@ import 'package:test_app/profile/profile_edit.dart';
 import 'package:test_app/profile/refer_friend.dart';
 import 'package:test_app/profile/setting_screen.dart';
 import 'package:test_app/profile/help_screen.dart';
-import 'package:test_app/profile/alert_screen.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);

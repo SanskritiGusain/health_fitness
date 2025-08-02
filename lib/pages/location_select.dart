@@ -4,6 +4,8 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:test_app/pages/user_details.dart';
 
 class LocationSelectionPage extends StatefulWidget {
+  const LocationSelectionPage({super.key});
+  
   @override
   _LocationSelectionPageState createState() => _LocationSelectionPageState();
 }
@@ -48,29 +50,32 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
           children: [
             // Back button
             Padding(
-              padding: const EdgeInsets.only(left: 16, top: 8),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => UserDetailsPage()),
-                  );
-                },
-              ),
-            ),
+              padding: const EdgeInsets.only(left: 6, top: 28, right: 10),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back,color: Colors.black,size: 28,),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const UserDetailsPage()),
+                      );
+                    },
+                  ),
 
-            // Progress bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: 0.50,
-                  minHeight: 6,
-                  backgroundColor: const Color(0xFFECEFEE),
-                  color: const Color(0xFF0C0C0C),
-                ),
+                  // Progress bar
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: const LinearProgressIndicator(
+                        value: 0.50,
+                        minHeight: 6,
+                        backgroundColor: Color(0xFFECEFEE),
+                        color: Color(0xFF0C0C0C),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -100,8 +105,8 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                     'Country',
                     style: TextStyle(
                       fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF7F7F7F),
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF7F7F7F),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -123,19 +128,25 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                         ),
                         dropdownStyleData: DropdownStyleData(
                           maxHeight: 300,
-                          width: MediaQuery.of(context).size.width - 32,
-                          offset: const Offset(0, -4),
-                          decoration: BoxDecoration(color: Colors.white),
+                          width: MediaQuery.of(context).size.width - 16,
+                          offset: const Offset(0, -2),
+                          elevation: 0, // Remove shadow
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                            border: Border.fromBorderSide(
+                              BorderSide(color: Color(0xFFE5E7EB), width: 1)
+                            ),
+                          ),
                           scrollbarTheme: ScrollbarThemeData(
                             radius: const Radius.circular(40),
                             thickness: MaterialStateProperty.all(4),
                             thumbVisibility: MaterialStateProperty.all(true),
-                            thumbColor: MaterialStateProperty.all(Color(0xFFE5E7EB)),
+                            thumbColor: MaterialStateProperty.all(const Color(0xFFE5E7EB)),
                           ),
                         ),
                         menuItemStyleData: const MenuItemStyleData(
                           height: 48,
-                          padding: EdgeInsets.symmetric(horizontal: 0),
                         ),
                         items: countries.map((country) {
                           return DropdownMenuItem<String>(
@@ -200,14 +211,21 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                           ),
                           dropdownStyleData: DropdownStyleData(
                             maxHeight: 300,
-                            width: MediaQuery.of(context).size.width - 35,
-                            offset: const Offset(0, -6),
-                            decoration: BoxDecoration(color: Colors.white),
+                            width: MediaQuery.of(context).size.width - 16,
+                            offset: const Offset(0, -2),
+                            elevation: 0, // Remove shadow
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.all(Radius.circular(12)),
+                              border: Border.fromBorderSide(
+                                BorderSide(color: Color(0xFFE5E7EB), width: 1)
+                              ),
+                            ),
                             scrollbarTheme: ScrollbarThemeData(
                               radius: const Radius.circular(40),
                               thickness: MaterialStateProperty.all(4),
                               thumbVisibility: MaterialStateProperty.all(true),
-                              thumbColor: MaterialStateProperty.all(Color(0xFFE5E7EB)),
+                              thumbColor: MaterialStateProperty.all(const Color(0xFFE5E7EB)),
                             ),
                           ),
                           menuItemStyleData: const MenuItemStyleData(
@@ -253,7 +271,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                       ? () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => HeightInputPage()),
+                            MaterialPageRoute(builder: (context) => const HeightInputPage()),
                           );
                         }
                       : null,

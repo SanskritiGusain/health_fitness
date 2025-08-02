@@ -15,10 +15,10 @@ class _GenderInputPageState extends State<GenderInputPage> {
 
   void _submit() {
     if (selectedGender != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const HeightInputPage()),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const HeightInputPage()),
+      // );
     }
   }
 

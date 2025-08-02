@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:test_app/plan/transformation_support_screen.dart';
+import 'package:test_app/plan/apply_coupon.dart'; // Add this import
 
 class CheckoutScreen extends StatefulWidget {
   final String title;
@@ -29,7 +30,7 @@ class CheckoutScreen extends StatefulWidget {
     this.showCoach = false,
     this.showAI = false,
     this.showDiscount = false,
-    this.hasCouponApplied = true, // Set to false to show image 1, true for image 2
+    this.hasCouponApplied = true,
   });
 
   @override
@@ -42,6 +43,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   int _minutes = 6;
   int _seconds = 46;
   bool _couponApplied = true;
+  String _appliedCouponCode = 'FITDAY20'; // Store the applied coupon code
+  int _discountAmount = 500; // Store the discount amount
 
   @override
   void initState() {
@@ -67,6 +70,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       });
     });
+  }
+
+  // Method to handle coupon application from ApplyCouponScreen
+  void _onCouponApplied(String couponCode, int discountAmount) {
+    setState(() {
+      _couponApplied = true;
+      _appliedCouponCode = couponCode;
+      _discountAmount = discountAmount;
+    });
+  }
+
+  // Method to navigate to ApplyCouponScreen
+  void _navigateToApplyCoupon() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ApplyCouponScreen(
+          onCouponApplied: _onCouponApplied,
+        ),
+      ),
+    );
   }
 
   @override
@@ -106,65 +130,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Stack(
                 children: [
                   Image.asset(
-                    widget.imageAsset,
+                    'assets/images/check_box.jpg',
                     width: double.infinity,
-                    height: 200,
+                    height: 260,
                     fit: BoxFit.cover,
                   ),
-                  // Timer Overlay
+                  // Timer Overlay - positioned to extend outside container
                   Positioned(
-                    top: 110,
+                    top: 80,
                     left: 20,
                     right: 20,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                       decoration: BoxDecoration(
-                      
-                        borderRadius: BorderRadius.circular(8),
+                        // color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                       
                       ),
                       child: Column(
                         children: [
-                          Container(
-                            padding: EdgeInsets.only(left:20,right:20,top:2,bottom: 2),
-                          
-// ✅ Correct way
- decoration: BoxDecoration(
- color: const Color(0xFF3C8F7C),
-    borderRadius: BorderRadius.all(Radius.circular(10)), // ✅ Correct
-// ✅ Correct
-  ),
-                             
-                           child:Text(
-                              
-                            'Limited Offer',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                           Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3C8F7C),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ),),
-                          // const SizedBox(height:8),
+                            child: const Text(
+                              'Limited Offer',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ), const SizedBox(height: 0),
+                          // Timer Boxes
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildTimeBox(_hours.toString().padLeft(2, '0')),
+                              _buildModernTimeBox(_hours.toString().padLeft(2, '0'), 'Hours'),
                               const SizedBox(width: 8),
-                              _buildTimeBox(_minutes.toString().padLeft(2, '0')),
+                              _buildModernTimeBox(_minutes.toString().padLeft(2, '0'), 'Minutes'),
                               const SizedBox(width: 8),
-                              _buildTimeBox(_seconds.toString().padLeft(2, '0')),
+                              _buildModernTimeBox(_seconds.toString().padLeft(2, '0'), 'Seconds'),
                             ],
                           ),
-                          const SizedBox(height: 1),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Text('Hours', style: TextStyle( color:  Color(0xFF3C8F7C), fontSize: 10)),
-                              SizedBox(width: 20),
-                              Text('Minutes', style: TextStyle(color:  Color(0xFF3C8F7C), fontSize: 10)),
-                              SizedBox(width: 15),
-                              Text('Seconds', style: TextStyle(color:  Color(0xFF3C8F7C), fontSize: 10)),
-                            ],
-                          ),
+                         
+                          
+                          // Limited Offer Badge
+                         
                         ],
                       ),
                     ),
@@ -174,20 +188,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Offer Section
                   const Text(
                     'Offer 20% off',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   
                   // Price Cards
                   Row(
@@ -198,7 +212,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFFFFF),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Color(0xFFDDE5F0)),
+                            border: Border.all(color: const Color(0xFFDDE5F0)),
                           ),
                           child: Column(
                             children: [
@@ -214,21 +228,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 'Per week',
                                 style: TextStyle(
                                   fontSize: 14,
-                                   fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w500,
                                   color: Color(0xFF000000),
                                 ),
                               ),
                               const SizedBox(height: 2),
-                                                const Text(
+                              const Text(
                                 'Billed weekly',
                                 style: TextStyle(
                                   fontSize: 10,
-                                   fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w500,
                                   color: Color(0xFF7F7F7F),
                                 ),
                               ),
                               const SizedBox(height: 2),
-                             
                               const Text(
                                 '₹2,000 per month',
                                 style: TextStyle(
@@ -242,74 +255,84 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFFFFF),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Color(0xFF3C8F7C)),
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
+                        child: Stack(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFFFFF),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF3C8F7C)),
+                              ),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 8), // Space for badge
+                                  const Text(
+                                    '₹1,499',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF3C8F7C),
+                                    ),
+                                  ),
+                                  const Text(
+                                    'per month',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF000000),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    'Billed monthly',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF7F7F7F),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    '₹375.00 per week',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF7F7F7F),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Best Value badge positioned at top left
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 21, 21, 21),
-                                  borderRadius: BorderRadius.circular(4),
+                                  color: Colors.black,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(8),
+                                    bottomRight: Radius.circular(8),
+                                  ),
                                 ),
                                 child: const Text(
                                   'Best Value',
                                   style: TextStyle(
                                     fontSize: 9,
-                                    color: Color.fromARGB(255, 223, 218, 218),
+                                    color: Colors.white,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                '₹1,499',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF3C8F7C),
-                                ),
-                              ),
-                              const Text(
-                                'per month',
-                                style: TextStyle(
-                                     fontSize: 14,
-                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF000000),
-                                ),
-                              ),
-                                const SizedBox(height: 2),
-                                                const Text(
-                                'Billed weekly',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                   fontWeight: FontWeight.w500,
-                                  color: Color(0xFF7F7F7F),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                '₹375.00 per week',
-                                style: TextStyle(
-                               fontSize: 14,
-                                  color: Color(0xFF7F7F7F),
-                                 
-                                ),
-                              ),
-                             
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   
                   // Benefits
                   Row(
@@ -317,8 +340,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const Icon(Icons.check, color: Colors.green, size: 16),
                       const SizedBox(width: 8),
                       const Text(
-                        'Upto 20% off applied', 
-                        style: TextStyle(fontSize: 14)
+                        'Upto 20% off applied',
+                        style: TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
@@ -330,9 +353,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         const Icon(Icons.check, color: Colors.green, size: 16),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'You saved ₹500 with "FITDAY20"',
+                            'You saved ₹$_discountAmount with "$_appliedCouponCode"',
                             style: TextStyle(fontSize: 14),
                           ),
                         ),
@@ -344,7 +367,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
-                            minimumSize: Size(0, 0),
+                            minimumSize: const Size(0, 0),
                           ),
                           child: const Text(
                             'Remove',
@@ -359,103 +382,153 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ],
                   
                   const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () {
-                      // Handle view all coupons
-                    },
-                    child: const Text(
-                      'View all coupons ',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                      
+                  Row(
+                    children: [
+                    Image.asset(
+  "assets/icons/view_all.png",
+  width: 24,  // set your desired width
+  height: 24, // set your desired height
+),
+
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _navigateToApplyCoupon, // Updated to call the navigation method
+                        child: const Text(
+                          'View all coupons',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
-                    ),
+                      const Spacer(),
+                      const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 16),
+                    ],
                   ),
                   
                   const SizedBox(height: 24),
                   
                   // Order Details
-                  const Text(
-                    'Order Details',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        'Order Details',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   
                   _buildOrderRow('Belly Fit', '₹3,000'),
                   _buildOrderRow('Subtotal', '₹3,000'),
                   if (_couponApplied)
-                    _buildOrderRow('Discount (20% Off)', '-₹1,000', isDiscount: true),
+                    _buildOrderRow('Discount (20% Off)', '-₹$_discountAmount', isDiscount: true),
                   _buildOrderRow('Taxes & Charges', '₹500', hasInfo: true),
                   
-                  const Divider(height: 24, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 1,
+                    color: const Color(0xFFE5E5E5),
+                  ),
+                  const SizedBox(height: 16),
                   
                   _buildOrderRow(
                     'Total', 
-                    _couponApplied ? '₹2,499' : '₹3,499', 
+                    _couponApplied ? '₹${3000 + 500 - _discountAmount}' : '₹3,499', 
                     isBold: true
                   ),
                   
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.local_offer, color: Colors.red, size: 16),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '20% off',
-                        style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '₹3,000',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  Row(
-                    children: [
-                      Text(
-                        _couponApplied ? '₹2,499' : '₹3,499',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const Text(
-                        ' per month',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  
                   const SizedBox(height: 24),
+                ],
+              ),
+            ),
+            
+            // Bottom price bar with coupon icon, prices and button
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, -2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Left side - Coupon icon and prices
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.local_offer, color: Colors.red, size: 16),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                const Text(
+                                  '20% off',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '₹3,000',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  _couponApplied ? '₹${3000 + 500 - _discountAmount}' : '₹3,499',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const Text(
+                                  ' per month',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   
-                  // Subscribe Button
+                  // Right side - Subscribe button
                   SizedBox(
-                    width: double.infinity,
+                    width: 140,
                     child: ElevatedButton(
-                      onPressed: (
-                        
-                      ) {
-                         Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TransformationSupportScreen(
-                        
-                      ),
-                    ),);
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransformationSupportScreen(),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
@@ -464,11 +537,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        elevation: 0,
                       ),
                       child: const Text(
                         'Subscribe Now',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -483,23 +557,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildTimeBox(String time) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        time,
-        style: const TextStyle(
-           color:  Color(0xFF3C8F7C),
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
+Widget _buildModernTimeBox(String time, String label) {
+  return Container(
+    width: 74,
+    height: 60,
+    decoration: BoxDecoration(
+      color: const Color.fromARGB(255, 240, 245, 244),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          time,
+          style: const TextStyle(
+            color: Color(0xFF3C8F7C),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-      ),
-    );
-  }
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFF3C8F7C),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildOrderRow(String label, String amount, {
     bool isDiscount = false, 
@@ -517,25 +606,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 label,
                 style: TextStyle(
                   fontSize: isBold ? 16 : 14,
-                  fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
                   color: Colors.black,
                 ),
               ),
               if (hasInfo) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 GestureDetector(
                   onTap: _showTaxesModal,
                   child: Container(
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: const Color(0xFFE5E5E5),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.info_outline,
-                      size: 12,
-                      color: Colors.grey,
+                      size: 10,
+                      color: Color(0xFF7F7F7F),
                     ),
                   ),
                 ),
@@ -546,7 +635,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             amount,
             style: TextStyle(
               fontSize: isBold ? 16 : 14,
-              fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
               color: isDiscount ? Colors.green : Colors.black,
             ),
           ),
@@ -577,7 +666,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: const Color(0xFFE5E5E5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -593,7 +682,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 20),
             _buildTaxRow('GST 18%', '₹1,000'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _buildTaxRow('Google play 30%', '₹1,000'),
             const SizedBox(height: 20),
           ],
@@ -612,6 +701,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             label,
             style: const TextStyle(
               fontSize: 14,
+              fontWeight: FontWeight.w400,
               color: Colors.black,
             ),
           ),
@@ -619,6 +709,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             amount,
             style: const TextStyle(
               fontSize: 14,
+              fontWeight: FontWeight.w400,
               color: Colors.black,
             ),
           ),

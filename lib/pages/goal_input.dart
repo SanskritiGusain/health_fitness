@@ -74,36 +74,36 @@ class _GoalInputPageState extends State<GoalInputPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Back Button
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0, bottom: 10),
-              child: IconButton(
-                icon: Image.asset(
-                  'assets/icons/Group(2).png',
-                  width: 24,
-                  height: 24,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LocationSelectionPage()),
-                  );
-                },
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(left: 10.0, bottom: 10),
+            //   child: IconButton(
+            //     icon: Image.asset(
+            //       'assets/icons/Group(2).png',
+            //       width: 24,
+            //       height: 24,
+            //     ),
+            //     // onPressed: () {
+            //     //   Navigator.push(
+            //     //     context,
+            //     //     MaterialPageRoute(builder: (context) => LocationSelectionPage()),
+            //     //   );
+            //     // },
+            //   ),
+            // ),
 
-            // Progress bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: 0.55,
-                  minHeight: 6,
-                  backgroundColor: const Color(0xFFECEFEE),
-                  color: const Color(0xFF0C0C0C),
-                ),
-              ),
-            ),
+            // // Progress bar
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 20),
+            //   child: ClipRRect(
+            //     borderRadius: BorderRadius.circular(4),
+            //     child: LinearProgressIndicator(
+            //       value: 0.55,
+            //       minHeight: 6,
+            //       backgroundColor: const Color(0xFFECEFEE),
+            //       color: const Color(0xFF0C0C0C),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 35),
 
             // Question

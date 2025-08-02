@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/tools/tdee_result_screen.dart'; 
+
+
 
 class TDEEScreenInput extends StatefulWidget {
   const TDEEScreenInput({super.key});
@@ -76,11 +79,12 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
 
     double tdee = bmr * activityFactor;
 
-    Navigator.pushNamed(
-      context,
-      '/tdee-result',
-      arguments: tdee,
-    );
+   Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => TdeeResultScreen(tdee: tdee),
+  ),
+);
   }
 
   @override

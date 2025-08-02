@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/chat/chat_start.dart'; 
-
+import 'package:test_app/utils/custom_bottom_nav.dart'; 
+import 'package:test_app/plan/plan_screen.dart';
+import 'package:test_app/gamification/gamification_screen.dart'; 
+import 'package:test_app/tools/tools_screen.dart'; 
+import 'package:test_app/plan/fitness_wellness.dart';
 
 class ChatWelcomeScreen extends StatelessWidget {
   const ChatWelcomeScreen({super.key});
@@ -9,19 +13,28 @@ class ChatWelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 2,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'My Plan'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Mentors'),
-          BottomNavigationBarItem(icon: Icon(Icons.build), label: 'Tools'),
-        ],
-      ),
+     bottomNavigationBar: CustomBottomNav(
+      currentIndex: 2, // 0 for Home
+      onTap: (index) {
+        if (index == 2) return; // Already on home
+        
+        switch (index) {
+          case 1:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => PlanScreen()));
+            break;
+          case 0:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => FitnessWellnessScreen()));
+            break;
+          case 3:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => GamificationScreen()));
+            break;
+          case 4:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ToolsScreen()));
+            break;
+        }
+      },
+    ),
+
       body: SafeArea(
         child: Center(child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 126),

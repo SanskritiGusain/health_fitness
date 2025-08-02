@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'bmr_result_screen.dart';
 
 class BMRScreenInput extends StatefulWidget {
   const BMRScreenInput({super.key});
@@ -94,7 +95,13 @@ class _BMRScreenInputState extends State<BMRScreenInput> {
                 try {
                   double? bmr = _calculateBMR();
                   if (bmr != null) {
-                    Navigator.pushNamed(context, '/bmr-result', arguments: bmr.toInt());
+                    // Navigator.pushNamed(context, '/bmr-result', arguments: bmr.toInt());
+                     Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => BmrResultScreen(bmr: 23),
+  ),
+);
                   }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(

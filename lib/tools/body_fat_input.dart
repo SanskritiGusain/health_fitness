@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'body_fat_result_screen.dart';
 
 class BodyFatInputPage extends StatefulWidget {
   const BodyFatInputPage({super.key});
@@ -112,11 +113,13 @@ class _BodyFatInputPageState extends State<BodyFatInputPage> {
   if (_formKey.currentState!.validate()) {
     final fat = _calculateBodyFatPercentage();
     if (fat != null) {
-      Navigator.pushNamed(
-        context,
-        '/bodyfat-result',
-        arguments: fat,
-      );
+   
+   Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => BodyFatResultScreen(bodyFatPercentage: fat),
+  ),
+);
     }
   }
 },

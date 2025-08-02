@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/shift/checkout_screen.dart'; 
+import 'package:test_app/chat/chat_screen.dart'; 
+import 'package:test_app/tools/tools_screen.dart'; 
+import 'package:test_app/plan/fitness_wellness.dart';
+import 'package:test_app/utils/custom_bottom_nav.dart'; 
 
 class GamificationScreen extends StatelessWidget {
   const GamificationScreen({super.key});
@@ -7,7 +12,7 @@ class GamificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: _buildBottomNavBar(context),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -37,7 +42,7 @@ class GamificationScreen extends StatelessWidget {
   Widget _buildTrophyBanner() {
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: Image.asset('assets/images/trofy.jpg', height: 100), // Banner image
+      child: Image.asset('assets/images/trofy.jpg', height: 100),
     );
   }
 
@@ -78,7 +83,7 @@ class GamificationScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Image.asset('assets/images/trofy.jpg', width: 40),
+              Image.asset('assets/icons/level_icon.png', width: 20),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -116,21 +121,21 @@ class GamificationScreen extends StatelessWidget {
           const Text('Your Milestone Board', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           _buildMilestoneCard(
-            imagePath: 'assets/images/trofy.jpg',
+            imagePath: 'assets/icons/points_icon.png',
             title: 'Points',
             subtitle: 'Today: +600\nGoal: 1200',
             buttonText: 'View Points',
           ),
           const SizedBox(height: 12),
           _buildMilestoneCard(
-            imagePath: 'assets/images/trofy.jpg',
+            imagePath: 'assets/icons/level_icon.png',
             title: 'Levels',
             subtitle: 'Completed: 6\nTotal: 12',
             buttonText: 'View Levels',
           ),
           const SizedBox(height: 12),
           _buildMilestoneCard(
-            imagePath: 'aassets/images/trofy.jpg',
+            imagePath: 'assets/icons/streak.png',
             title: 'Streak',
             subtitle: 'Current: 6 days\nBest: 12 days',
             buttonText: 'View Streak',
@@ -154,43 +159,61 @@ class GamificationScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Image.asset(imagePath, width: 40),
+       Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+               
+  Row(
+        children: [
+Container(
+             padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 158, 226, 220),
+        border: Border.all(width:1.5,color: const Color.fromARGB(255, 26, 25, 25)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+  child: Image.asset(
+    imagePath,
+    width: 30,
+  ),
+),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(subtitle, style: const TextStyle(color: Colors.black54)),
-              ],
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-            child: Text(buttonText, style: const TextStyle(color: Colors.white)),
-          ),
+                Text(subtitle, style: const TextStyle(color: Color.fromARGB(136, 5, 145, 96),fontSize: 12,fontWeight: FontWeight.w500)),
+        ] 
+  )
+            ],
+       ),
+
+          const SizedBox(width: 12),
+        
+      
         ],
       ),
     );
   }
 
-  Widget _buildBottomNavBar() {
-    return BottomNavigationBar(
-      selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.grey,
+  Widget _buildBottomNavBar(BuildContext context) {
+    return CustomBottomNav(
       currentIndex: 3,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'My Plan'),
-        BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-        BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Merits'),
-        BottomNavigationBarItem(icon: Icon(Icons.build), label: 'Tools'),
-      ],
+      onTap: (index) {
+        if (index == 3) return;
+
+        switch (index) {
+          case 0:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => FitnessWellnessScreen()));
+            break;
+          case 1:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HealthDashboardScreen()));
+            break;
+          case 2:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatWelcomeScreen()));
+            break;
+          case 4:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ToolsScreen()));
+            break;
+        }
+      },
     );
   }
 }

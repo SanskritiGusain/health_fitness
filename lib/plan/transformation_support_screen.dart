@@ -108,14 +108,14 @@ class _TransformationSupportScreenState
       width: MediaQuery.of(context).size.width,
       child: ElevatedButton(
         onPressed: () {
-          // Navigator.push(
-          //           // context,
-          //           // MaterialPageRoute(
-          //           //   builder: (context) => FitnessWellnessScreen(
+          Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FitnessWellnessScreen(
                         
-          //           //   ),
-          //           // ),
-          //         ); // Handle continue action
+                      ),
+                    ),
+                  ); // Handle continue action
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,

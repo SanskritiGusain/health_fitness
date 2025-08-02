@@ -56,15 +56,22 @@
 //   ));
 // }
 import 'package:flutter/material.dart';
-import 'package:test_app/gamification/gamification_screen.dart';
-// import 'pages/home_page.dart'; // Make sure this path is correct
-import 'gamification/gamification_screen.dart';
+import 'package:test_app/call/schedule_call.dart';
+import 'package:test_app/gamification/levels_screen.dart';
+import 'package:test_app/pages/home_page.dart';
+import 'package:test_app/shift/cycle.dart';
+import 'package:test_app/shift/nutrition_tracker.dart';
+import 'package:test_app/shift/water.dart';
+// import 'package:test_app/gamification/gamification_screen.dart';
+import 'plan/fitness_wellness.dart'; // Make sure this path is correct
+// import 'gamification/gamification_screen.dart';
+import 'plan/calorie_tracker.dart';
 void main() {
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     initialRoute: '/', // Use '/' for default route
     routes: {
-      '/': (context) => const GamificationScreen(),
+      '/': (context) => LevelsScreen(),
     },
   ));
 }

@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/shift/checkout_screen.dart'; 
+import 'package:test_app/chat/chat_screen.dart'; 
+import 'package:test_app/gamification/gamification_screen.dart'; 
+import 'package:test_app/plan/fitness_wellness.dart'; 
+import 'package:test_app/utils/custom_bottom_nav.dart'; 
 
+import 'package:test_app/tools/bmi_input.dart'; 
+import 'package:test_app/tools/bmr_input.dart'; 
+import 'package:test_app/tools/body_fat_input.dart'; 
+import 'package:test_app/tools/tdee_input.dart'; 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
 
@@ -20,6 +29,13 @@ class ToolsScreen extends StatelessWidget {
           ),
         ),
         centerTitle: false,
+          bottom: PreferredSize(
+    preferredSize: const Size.fromHeight(1.0),
+    child: Container(
+      color: Colors.grey.shade300,
+      height: 1.0,
+    ),
+  ),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -42,22 +58,22 @@ class ToolsScreen extends StatelessWidget {
     ToolCard(
       title: 'BMI',
       iconPath: 'assets/icons/bmi.png',
-      onTap: () => Navigator.pushNamed(context, '/bmi'),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BMIScreenInput()))
     ),
     ToolCard(
       title: 'BMR',
       iconPath: 'assets/icons/bmr.png',
-      onTap: () => Navigator.pushNamed(context, '/bmr'),
+      onTap: () =>Navigator.push(context, MaterialPageRoute(builder: (context) => BMRScreenInput()))
     ),
     ToolCard(
       title: 'Body fat',
       iconPath: 'assets/icons/bodyfat.png',
-      onTap: () => Navigator.pushNamed(context, '/bodyfat'),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) =>BodyFatInputPage())),
     ),
     ToolCard(
       title: 'TDEE',
       iconPath: 'assets/icons/tdee.png',
-      onTap: () => Navigator.pushNamed(context, '/tdee'),
+      onTap: () =>Navigator.push(context, MaterialPageRoute(builder: (context) => TDEEScreenInput())),
     ),
   ],
 ),
@@ -104,57 +120,27 @@ class ToolsScreen extends StatelessWidget {
           ],
         ),
       ),
-bottomNavigationBar: BottomNavigationBar(
-  currentIndex: 4,
-  selectedItemColor: Colors.black,
-  unselectedItemColor: Colors.grey,
-  type: BottomNavigationBarType.fixed,
-  backgroundColor: Colors.white,
-  items: [
- BottomNavigationBarItem(
-  icon: Image.asset(
-    'assets/icons/ant-design_home-outlined.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-  ),
-  label: 'Home',
-),
-
-    BottomNavigationBarItem(
-    icon: Image.asset(
-                    'assets/icons/plan.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'My Plan',
-    ),
-    BottomNavigationBarItem(
-    icon: Image.asset(
-                'assets/icons/tabler_message.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Chat',
-    ),
-    BottomNavigationBarItem(
-    icon:Image.asset(
-                  'assets/icons/heroicons_trophy.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Merits',
-    ),
-    BottomNavigationBarItem(
-      icon:Image.asset(
-                   'assets/icons/hugeicons_tools.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Tools',
-    ),
-  ],
-)
-
+ bottomNavigationBar: CustomBottomNav(
+      currentIndex: 4, // 0 for Home
+      onTap: (index) {
+        if (index == 4) return; // Already on home
+        
+        switch (index) {
+          case 1:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HealthDashboardScreen()));
+            break;
+          case 2:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatWelcomeScreen()));
+            break;
+          case 3:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => GamificationScreen()));
+            break;
+          case 0:
+            Navigator.push(context, MaterialPageRoute(builder: (context) => FitnessWellnessScreen()));
+            break;
+        }
+      },
+ ),
     );
   }
 }
@@ -235,3 +221,4 @@ class ToolCard extends StatelessWidget {
     );
   }
 }
+// make this screen responsive for all screen 

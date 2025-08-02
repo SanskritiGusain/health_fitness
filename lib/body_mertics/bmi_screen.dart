@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import 'package:test_app/pages/success_page.dart';
 
@@ -297,6 +299,10 @@ class _BMIScreenState extends State<BMIScreen> {
   double _weight = 70; // in kg
   double _targetWeight = 65; // Target weight
 
+  // Progress tracking - you can adjust these values based on your app's flow
+  int currentStep = 3; // Current step (e.g., BMI calculation step)
+  int totalSteps = 5; // Total steps in your onboarding/setup flow
+
   double get _bmi => _weight / ((_height / 100) * (_height / 100));
   double get _targetBMI => _targetWeight / ((_height / 100) * (_height / 100));
 
@@ -305,6 +311,13 @@ class _BMIScreenState extends State<BMIScreen> {
     final categoryMessage = _getBMICategoryMessage(_bmi);
     final categoryColor = _getCategoryColor(_bmi);
     final currentBMI = _bmi;
+    
+    // Screen dimensions
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final isSmallScreen = screenWidth < 360;
+    final isTablet = screenWidth > 600;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FBFB),
@@ -312,209 +325,274 @@ class _BMIScreenState extends State<BMIScreen> {
         backgroundColor: const Color(0xFFF8FBFB),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black,size:26),
           onPressed: () => Navigator.pop(context),
         ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: ListView(
+        title: Container(
+          margin: const EdgeInsets.only(right: 16),
+          child: Row(
             children: [
-              const SizedBox(height: 20),
-
-        
-
-              const SizedBox(height: 40),
-
-              // BMI Gauge
-              Container(
-                padding: const EdgeInsets.all(20),
-               
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    CustomPaint(
-                      size: const Size(285, 160),
-                      painter: BMIGaugePainter(currentBMI),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      "Your BMI is",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w700,
+              Expanded(
+                child: Container(
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: currentStep / totalSteps,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      currentBMI.toStringAsFixed(1),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: categoryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      categoryMessage,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF7F7F7F),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Dynamic Weight Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                  RichText(
-  textAlign: TextAlign.center,
-  text: TextSpan(
-    style: const TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-      color: Color(0xFF7F7F7F),
-    ),
-    children: [
-      const TextSpan(text: "Your ideal weight should be in "),
-      TextSpan(
-        text: "${_getMinWeight()}",
-        style: const TextStyle(color:const Color(0xFF97CD17)),
-      ),
-      const TextSpan(text: " to "),
-      TextSpan(
-        text: "${_targetWeight.toInt()}",
-   style: const TextStyle(color: const Color(0xFF97CD17)),
-      ),
-     
-    ],
-  ),
-),
-
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_targetWeight > 40) _targetWeight -= 1;
-                            });
-                          },
-                          child: Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.remove,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Text(
-                          "${_targetWeight.toInt()}kg",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: _getTargetWeightColor(),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_targetWeight < 120) _targetWeight += 1;
-                            });
-                          },
-                          child: Container(
-                            width: 24,
-                            height: 24,
-                            decoration: const BoxDecoration(
-                              color: Colors.black,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    _getTargetWeightMessageWidget(),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 52),
-              Spacer(),
-     const SizedBox(height: 32),
-              // CTA Button
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () {
-                   Navigator.push(context, MaterialPageRoute(builder: (context) => SuccessPage()));
-                
-                },
-                child: const Text(
-                  "Done",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+          
               
-              const SizedBox(height: 20),
             ],
           ),
+        ),
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 32.0 : 16.0,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          SizedBox(height: screenHeight * 0.12),
+
+                          // BMI Gauge
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                CustomPaint(
+                                  size: Size(
+                                    isTablet ? 350 : (isSmallScreen ? 250 : 285),
+                                    isTablet ? 200 : (isSmallScreen ? 130 : 160),
+                                  ),
+                                  painter: BMIGaugePainter(currentBMI),
+                                ),
+                                SizedBox(height: screenHeight * 0.018),
+                                Text(
+                                  "Your BMI is",
+                                  style: TextStyle(
+                                    fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: screenHeight * 0.005),
+                                Text(
+                                  currentBMI.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    fontSize: isTablet ? 28 : (isSmallScreen ? 18 : 20),
+                                    fontWeight: FontWeight.w700,
+                                    color: categoryColor,
+                                  ),
+                                ),
+                                SizedBox(height: screenHeight * 0.01),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Text(
+                                    categoryMessage,
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                      color: const Color(0xFF7F7F7F),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(height: screenHeight * 0.03),
+
+                          // Dynamic Weight Card
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: RichText(
+                                    textAlign: TextAlign.center,
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF7F7F7F),
+                                      ),
+                                      children: [
+                                        const TextSpan(text: "Your ideal weight should be in "),
+                                        TextSpan(
+                                          text: "${_getMinWeight()}",
+                                          style: const TextStyle(color: Color(0xFF97CD17)),
+                                        ),
+                                        const TextSpan(text: " to "),
+                                        TextSpan(
+                                          text: "${_targetWeight.toInt()}",
+                                          style: const TextStyle(color: Color(0xFF97CD17)),
+                                        ),
+                                        const TextSpan(text: " kg"),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(height: screenHeight * 0.015),
+                                
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          if (_targetWeight > 40) _targetWeight -= 1;
+                                        });
+                                      },
+                                      child: Container(
+                                        width: isSmallScreen ? 20 : 24,
+                                        height: isSmallScreen ? 20 : 24,
+                                        decoration: BoxDecoration(
+                                         color: Colors.black,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.remove,
+                                          size: isSmallScreen ? 14 : 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: screenWidth * 0.05),
+                                    Text(
+                                      "${_targetWeight.toInt()}kg",
+                                      style: TextStyle(
+                                        fontSize: isTablet ? 28 : (isSmallScreen ? 20 : 24),
+                                        fontWeight: FontWeight.w700,
+                                        color: _getTargetWeightColor(),
+                                      ),
+                                    ),
+                                    SizedBox(width: screenWidth * 0.05),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          if (_targetWeight < 120) _targetWeight += 1;
+                                        });
+                                      },
+                                      child: Container(
+                                        width: isSmallScreen ? 20 : 24,
+                                        height: isSmallScreen ? 20 : 24,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.add,
+                                          size: isSmallScreen ? 14 : 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                
+                                SizedBox(height: screenHeight * 0.015),
+                                
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: _getTargetWeightMessageWidget(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // CTA Button
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: screenHeight * 0.04,
+                          bottom: screenHeight * 0.02,
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: isSmallScreen ? 44 : 48,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SuccessPage()),
+                              );
+                            },
+                            child: Text(
+                              "Done",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isTablet ? 18 : (isSmallScreen ? 14 : 16),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -558,7 +636,7 @@ class _BMIScreenState extends State<BMIScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: const Color(0xFF97CD17), width: 2),
+              borderSide: const BorderSide(color: Color(0xFF97CD17), width: 2),
             ),
           ),
         ),
@@ -573,11 +651,11 @@ class _BMIScreenState extends State<BMIScreen> {
     final maxWeight = (24.9 * heightInM * heightInM).round();
     return "${minWeight} to ${minWeight}";
   }
+  
   int _getMinWeight() {
-  final heightInM = _height / 100;
-  return (18.5 * heightInM * heightInM).round();
-}
-
+    final heightInM = _height / 100;
+    return (18.5 * heightInM * heightInM).round();
+  }
 
   String _getWeightRangeText() {
     final idealRange = _getIdealWeightRange();
@@ -610,26 +688,27 @@ class _BMIScreenState extends State<BMIScreen> {
   Widget _getTargetWeightMessageWidget() {
     final targetBMI = _targetBMI;
     final weightText = "${_targetWeight.toInt()}kg";
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final isTablet = screenWidth > 600;
     
     if (targetBMI >= 18.5 && targetBMI <= 24.9) {
       return RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF7F7F7F),
-              fontWeight: FontWeight.w500,
+          style: TextStyle(
+            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
+            color: const Color(0xFF7F7F7F),
+            fontWeight: FontWeight.w500,
           ),
           children: [
             const TextSpan(text: "Your target weight is set to "),
             TextSpan(
               text: weightText,
-style: const TextStyle(
-  color: Color(0xFF0C0C0C),
-  fontWeight: FontWeight.w700, // correct
-),
-
-
+              style: const TextStyle(
+                color: Color(0xFF0C0C0C),
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const TextSpan(text: ".\nYou're aiming lean stay consistent and you'll hit it strong and healthy."),
           ],
@@ -639,9 +718,9 @@ style: const TextStyle(
       return RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF7F7F7F),
+          style: TextStyle(
+            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
+            color: const Color(0xFF7F7F7F),
           ),
           children: [
             const TextSpan(text: "Your target weight is set to "),
@@ -657,9 +736,9 @@ style: const TextStyle(
       return RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF7F7F7F),
+          style: TextStyle(
+            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
+            color: const Color(0xFF7F7F7F),
           ),
           children: [
             const TextSpan(text: "Your target weight is set to "),
@@ -675,9 +754,9 @@ style: const TextStyle(
       return RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF7F7F7F),
+          style: TextStyle(
+            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
+            color: const Color(0xFF7F7F7F),
           ),
           children: [
             const TextSpan(text: "Your target weight is set to "),

@@ -45,13 +45,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      print("Name: ${_nameController.text}");
-      print("Age: ${_ageController.text}");
-      print("Gender: $_selectedGender");
-
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) =>  LocationSelectionPage()),
+        MaterialPageRoute(
+          builder: (context) =>  LocationSelectionPage(),
+        ),
       );
     }
   }
@@ -67,121 +65,133 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FBFB),
-      body: Stack(
-        children: [
-          // Progress Bar
-          Positioned(
-            top: 88,
-            left: 20,
-            right: 20,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: const LinearProgressIndicator(
-                value: 0.15,
-                minHeight: 6,
-                backgroundColor: Color(0xFFECEFEE),
-                valueColor: AlwaysStoppedAnimation(Color(0xFF0C0C0C)),
-              ),
-            ),
-          ),
-
-          // Title
-          Positioned(
-            top: 130,
-            left: 20,
-            child: const Text(
-              "Details",
-              style: TextStyle(
-                fontFamily: 'Merriweather',
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF222326),
-              ),
-            ),
-          ),
-
-          // Form Fields
-          Positioned(
-            top: 190,
-            left: 16,
-            right: 16,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea( // Added SafeArea for better layout
+        child: Stack(
+          children: [
+            // Progress Bar
+            Positioned(
+              top: 20,
+              left: 6,
+              right: 16,
+              child: Row(
                 children: [
-                  _buildMenuItem("Name"),
-                  _buildTextField(
-                    controller: _nameController,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Name is required';
-                      } else if (!_nameRegExp.hasMatch(value.trim())) {
-                        return 'Only letters allowed';
-                      } else if (value.trim().length < 3) {
-                        return 'Min 3 characters';
-                      } else if (value.trim().length > 20) {
-                        return 'Max 20 characters';
-                      }
-                      return null;
-                    },
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Color(0xFF222326),size: 28,),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  const SizedBox(height: 20),
-
-                  _buildMenuItem("Age"),
-                  _buildTextField(
-                    controller: _ageController,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Age is required';
-                      }
-                      final age = int.tryParse(value.trim());
-                      if (age == null || age <= 0 || age > 120) {
-                        return 'Enter valid age';
-                      }
-                      return null;
-                    },
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: const LinearProgressIndicator(
+                        value: 0.15,
+                        minHeight: 6,
+                        backgroundColor: Color(0xFFECEFEE),
+                        valueColor: AlwaysStoppedAnimation(Color(0xFF0C0C0C)),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-
-                  _buildMenuItem("Gender"),
-                  _buildPopupGenderDropdown(),
                 ],
               ),
             ),
-          ),
 
-          // Next Button
-          Positioned(
-            bottom: 45,
-            left: 16,
-            right: 16,
-            child: SizedBox(
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _isButtonEnabled ? _submit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isButtonEnabled
-                      ? const Color(0xFF0C0C0C)
-                      : const Color(0xFF7F8180),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+            // Title
+            const Positioned(
+              top: 100,
+              left: 20,
+              child: Text(
+                "Details",
+                style: TextStyle(
+                  fontFamily: 'Merriweather',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF222326),
                 ),
-                child: const Text(
-                  'Next',
-                  style: TextStyle(
-                    fontFamily: 'DM Sans',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFFFFFFF),
+              ),
+            ),
+
+            // Form Fields
+            Positioned(
+              top: 160,
+              left: 16,
+              right: 16,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildMenuItem("Name"),
+                    _buildTextField(
+                      controller: _nameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Name is required';
+                        } else if (!_nameRegExp.hasMatch(value.trim())) {
+                          return 'Only letters allowed';
+                        } else if (value.trim().length < 3) {
+                          return 'Min 3 characters';
+                        } else if (value.trim().length > 20) {
+                          return 'Max 20 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 26),
+
+                    _buildMenuItem("Age"),
+                    _buildTextField(
+                      controller: _ageController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Age is required';
+                        }
+                        final age = int.tryParse(value.trim());
+                        if (age == null || age <= 0 || age > 120) {
+                          return 'Enter valid age';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 26),
+
+                    _buildMenuItem("Gender"),
+                    _buildPopupGenderDropdown(),
+                  ],
+                ),
+              ),
+            ),
+
+            // Next Button
+            Positioned(
+              bottom: 45,
+              left: 16,
+              right: 16,
+              child: SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _isButtonEnabled ? _submit : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isButtonEnabled
+                        ? const Color(0xFF0C0C0C)
+                        : const Color(0xFF7F8180),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Next',
+                    style: TextStyle(
+                      fontFamily: 'DM Sans',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFFFFFF),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -269,7 +279,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                 const PopupMenuItem(value: 'Female', child: Text('Female')),
                 const PopupMenuItem(value: 'Other', child: Text('Other')),
               ],
-              color: Color(0xFFFFFFFF),
+              color: const Color(0xFFFFFFFF),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
                 side: const BorderSide(color: Color(0xFFDDE5F0)),
@@ -288,7 +298,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
-              color: Color(0xFFFFFFFF),
+              color: const Color(0xFFFFFFFF),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFFDDE5F0)),
             ),
