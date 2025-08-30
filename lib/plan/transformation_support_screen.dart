@@ -11,7 +11,8 @@ class TransformationSupportScreen extends StatefulWidget {
 }
 
 class _TransformationSupportScreenState
-    extends State<TransformationSupportScreen> with TickerProviderStateMixin {
+    extends State<TransformationSupportScreen>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -23,14 +24,8 @@ class _TransformationSupportScreenState
       vsync: this,
     )..repeat();
 
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(
-      CurvedAnimation(
-        parent: _pulseController,
-        curve: Curves.easeInOut,
-      ),
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
 
@@ -108,14 +103,14 @@ class _TransformationSupportScreenState
       width: MediaQuery.of(context).size.width,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FitnessWellnessScreen(
-                        
-                      ),
-                    ),
-                  ); // Handle continue action
+          // Navigator.push(
+          //           context,
+          //           MaterialPageRoute(
+          //             builder: (context) => FitnessWellnessScreen(
+
+          //             ),
+          //           ),
+          //         ); // Handle continue action
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,
@@ -127,10 +122,7 @@ class _TransformationSupportScreenState
         ),
         child: const Text(
           'Go to Home',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );

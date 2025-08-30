@@ -1,4 +1,5 @@
-package com.example.test_app
+package health.fitness.com
+
 
 import io.flutter.embedding.android.FlutterActivity
 

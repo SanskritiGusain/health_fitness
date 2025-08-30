@@ -1,59 +1,48 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_app/utils/custom_app_bars.dart';
+import 'customer_service.dart';
 class HelpScreen extends StatefulWidget {
   @override
   _HelpScreenState createState() => _HelpScreenState();
 }
 
 class _HelpScreenState extends State<HelpScreen> {
- 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFF8FBFB),
+      appBar: CustomAppBars.backAppBar(context, "Help"),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
               child: Column(
                 children: [
-                  // Header
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Color(0xFFCBD5E1)),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.arrow_back_ios, size: 20),
-                        SizedBox(width: 12),
-                        Text(
-                          'Settings',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+               
 
                   // Settings Options
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: 14,vertical: 12),
                       child: Column(
                         children: [
-                          _buildSettingItem(
-                            iconAsset: 'assets/icons/ri_customer-service-2-line.png',
+                    _buildSettingItem(
+                            iconAsset:
+                                'assets/icons_update/tdesign_chat-bubble-help-filled.svg',
                             title: 'Customer Services',
-                            // onTap: ,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) =>
+                                          ContactUsScreen(), // replace with your target screen
+                                ),
+                              );
+                            },
                           ),
-                          
-                        
+
                         ],
                       ),
                     ),
@@ -81,29 +70,26 @@ class _HelpScreenState extends State<HelpScreen> {
   Widget _buildSettingItem({
     required String iconAsset,
     required String title,
-    // required VoidCallback onTap,
+     required VoidCallback onTap, // required VoidCallback onTap,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        // onTap: onTap,
+onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 4, vertical: 18),
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1,
-                  ),
+                  color: const Color(0xFFE0E7ED),
                 ),
-                child: Image.asset(
+                child: SvgPicture.asset(
                   iconAsset,
                   width: 16,
                   height: 16,
@@ -115,21 +101,16 @@ class _HelpScreenState extends State<HelpScreen> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.w500,
                     color: Colors.black,
                   ),
                 ),
               ),
-            
             ],
           ),
         ),
       ),
     );
   }
-
-
-
 }
-

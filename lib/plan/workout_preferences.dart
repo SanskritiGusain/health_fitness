@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:test_app/plan/fitness_goal_loading.dart';
+import 'package:test_app/plan/diet_preferences.dart';
 
-class FitnessFlowScreen extends StatefulWidget {
-  const FitnessFlowScreen({Key? key}) : super(key: key);
+class WorkoutPreferences extends StatefulWidget {
+  const WorkoutPreferences({Key? key}) : super(key: key);
 
   @override
-  State<FitnessFlowScreen> createState() => _FitnessFlowScreenState();
+  State<WorkoutPreferences> createState() => _WorkoutPreferencesState();
 }
 
-class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
+class _WorkoutPreferencesState extends State<WorkoutPreferences> {
   String selectedLevel = '';
   List<String> selectedWorkoutTypes = [];
   String selectedTimeAvailability = '';
@@ -44,30 +44,22 @@ class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
                 children: [
                   _buildSection(
                     title: 'Level',
-                    children: [
-                      _buildLevelOptions(),
-                    ],
+                    children: [_buildLevelOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Workout Type',
-                    children: [
-                      _buildWorkoutTypeOptions(),
-                    ],
+                    children: [_buildWorkoutTypeOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Time Availability',
-                    children: [
-                      _buildTimeAvailabilityOptions(),
-                    ],
+                    children: [_buildTimeAvailabilityOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Special Needs / Conditions',
-                    children: [
-                      _buildSpecialNeedsOptions(),
-                    ],
+                    children: [_buildSpecialNeedsOptions()],
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -81,12 +73,13 @@ class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                     Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>FitnessGoalLoadingScreen(),
-                                ),
-                              );
+                 
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DietPreferencesScreen(),
+                    ),
+                  );
                   // Handle next button
                 },
                 style: ElevatedButton.styleFrom(
@@ -111,7 +104,10 @@ class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
     );
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -221,13 +217,19 @@ class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
             _buildSelectableChip(
               text: 'Under 15 minutes',
               isSelected: selectedTimeAvailability == 'Under 15 minutes',
-              onTap: () => setState(() => selectedTimeAvailability = 'Under 15 minutes'),
+              onTap:
+                  () => setState(
+                    () => selectedTimeAvailability = 'Under 15 minutes',
+                  ),
             ),
             const SizedBox(width: 12),
             _buildSelectableChip(
               text: '15-30 minutes',
               isSelected: selectedTimeAvailability == '15-30 minutes',
-              onTap: () => setState(() => selectedTimeAvailability = '15-30 minutes'),
+              onTap:
+                  () => setState(
+                    () => selectedTimeAvailability = '15-30 minutes',
+                  ),
             ),
           ],
         ),
@@ -237,13 +239,18 @@ class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
             _buildSelectableChip(
               text: '30-45 minutes',
               isSelected: selectedTimeAvailability == '30-45 minutes',
-              onTap: () => setState(() => selectedTimeAvailability = '30-45 minutes'),
+              onTap:
+                  () => setState(
+                    () => selectedTimeAvailability = '30-45 minutes',
+                  ),
             ),
             const SizedBox(width: 12),
             _buildSelectableChip(
               text: '45+ minutes',
               isSelected: selectedTimeAvailability == '45+ minutes',
-              onTap: () => setState(() => selectedTimeAvailability = '45+ minutes'),
+              onTap:
+                  () =>
+                      setState(() => selectedTimeAvailability = '45+ minutes'),
             ),
           ],
         ),
@@ -258,7 +265,9 @@ class _FitnessFlowScreenState extends State<FitnessFlowScreen> {
           children: [
             _buildSelectableChip(
               text: 'Low impact / Joint-friendly',
-              isSelected: selectedSpecialNeeds.contains('Low impact / Joint-friendly'),
+              isSelected: selectedSpecialNeeds.contains(
+                'Low impact / Joint-friendly',
+              ),
               onTap: () => _toggleSpecialNeed('Low impact / Joint-friendly'),
             ),
             const SizedBox(width: 12),

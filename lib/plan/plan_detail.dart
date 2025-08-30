@@ -43,7 +43,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
   bool isLoading = true;
   String? errorMessage;
 
-  static const String baseUrl = 'http://192.168.1.7:8000';
+  static const String baseUrl = 'http://192.168.1.12:8000';
 
   @override
   void initState() {
@@ -93,7 +93,8 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
     if (imageUrl.isEmpty) return '';
     if (imageUrl.startsWith('http')) return imageUrl;
     // Remove leading slash if present and add base URL
-    final cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+    final cleanPath =
+        imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
     return '$baseUrl/$cleanPath';
   }
 
@@ -118,64 +119,62 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
         ),
         centerTitle: false,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage != null
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        errorMessage!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isLoading = true;
-                            errorMessage = null;
-                          });
-                          _loadPlanDetails();
-                        },
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            _buildImageTitleContainer(),
-                            const SizedBox(height: 16),
-                            if (widget.isFreePlan) ...[
-                              _buildFreePlanOverview(),
-                              const SizedBox(height: 16),
-                              _buildDetailedDescriptionContainer(),
-                            ] else ...[
-                              _buildPaidPlanSection(),
-                            ],
-                          ],
-                        ),
-                      ),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.grey[400],
                     ),
-                    _buildSubscribeButtonContainer(),
+                    const SizedBox(height: 16),
+                    Text(
+                      errorMessage!,
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          isLoading = true;
+                          errorMessage = null;
+                        });
+                        _loadPlanDetails();
+                      },
+                      child: const Text('Retry'),
+                    ),
                   ],
                 ),
+              )
+              : Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildImageTitleContainer(),
+                          const SizedBox(height: 16),
+                          if (widget.isFreePlan) ...[
+                            _buildFreePlanOverview(),
+                            const SizedBox(height: 16),
+                            _buildDetailedDescriptionContainer(),
+                          ] else ...[
+                            _buildPaidPlanSection(),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  _buildSubscribeButtonContainer(),
+                ],
+              ),
     );
   }
 
@@ -201,20 +200,25 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
           const SizedBox(height: 16),
           const Text('Target Audience', style: _labelStyle),
           Text(
-            planDetails?['target_audience'] ?? planDetails?['tag'] ?? 'General fitness',
+            planDetails?['target_audience'] ??
+                planDetails?['tag'] ??
+                'General fitness',
             style: _valueStyle,
           ),
           const SizedBox(height: 16),
           const Text('Focus Areas', style: _labelStyle),
           Text(
-            planDetails?['focus_area'] ?? planDetails?['description'] ?? 'Core workouts • fat-burning foods',
+            planDetails?['focus_area'] ??
+                planDetails?['description'] ??
+                'Core workouts • fat-burning foods',
             style: _valueStyle,
           ),
           const SizedBox(height: 30),
           const Text('Key Features', style: _labelStyle),
           const SizedBox(height: 10),
           // Use key_features from API if available
-          if (planDetails?['key_features'] != null && planDetails!['key_features'] is List)
+          if (planDetails?['key_features'] != null &&
+              planDetails!['key_features'] is List)
             ...List<Widget>.from(
               (planDetails!['key_features'] as List).map(
                 (feature) => _buildFeatureItem('• $feature'),
@@ -224,11 +228,14 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
             _buildFeatureItem('• Daily activity tasks'),
             _buildFeatureItem('• Personalized meal plan'),
             _buildFeatureItem('• Body metrics progress report'),
-            _buildFeatureItem('• ${widget.isFreePlan ? 'AI chat support' : 'Expert coach support'}'),
+            _buildFeatureItem(
+              '• ${widget.isFreePlan ? 'AI chat support' : 'Expert coach support'}',
+            ),
           ],
-          
+
           // Show highlight line if available
-          if (planDetails?['highlight_line'] != null && planDetails!['highlight_line'].toString().isNotEmpty) ...[
+          if (planDetails?['highlight_line'] != null &&
+              planDetails!['highlight_line'].toString().isNotEmpty) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -238,11 +245,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.star,
-                    color: Color(0xFF3C8F7C),
-                    size: 20,
-                  ),
+                  const Icon(Icons.star, color: Color(0xFF3C8F7C), size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -290,11 +293,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
       ),
       child: Column(
         children: [
-          const Icon(
-            Icons.star,
-            color: Colors.amber,
-            size: 16,
-          ),
+          const Icon(Icons.star, color: Colors.amber, size: 16),
           const SizedBox(height: 8),
           Text(
             text,
@@ -312,7 +311,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
   Widget _buildImageTitleContainer() {
     // Use API image URL if available, otherwise fall back to widget image
     final imageUrl = planDetails?['image_url'] ?? widget.imageAsset;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -336,46 +335,56 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
             child: SizedBox(
               width: double.infinity,
               height: 200,
-              child: imageUrl.isNotEmpty
-                  ? Image.network(
-                      _getFullImageUrl(imageUrl),
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.grey,
+              child:
+                  imageUrl.isNotEmpty
+                      ? Image.network(
+                        _getFullImageUrl(imageUrl),
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.grey,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.image_not_supported, 
-                                     color: Colors.grey, size: 48),
-                                SizedBox(height: 8),
-                                Text('Image not available',
-                                     style: TextStyle(color: Colors.grey)),
-                              ],
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey,
+                                    size: 48,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Image not available',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                ],
+                              ),
                             ),
+                          );
+                        },
+                      )
+                      : Container(
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(
+                            Icons.image,
+                            color: Colors.grey,
+                            size: 48,
                           ),
-                        );
-                      },
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.image, color: Colors.grey, size: 48),
+                        ),
                       ),
-                    ),
             ),
           ),
           Padding(
@@ -395,7 +404,10 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xB2E6F7F6),
                         borderRadius: BorderRadius.circular(4),
@@ -421,7 +433,8 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (planDetails?['highlight_line'] != null && planDetails!['highlight_line'].toString().isNotEmpty)
+                if (planDetails?['highlight_line'] != null &&
+                    planDetails!['highlight_line'].toString().isNotEmpty)
                   Text(
                     planDetails!['highlight_line'],
                     style: const TextStyle(
@@ -468,9 +481,9 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
           const Text('Detailed Description', style: _headingStyle),
           const SizedBox(height: 20),
           Text(
-            planDetails?['detailed_description'] ?? 
-            planDetails?['description'] ??
-            'This comprehensive program includes personalized meal plans, workout routines, and ongoing support to ensure you reach your transformation goals.',
+            planDetails?['detailed_description'] ??
+                planDetails?['description'] ??
+                'This comprehensive program includes personalized meal plans, workout routines, and ongoing support to ensure you reach your transformation goals.',
             style: _valueStyle,
           ),
           const SizedBox(height: 20),
@@ -547,9 +560,13 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
           Row(
             children: [
               // Show discount if available from API
-              if (widget.showDiscount && (planDetails?['discount_percent'] ?? 0) > 0)
+              if (widget.showDiscount &&
+                  (planDetails?['discount_percent'] ?? 0) > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFCC1C13),
                     borderRadius: BorderRadius.circular(6),
@@ -574,11 +591,13 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                     ],
                   ),
                 ),
-              if (widget.showDiscount && (planDetails?['discount_percent'] ?? 0) > 0) 
+              if (widget.showDiscount &&
+                  (planDetails?['discount_percent'] ?? 0) > 0)
                 const SizedBox(width: 12),
-              
+
               // Show original price if available
-              if (planDetails?['old_monthly_price'] != null && planDetails!['old_monthly_price'] > 0)
+              if (planDetails?['old_monthly_price'] != null &&
+                  planDetails!['old_monthly_price'] > 0)
                 Text(
                   '₹${planDetails!['old_monthly_price']}',
                   style: const TextStyle(
@@ -588,9 +607,10 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                     color: Color(0xFF7F7F7F),
                   ),
                 ),
-              if (planDetails?['old_monthly_price'] != null && planDetails!['old_monthly_price'] > 0) 
+              if (planDetails?['old_monthly_price'] != null &&
+                  planDetails!['old_monthly_price'] > 0)
                 const SizedBox(width: 8),
-              
+
               // Show current price
               Text(
                 '₹${planDetails?['monthly_price'] ?? planDetails?['price'] ?? widget.subText.replaceAll('₹', '')}',
@@ -603,10 +623,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
               const SizedBox(width: 6),
               const Text(
                 'per month',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.black87),
               ),
             ],
           ),
@@ -618,7 +635,9 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Proceeding to checkout for ${planDetails?['name'] ?? widget.title}'),
+                    content: Text(
+                      'Proceeding to checkout for ${planDetails?['name'] ?? widget.title}',
+                    ),
                     backgroundColor: Colors.green,
                   ),
                 );

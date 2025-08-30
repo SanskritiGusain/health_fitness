@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../utils/circlular progressbar.dart';
 class LevelsScreen extends StatelessWidget {
   const LevelsScreen({super.key});
 
@@ -11,16 +11,8 @@ class LevelsScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: const Icon(Icons.arrow_back, color: Colors.black),
-        title: const Text(""),
-        actions: [
-          Row(
-            children: const [
-              Text("Today", style: TextStyle(color: Colors.black)),
-              Icon(Icons.keyboard_arrow_down, color: Colors.black),
-              SizedBox(width: 16),
-            ],
-          )
-        ],
+        title: const Text("Levels"),
+        
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(10),
@@ -41,51 +33,134 @@ class LevelsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProgressCard() {
+
+  Widget _buildProgressCard({
+    int currentLevel = 7,
+    int currentXP = 2000,
+    int goalXP = 3000,
+  }) {
+    double progress = currentXP / goalXP;
+
     return Container(
+    //  margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Level Progress", style: TextStyle(fontSize: 14)),
-          const SizedBox(height: 8),
-          Row(
-            children: const [
-              Text("Level 7", style: TextStyle(fontWeight: FontWeight.w600)),
-              Spacer(),
-              Text("3,340 / 4,000 XP", style: TextStyle(fontSize: 12)),
-            ],
+          const Text(
+            'Level Progress',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 8),
-          Stack(
+          const SizedBox(height: 16),
+          Row(
             children: [
-              Container(
-                height: 14,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
+              // Circular Progress Indicator
+              SizedBox(
+                width: 110,
+                height: 110,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Background circle
+
+                    // Progress circle
+                    RoundedCircularProgress(
+                      progress: progress,
+                      remainingText: 'Level $currentLevel',
+                      strokeWidth: 11,
+                      progressColor: Colors.orange,
+                      backgroundColor: Colors.grey.shade300,
+                    ),
+                    // Level text in center
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          "assets/icons/level_icon.png",
+                          height: 24,
+                          width: 24,
+                        ),
+                        Text(
+                          'Level: $currentLevel',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              FractionallySizedBox(
-                widthFactor: 0.835,
-                child: Container(
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Color(0xFF2F80ED),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 4,
-                top: -18,
-                child: Image.asset(
-                  'assets/icons/points_icon.png', // 👈 Use your own image
-                  height: 32,
+
+              const SizedBox(width: 32),
+
+              // XP Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 16),
+                        children: [
+                          TextSpan(
+                            text: 'Goal: ',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '${goalXP.toString()} XP',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 16),
+                        children: [
+                          TextSpan(
+                            text: 'Earned:',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const WidgetSpan(
+                            child: SizedBox(width: 6),
+                          ), // <-- space
+                          TextSpan(
+                            text: '${currentXP.toString()} XP',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Progress bar (optional - can remove if you only want circular)
+                  ],
                 ),
               ),
             ],
@@ -94,6 +169,7 @@ class LevelsScreen extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _buildLevelGrid() {
     final levels = [
@@ -136,7 +212,7 @@ class LevelsScreen extends StatelessWidget {
       {
         "level": "7",
      "xp": "XP: 3000/3000",
-        "status": "In Progress",
+        "status": "Started",
         "badge": "assets/new_icons/level_icons.png"
       },
       {
@@ -153,15 +229,15 @@ class LevelsScreen extends StatelessWidget {
       },
     ];
 
-    return GridView.builder(
+  return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: levels.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 2, // 2 cards per row
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.8,
+        // DO NOT set childAspectRatio to let height depend on content
       ),
       itemBuilder: (context, index) {
         final level = levels[index];
@@ -169,9 +245,9 @@ class LevelsScreen extends StatelessWidget {
 
         Color textColor;
         if (status == "Completed") {
+          textColor = const Color.fromARGB(255, 128, 115, 7);
+        } else if (status == "Started") {
           textColor = Colors.green;
-        } else if (status == "In Progress") {
-          textColor = Colors.orange;
         } else {
           textColor = Colors.grey;
         }
@@ -184,21 +260,20 @@ class LevelsScreen extends StatelessWidget {
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // shrink height to content
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Level ${level['level']}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14)),
-              const SizedBox(height: 4),
-              Text(
-                level['xp']!,
-                style: const TextStyle(fontSize: 12),
-              ),
+              Image.asset(level['badge']!, height: 40),
               const SizedBox(height: 6),
-              Image.asset(
-                level['badge']!,
-                height: 40,
+              Text(
+                "Level ${level['level']}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
+              const SizedBox(height: 4),
+              Text(level['xp']!, style: const TextStyle(fontSize: 12)),
               const SizedBox(height: 6),
               Text(
                 level['status']!,
@@ -209,5 +284,7 @@ class LevelsScreen extends StatelessWidget {
         );
       },
     );
+
+
   }
 }

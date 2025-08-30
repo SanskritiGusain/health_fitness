@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/pages/location_select.dart';
-import '../pages/weight_input.dart';
+import 'weight_input.dart';
 
 class HeightInputPage extends StatefulWidget {
   const HeightInputPage({super.key});
@@ -24,8 +24,12 @@ class _HeightInputPageState extends State<HeightInputPage> {
   @override
   void initState() {
     super.initState();
-    _controllerCm = FixedExtentScrollController(initialItem: selectedHeightCm - 50);
-    _controllerIn = FixedExtentScrollController(initialItem: selectedHeightInch - 20);
+    _controllerCm = FixedExtentScrollController(
+      initialItem: selectedHeightCm - 50,
+    );
+    _controllerIn = FixedExtentScrollController(
+      initialItem: selectedHeightInch - 20,
+    );
   }
 
   @override
@@ -39,9 +43,13 @@ class _HeightInputPageState extends State<HeightInputPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => WeightInputPage(
-          height: isCm ? selectedHeightCm.toDouble() : selectedHeightInch * 2.54,
-        ),
+        builder:
+            (context) => WeightInputPage(
+              height:
+                  isCm
+                      ? selectedHeightCm.toDouble()
+                      : selectedHeightInch * 2.54,
+            ),
       ),
     );
   }
@@ -75,7 +83,9 @@ class _HeightInputPageState extends State<HeightInputPage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const LocationSelectionPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const LocationSelectionPage(),
+                        ),
                       );
                     },
                   ),
@@ -115,7 +125,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('cm', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const Text(
+                  'cm',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => setState(() => isCm = !isCm),
@@ -129,7 +142,8 @@ class _HeightInputPageState extends State<HeightInputPage> {
                     ),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 200),
-                      alignment: isCm ? Alignment.centerLeft : Alignment.centerRight,
+                      alignment:
+                          isCm ? Alignment.centerLeft : Alignment.centerRight,
                       child: Container(
                         width: 20,
                         height: 20,
@@ -142,7 +156,14 @@ class _HeightInputPageState extends State<HeightInputPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text('in', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF222326))),
+                const Text(
+                  'in',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF222326),
+                  ),
+                ),
               ],
             ),
             SizedBox(height: screenHeight * 0.01),
@@ -158,12 +179,23 @@ class _HeightInputPageState extends State<HeightInputPage> {
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: isCm ? '$selectedHeightCm' : '$selectedHeightInch',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Color(0xFF222326)),
+                            text:
+                                isCm
+                                    ? '$selectedHeightCm'
+                                    : '$selectedHeightInch',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF222326),
+                            ),
                           ),
                           TextSpan(
                             text: isCm ? ' cm' : ' in',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF222326)),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF222326),
+                            ),
                           ),
                         ],
                       ),
@@ -226,13 +258,19 @@ class _HeightInputPageState extends State<HeightInputPage> {
                                           child: Container(
                                             width: isLong ? 60 : 35,
                                             height: 1,
-                                            color: isLong ? const Color(0xFF222326) : const Color(0xFF9EA3A9),
+                                            color:
+                                                isLong
+                                                    ? const Color(0xFF222326)
+                                                    : const Color(0xFF9EA3A9),
                                           ),
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       if (isLong)
-                                        Text('$val', style: const TextStyle(fontSize: 14)),
+                                        Text(
+                                          '$val',
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
                                     ],
                                   );
                                 },
@@ -243,7 +281,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
                         Positioned(
                           left: 45,
                           right: 65,
-                          child: Container(height: 2, color: const Color(0xFF0C0C0C)),
+                          child: Container(
+                            height: 2,
+                            color: const Color(0xFF0C0C0C),
+                          ),
                         ),
                       ],
                     ),
@@ -265,7 +306,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled ? _submit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isButtonEnabled ? const Color(0xFF0C0C0C) : const Color(0xFF7F8180),
+                    backgroundColor:
+                        _isButtonEnabled
+                            ? const Color(0xFF0C0C0C)
+                            : const Color(0xFF7F8180),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

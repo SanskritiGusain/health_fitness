@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:test_app/body_mertics/bmi_screen.dart';
 import 'next_screen.dart';
 
-
 class BmiGifScreen extends StatefulWidget {
   const BmiGifScreen({super.key});
 
@@ -23,23 +22,20 @@ class _BmiGifScreenState extends State<BmiGifScreen>
   void _navigateToNext() {
     if (!hasNavigated) {
       hasNavigated = true;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (_, __, ___) => const BMIScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            final springAnimation = CurvedAnimation(
-              parent: animation,
-              curve: const SpringCurve(stiffness: 711.1, damping: 40),
-            );
-            return FadeTransition(
-              opacity: springAnimation,
-              child: child,
-            );
-          },
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   PageRouteBuilder(
+      //     transitionDuration: const Duration(milliseconds: 600),
+      //     pageBuilder: (_, __, ___) => const BMIScreen(),
+      //     transitionsBuilder: (_, animation, __, child) {
+      //       final springAnimation = CurvedAnimation(
+      //         parent: animation,
+      //         curve: const SpringCurve(stiffness: 711.1, damping: 40),
+      //       );
+      //       return FadeTransition(opacity: springAnimation, child: child);
+      //     },
+      //   ),
+      // );
     }
   }
 
@@ -52,31 +48,23 @@ class _BmiGifScreenState extends State<BmiGifScreen>
           children: [
             SingleChildScrollView(
               child: Center(
-                child:Column(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    const SizedBox(height: 30),
-     // 🔸 mobile_apple.gif cropped from bottom
-     ClipRect(
-      child: Align(
-        alignment: Alignment.topCenter,
-    // Adjust to crop more/less
-        child: Image.asset(
-          'assets/images/bmi_weight.gif',
-          fit: BoxFit.contain,
-        ),
-      ),
-    ),
-
-  
-
-
-   
-   
-  ],
-),
-
-
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 30),
+                    // 🔸 mobile_apple.gif cropped from bottom
+                    ClipRect(
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        // Adjust to crop more/less
+                        child: Image.asset(
+                          'assets/images/bmi_weight.gif',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/body_mertics/bmi_screen.dart';
 import 'next_screen.dart';
 import '../signUp/signup_page.dart';
 
@@ -26,16 +27,13 @@ class _GifSplashPageState extends State<GifSplashPage>
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (_, __, ___) => const SignupSelectionPage(),
+          pageBuilder: (_, __, ___) => const BMIScreen(bmi: 54.45),
           transitionsBuilder: (_, animation, __, child) {
             final springAnimation = CurvedAnimation(
               parent: animation,
               curve: const SpringCurve(stiffness: 711.1, damping: 40),
             );
-            return FadeTransition(
-              opacity: springAnimation,
-              child: child,
-            );
+            return FadeTransition(opacity: springAnimation, child: child);
           },
         ),
       );
@@ -51,40 +49,37 @@ class _GifSplashPageState extends State<GifSplashPage>
           children: [
             SingleChildScrollView(
               child: Center(
-                child:Column(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    const SizedBox(height: 30),
-     // 🔸 mobile_apple.gif cropped from bottom
-     ClipRect(
-      child: Align(
-        alignment: Alignment.topCenter,
-        heightFactor: 0.60, // Adjust to crop more/less
-        child: Image.asset(
-          'assets/images/mobile_apple.gif',
-          fit: BoxFit.contain,
-        ),
-      ),
-    ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 30),
+                    // 🔸 mobile_apple.gif cropped from bottom
+                    ClipRect(
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        heightFactor: 0.60, // Adjust to crop more/less
+                        child: Image.asset(
+                          'assets/images/mobile_apple.gif',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
 
-    // 🔹 text.gif cropped from bottom
-    ClipRect(
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        heightFactor: 0.55, // Adjust to crop more/lessr
-        child: Image.asset(
-          'assets/images/text.gif',
-          fit: BoxFit.contain,
-        ),
-      ),
-    ),
+                    // 🔹 text.gif cropped from bottom
+                    ClipRect(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        heightFactor: 0.75,
 
-   
-   
-  ],
-),
-
-
+                        widthFactor: 0.75, // Adjust to crop more/lessr
+                        child: Image.asset(
+                          'assets/images/text2.gif',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '/profile/delete_account.dart';
 class SettingsPage extends StatefulWidget {
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -65,7 +65,13 @@ class _SettingsPageState extends State<SettingsPage> {
                           _buildSettingItem(
                             iconAsset: 'assets/icons/iconamoon_profile.png',
                             title: 'Delete Account',
-                            onTap: () {},
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => const DeleteAccountDialog(),
+                              );
+                            },
                           ),
                         ],
                       ),

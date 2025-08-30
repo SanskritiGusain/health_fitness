@@ -12,8 +12,14 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
   int selectedChestCm = 35;
   double selectedChestIn = 13.8;
 
-  final List<int> cmValues = List.generate(21, (index) => index + 30); // 30–50 cm
-  final List<double> inValues = List.generate(81, (index) => (index + 118) / 10); // 11.8–19.8 in
+  final List<int> cmValues = List.generate(
+    21,
+    (index) => index + 30,
+  ); // 30–50 cm
+  final List<double> inValues = List.generate(
+    81,
+    (index) => (index + 118) / 10,
+  ); // 11.8–19.8 in
 
   late FixedExtentScrollController _controllerCm;
   late FixedExtentScrollController _controllerIn;
@@ -21,8 +27,12 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
   @override
   void initState() {
     super.initState();
-    _controllerCm = FixedExtentScrollController(initialItem: selectedChestCm - 30);
-    _controllerIn = FixedExtentScrollController(initialItem: ((selectedChestIn * 10).round() - 118));
+    _controllerCm = FixedExtentScrollController(
+      initialItem: selectedChestCm - 30,
+    );
+    _controllerIn = FixedExtentScrollController(
+      initialItem: ((selectedChestIn * 10).round() - 118),
+    );
   }
 
   @override
@@ -46,10 +56,10 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
         );
       } else {
         // Convert cm to inches
-        selectedChestIn = ( selectedChestCm / 2.54);
-      selectedChestIn =  selectedChestIn.clamp(11.8, 19.8);
+        selectedChestIn = (selectedChestCm / 2.54);
+        selectedChestIn = selectedChestIn.clamp(11.8, 19.8);
         _controllerIn.animateToItem(
-          (( selectedChestIn * 10).round() - 118),
+          ((selectedChestIn * 10).round() - 118),
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
@@ -64,50 +74,35 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FBFB),
-     appBar: AppBar(
-  elevation: 0,
-  backgroundColor: const Color(0xFFF8FBFB),
-  surfaceTintColor: const Color(0xFFF8FBFB),
-  shadowColor: Colors.transparent,
-  toolbarHeight: 80,
-  title: const Text(
-    'Chest Measurement',
-    style: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: Color(0xFF222326),
-    ),
-  ),
-  leading: IconButton(
-    icon: const Icon(Icons.arrow_back, color: Color(0xFF222326)),
-    onPressed: () => Navigator.pop(context),
-  ),
-  actions: [
-    TextButton(
-      onPressed: () {
-        // Handle update action
-      },
-      child: const Text(
-        'Update',
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF3C8F7C),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color(0xFFF8FBFB),
+        surfaceTintColor: const Color(0xFFF8FBFB),
+        shadowColor: Colors.transparent,
+        toolbarHeight: 70,
+        title: const Text(
+          'Chest',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF222326),
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFF222326),
+            size: 18,
+          ),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-    ),
-  ],
-),
       body: Column(
         children: [
-           // Horizontal divider under AppBar
-    Container(
-      height: 1,
-      color: Colors.grey.shade300,
-    ),
-    const SizedBox(height: 20),
+          // Horizontal divider under AppBar
+          Container(height: 1, color: Colors.grey.shade300),
+          const SizedBox(height: 20),
 
-          
           // Toggle switch
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -117,23 +112,25 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isCm ? const Color(0xFF0C0C0C) : const Color(0xFF9EA3A9),
+                  color:
+                      isCm ? const Color(0xFF0C0C0C) : const Color(0xFF9EA3A9),
                 ),
               ),
               const SizedBox(width: 12),
               GestureDetector(
                 onTap: _toggleUnit,
                 child: Container(
-                  width: 44,
-                  height: 24,
-                  padding: const EdgeInsets.all(1),
+                  width: 41,
+                  height: 23,
+                  padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: const Color(0xFF0C0C0C),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: AnimatedAlign(
                     duration: const Duration(milliseconds: 200),
-                    alignment: isCm ? Alignment.centerLeft : Alignment.centerRight,
+                    alignment:
+                        isCm ? Alignment.centerLeft : Alignment.centerRight,
                     child: Container(
                       width: 20,
                       height: 20,
@@ -151,22 +148,26 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: !isCm ? const Color(0xFF0C0C0C) : const Color(0xFF9EA3A9),
+                  color:
+                      !isCm ? const Color(0xFF0C0C0C) : const Color(0xFF9EA3A9),
                 ),
               ),
             ],
           ),
-          
-          const SizedBox(height: 25),
-          
+
+          const SizedBox(height: 15),
+
           // Selected neck measurement display
           Text.rich(
             TextSpan(
               children: [
                 TextSpan(
-                  text: isCm ? '$selectedChestCm' : '${selectedChestIn.toStringAsFixed(1)}',
+                  text:
+                      isCm
+                          ? '$selectedChestCm'
+                          : '${selectedChestIn.toStringAsFixed(1)}',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF222326),
                   ),
@@ -182,9 +183,9 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
               ],
             ),
           ),
-          
-          const SizedBox(height: 25),
-          
+
+          const SizedBox(height: 15),
+
           // Horizontal Ruler Picker
           Container(
             width: MediaQuery.of(context).size.width - 32,
@@ -244,9 +245,10 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                                         child: Container(
                                           width: 1.5,
                                           height: isLong ? 60 : 35,
-                                          color: isLong
-                                              ? const Color(0xFF222326)
-                                              : const Color(0xFF9EA3A9),
+                                          color:
+                                              isLong
+                                                  ? const Color(0xFF222326)
+                                                  : const Color(0xFF9EA3A9),
                                         ),
                                       ),
                                     ),
@@ -289,9 +291,10 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                                         child: Container(
                                           width: 1.5,
                                           height: isLong ? 60 : 35,
-                                          color: isLong
-                                              ? const Color(0xFF222326)
-                                              : const Color(0xFF9EA3A9),
+                                          color:
+                                              isLong
+                                                  ? const Color(0xFF222326)
+                                                  : const Color(0xFF9EA3A9),
                                         ),
                                       ),
                                     ),
@@ -324,7 +327,7 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Center indicator line
                 Positioned(
                   top: 15,
@@ -340,9 +343,9 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
               ],
             ),
           ),
-          
-          const SizedBox(height: 40),
-          
+
+          const SizedBox(height: 20),
+
           // Analytics Header (no card)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -360,7 +363,6 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                         color: Color(0xFF222326),
                       ),
                     ),
-                    SizedBox(height: 10),
                     Text(
                       'Track chest measurement progress',
                       style: TextStyle(
@@ -380,7 +382,10 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: const Color(0xFFDDE5F0)),
                     borderRadius: BorderRadius.circular(4),
@@ -413,9 +418,9 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Chart Card (only the chart has a card)
           Container(
             width: double.infinity,
@@ -432,7 +437,6 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
               ],
             ),
             child: Container(
-              
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FBFB),
                 borderRadius: BorderRadius.circular(12),
@@ -443,9 +447,48 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
               ),
             ),
           ),
-          
-         
         ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white, // background for navbar
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, -2), // shadow upwards
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0), // 🔹 padding from all sides
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                ),
+                onPressed: () {
+                  // 👉 action
+                },
+                child: const Text(
+                  "Update",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -453,43 +496,53 @@ class _ChestMeasurementScreenState extends State<ChestMeasurementScreen> {
 
 class NeckChartPainter extends CustomPainter {
   final bool isCm;
-  
+
   NeckChartPainter({required this.isCm});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF2196F3)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+    final paint =
+        Paint()
+          ..color = const Color(0xFF2196F3)
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
 
     // Grid lines paint
-    final gridPaint = Paint()
-      ..color = const Color(0xFFE8E8E8)
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
+    final gridPaint =
+        Paint()
+          ..color = const Color(0xFFE8E8E8)
+          ..strokeWidth = 0.5
+          ..style = PaintingStyle.stroke;
 
     // Minor grid lines paint (for intermediate lines)
-    final minorGridPaint = Paint()
-      ..color = const Color(0xFFE8E8E8).withOpacity(0.5)
-      ..strokeWidth = 0.3
-      ..style = PaintingStyle.stroke;
+    final minorGridPaint =
+        Paint()
+          ..color = const Color(0xFFE8E8E8).withOpacity(0.5)
+          ..strokeWidth = 0.3
+          ..style = PaintingStyle.stroke;
 
     // Dotted line paint for average
-    final dottedPaint = Paint()
-      ..color = const Color(0xFF9E9E9E)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
+    final dottedPaint =
+        Paint()
+          ..color = const Color(0xFF9E9E9E)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
 
     // Background
-    final bgPaint = Paint()
-      ..color = const Color(0xFFFAFAFA)
-      ..style = PaintingStyle.fill;
-    
+    final bgPaint =
+        Paint()
+          ..color = const Color(0xFFFAFAFA)
+          ..style = PaintingStyle.fill;
+
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     // Chart area with padding
-    final chartPadding = EdgeInsets.only(left: 50, right: 30, top: 20, bottom: 40);
+    final chartPadding = EdgeInsets.only(
+      left: 50,
+      right: 30,
+      top: 20,
+      bottom: 40,
+    );
     final chartRect = Rect.fromLTWH(
       chartPadding.left,
       chartPadding.top,
@@ -520,15 +573,17 @@ class NeckChartPainter extends CustomPainter {
     }
 
     // Draw L-shaped axis lines (X and Y axis)
-    final axisPaint = Paint()
-      ..color = const Color(0xFF767780)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
+    final axisPaint =
+        Paint()
+          ..color = const Color(0xFF767780)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
 
     // Axis dots paint
-    final axisDotPaint = Paint()
-      ..color = const Color(0xFF767780)
-      ..style = PaintingStyle.fill;
+    final axisDotPaint =
+        Paint()
+          ..color = const Color(0xFF767780)
+          ..style = PaintingStyle.fill;
 
     // Y-axis line (left side)
     canvas.drawLine(
@@ -546,11 +601,7 @@ class NeckChartPainter extends CustomPainter {
 
     // Draw dots at the top ends of both axes
     // Dot at top of Y-axis
-    canvas.drawCircle(
-      Offset(chartRect.left, chartRect.top),
-      3,
-      axisDotPaint,
-    );
+    canvas.drawCircle(Offset(chartRect.left, chartRect.top), 3, axisDotPaint);
 
     // Dot at right end of X-axis
     canvas.drawCircle(
@@ -562,9 +613,10 @@ class NeckChartPainter extends CustomPainter {
     // Draw 4 intermediate vertical lines between each major grid line
     for (int i = 0; i < verticalGridLines; i++) {
       final startX = chartRect.left + (chartRect.width / verticalGridLines) * i;
-      final endX = chartRect.left + (chartRect.width / verticalGridLines) * (i + 1);
+      final endX =
+          chartRect.left + (chartRect.width / verticalGridLines) * (i + 1);
       final segmentWidth = endX - startX;
-      
+
       // Draw 4 intermediate lines
       for (int j = 1; j <= 4; j++) {
         final x = startX + (segmentWidth / 5) * j;
@@ -578,16 +630,46 @@ class NeckChartPainter extends CustomPainter {
 
     // Sample data points for the chart
     final dataPoints = [
-      Offset(chartRect.left + chartRect.width * 0.05, chartRect.bottom - chartRect.height * 0.2),  // Jan
-      Offset(chartRect.left + chartRect.width * 0.15, chartRect.bottom - chartRect.height * 0.3),  // Feb
-      Offset(chartRect.left + chartRect.width * 0.25, chartRect.bottom - chartRect.height * 0.25), // Mar
-      Offset(chartRect.left + chartRect.width * 0.35, chartRect.bottom - chartRect.height * 0.4),  // Apr
-      Offset(chartRect.left + chartRect.width * 0.45, chartRect.bottom - chartRect.height * 0.5),  // May
-      Offset(chartRect.left + chartRect.width * 0.55, chartRect.bottom - chartRect.height * 0.45), // Jun
-      Offset(chartRect.left + chartRect.width * 0.65, chartRect.bottom - chartRect.height * 0.6),  // Jul
-      Offset(chartRect.left + chartRect.width * 0.75, chartRect.bottom - chartRect.height * 0.55), // Aug
-      Offset(chartRect.left + chartRect.width * 0.85, chartRect.bottom - chartRect.height * 0.7),  // Sep
-      Offset(chartRect.left + chartRect.width * 0.95, chartRect.bottom - chartRect.height * 0.8),  // Oct
+      Offset(
+        chartRect.left + chartRect.width * 0.05,
+        chartRect.bottom - chartRect.height * 0.2,
+      ), // Jan
+      Offset(
+        chartRect.left + chartRect.width * 0.15,
+        chartRect.bottom - chartRect.height * 0.3,
+      ), // Feb
+      Offset(
+        chartRect.left + chartRect.width * 0.25,
+        chartRect.bottom - chartRect.height * 0.25,
+      ), // Mar
+      Offset(
+        chartRect.left + chartRect.width * 0.35,
+        chartRect.bottom - chartRect.height * 0.4,
+      ), // Apr
+      Offset(
+        chartRect.left + chartRect.width * 0.45,
+        chartRect.bottom - chartRect.height * 0.5,
+      ), // May
+      Offset(
+        chartRect.left + chartRect.width * 0.55,
+        chartRect.bottom - chartRect.height * 0.45,
+      ), // Jun
+      Offset(
+        chartRect.left + chartRect.width * 0.65,
+        chartRect.bottom - chartRect.height * 0.6,
+      ), // Jul
+      Offset(
+        chartRect.left + chartRect.width * 0.75,
+        chartRect.bottom - chartRect.height * 0.55,
+      ), // Aug
+      Offset(
+        chartRect.left + chartRect.width * 0.85,
+        chartRect.bottom - chartRect.height * 0.7,
+      ), // Sep
+      Offset(
+        chartRect.left + chartRect.width * 0.95,
+        chartRect.bottom - chartRect.height * 0.8,
+      ), // Oct
     ];
 
     // Draw the line chart connecting all points
@@ -597,19 +679,25 @@ class NeckChartPainter extends CustomPainter {
       path.lineTo(dataPoints[i].dx, dataPoints[i].dy);
     }
     canvas.drawPath(path, paint);
-    
+
     // Draw points
-    final pointPaint = Paint()
-      ..color = const Color(0xFF2196F3)
-      ..style = PaintingStyle.fill;
-    
+    final pointPaint =
+        Paint()
+          ..color = const Color(0xFF2196F3)
+          ..style = PaintingStyle.fill;
+
     for (final point in dataPoints) {
       canvas.drawCircle(point, 3, pointPaint);
     }
 
     // Draw average line (dotted)
     final averageY = chartRect.bottom - chartRect.height * 0.5;
-    _drawDottedLine(canvas, Offset(chartRect.left, averageY), Offset(chartRect.right, averageY), dottedPaint);
+    _drawDottedLine(
+      canvas,
+      Offset(chartRect.left, averageY),
+      Offset(chartRect.right, averageY),
+      dottedPaint,
+    );
 
     // Draw "Avg." text
     final avgTextPainter = TextPainter(
@@ -627,9 +715,13 @@ class NeckChartPainter extends CustomPainter {
     avgTextPainter.paint(canvas, Offset(chartRect.right + 5, averageY - 8));
 
     // Draw Y-axis labels (5 values)
-    final yLabels = isCm ? ['32', '34', '36', '38', '40'] : ['12.6', '13.4', '14.2', '15.0', '15.7'];
+    final yLabels =
+        isCm
+            ? ['32', '34', '36', '38', '40']
+            : ['12.6', '13.4', '14.2', '15.0', '15.7'];
     for (int i = 0; i < yLabels.length; i++) {
-      final y = chartRect.bottom - (chartRect.height / (yLabels.length - 1)) * i;
+      final y =
+          chartRect.bottom - (chartRect.height / (yLabels.length - 1)) * i;
       final labelPainter = TextPainter(
         text: TextSpan(
           text: yLabels[i],
@@ -642,7 +734,10 @@ class NeckChartPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       labelPainter.layout();
-      labelPainter.paint(canvas, Offset(chartRect.left - labelPainter.width - 8, y - 6));
+      labelPainter.paint(
+        canvas,
+        Offset(chartRect.left - labelPainter.width - 8, y - 6),
+      );
     }
 
     // Draw X-axis labels (5 main labels)
@@ -661,7 +756,10 @@ class NeckChartPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       labelPainter.layout();
-      labelPainter.paint(canvas, Offset(x - labelPainter.width / 2, chartRect.bottom + 10));
+      labelPainter.paint(
+        canvas,
+        Offset(x - labelPainter.width / 2, chartRect.bottom + 10),
+      );
     }
   }
 
@@ -672,8 +770,12 @@ class NeckChartPainter extends CustomPainter {
     final dashCount = (distance / (dashWidth + dashSpace)).floor();
 
     for (int i = 0; i < dashCount; i++) {
-      final startOffset = start + (end - start) * (i * (dashWidth + dashSpace) / distance);
-      final endOffset = start + (end - start) * ((i * (dashWidth + dashSpace) + dashWidth) / distance);
+      final startOffset =
+          start + (end - start) * (i * (dashWidth + dashSpace) / distance);
+      final endOffset =
+          start +
+          (end - start) *
+              ((i * (dashWidth + dashSpace) + dashWidth) / distance);
       canvas.drawLine(startOffset, endOffset, paint);
     }
   }

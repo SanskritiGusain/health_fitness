@@ -13,8 +13,14 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
   int selectedWeightLbs = 121;
   String selectedTimeFrame = 'Weekly'; // Add this for dropdown
 
-  final List<int> kgValues = List.generate(171, (index) => index + 30); // 30–200
-  final List<int> lbsValues = List.generate(271, (index) => index + 66); // 66–336
+  final List<int> kgValues = List.generate(
+    171,
+    (index) => index + 30,
+  ); // 30–200
+  final List<int> lbsValues = List.generate(
+    271,
+    (index) => index + 66,
+  ); // 66–336
 
   late FixedExtentScrollController _controllerKg;
   late FixedExtentScrollController _controllerLbs;
@@ -22,8 +28,12 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
   @override
   void initState() {
     super.initState();
-    _controllerKg = FixedExtentScrollController(initialItem: selectedWeightKg - 30);
-    _controllerLbs = FixedExtentScrollController(initialItem: selectedWeightLbs - 66);
+    _controllerKg = FixedExtentScrollController(
+      initialItem: selectedWeightKg - 30,
+    );
+    _controllerLbs = FixedExtentScrollController(
+      initialItem: selectedWeightLbs - 66,
+    );
   }
 
   @override
@@ -68,9 +78,9 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
         backgroundColor: const Color(0xFFF8FBFB),
         surfaceTintColor: const Color(0xFFF8FBFB),
         shadowColor: Colors.transparent,
-        toolbarHeight: 80,
+        toolbarHeight: 70,
         title: const Text(
-          'Body Weight',
+          'Weight',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -78,307 +88,370 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF222326)),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFF222326),
+            size: 18,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Handle update action
-            },
-            child: const Text(
-              'Update',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF3C8F7C),
-              ),
-            ),
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          // Horizontal divider under AppBar
-          Container(
-            height: 1,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 20),
-
-          // Toggle switch
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 10), // extra space for button
+          child: Column(
             children: [
-              Text(
-                'kg',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isKg ? const Color(0xFF0C0C0C) : const Color(0xFF9EA3A9),
-                ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: _toggleUnit,
-                child: Container(
-                  width: 44,
-                  height: 24,
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0C0C0C),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: AnimatedAlign(
-                    duration: const Duration(milliseconds: 200),
-                    alignment: isKg ? Alignment.centerLeft : Alignment.centerRight,
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFFFFFF),
-                        shape: BoxShape.circle,
-                      ),
+              // Horizontal divider under AppBar
+              Container(height: 1, color: Colors.grey.shade300),
+              const SizedBox(height: 20),
+
+              // Toggle switch
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'kg',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          isKg
+                              ? const Color(0xFF0C0C0C)
+                              : const Color(0xFF9EA3A9),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'lbs',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: !isKg ? const Color(0xFF0C0C0C) : const Color(0xFF9EA3A9),
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 25),
-          
-          // Selected weight display
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: isKg ? '$selectedWeightKg' : '$selectedWeightLbs',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF222326),
-                  ),
-                ),
-                TextSpan(
-                  text: isKg ? ' kg' : ' lbs',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF767780),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 25),
-          
-          // Horizontal Ruler Picker
-          Container(
-            width: MediaQuery.of(context).size.width - 32,
-            height: 132,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width - 32,
-                    height: 132,
-                    child: RotatedBox(
-                      quarterTurns: 3,
-                      child: ListWheelScrollView.useDelegate(
-                        controller: controller,
-                        itemExtent: 25,
-                        diameterRatio: 100,
-                        physics: const FixedExtentScrollPhysics(),
-                        onSelectedItemChanged: (index) {
-                          setState(() {
-                            if (isKg) {
-                              selectedWeightKg = kgValues[index];
-                            } else {
-                              selectedWeightLbs = lbsValues[index];
-                            }
-                          });
-                        },
-                        childDelegate: ListWheelChildBuilderDelegate(
-                          childCount: values.length,
-                          builder: (context, index) {
-                            final val = values[index];
-                            final isLong = val % 5 == 0;
-                            return RotatedBox(
-                              quarterTurns: 1,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: 20,
-                                    height: 60,
-                                    child: Align(
-                                      alignment: Alignment.topCenter,
-                                      child: Container(
-                                        width: 1.5,
-                                        height: isLong ? 60 : 35,
-                                        color: isLong
-                                            ? const Color(0xFF222326)
-                                            : const Color(0xFF9EA3A9),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  if (isLong)
-                                    Container(
-                                      width: 30,
-                                      height: 20,
-                                      alignment: Alignment.center,
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          '$val',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF222326),
-                                          ),
-                                          maxLines: 1,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            );
-                          },
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _toggleUnit,
+                    child: Container(
+                      width: 40,
+                      height: 22,
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0C0C0C),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: AnimatedAlign(
+                        duration: const Duration(milliseconds: 200),
+                        alignment:
+                            isKg ? Alignment.centerLeft : Alignment.centerRight,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFFFFFF),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                
-                // Center indicator line
-                Positioned(
-                  top: 15,
-                  bottom: 35,
-                  child: Container(
-                    width: 3,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0C0C0C),
-                      borderRadius: BorderRadius.circular(1.5),
+                  const SizedBox(width: 12),
+                  Text(
+                    'lbs',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color:
+                          !isKg
+                              ? const Color(0xFF0C0C0C)
+                              : const Color(0xFF9EA3A9),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 40),
-          
-          // Analytics Header with custom dropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+
+              const SizedBox(height: 15),
+
+              // Selected weight display
+              Text.rich(
+                TextSpan(
                   children: [
-                    Text(
-                      'Analytics',
-                      style: TextStyle(
-                        fontSize: 18,
+                    TextSpan(
+                      text: isKg ? '$selectedWeightKg' : '$selectedWeightLbs',
+                      style: const TextStyle(
+                        fontSize: 20,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF222326),
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Track weight progress with analytics',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF9EA3A9),
-                      ),
-                    ),
-                    Text(
-                      '-driven graphs',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF9EA3A9),
+                    TextSpan(
+                      text: isKg ? ' kg' : ' lbs',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF767780),
                       ),
                     ),
                   ],
                 ),
-                // Custom styled dropdown
-              StyledDropdownButton(
-                  value: selectedTimeFrame,
-                  items: const ['Weekly', 'Monthly', 'Quarterly', 'Yearly'],
-                  buttonColor: const Color(0xFFF8FBFB),
-                  
-                  textColor: Color(0xFF222326),
-        
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        selectedTimeFrame = newValue;
-                      });
-                    }
-                  },
+              ),
+
+              const SizedBox(height: 15),
+
+              // Horizontal Ruler Picker
+              Container(
+                width: MediaQuery.of(context).size.width - 32,
+                height: 132,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFFFF),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width - 32,
+                        height: 132,
+                        child: RotatedBox(
+                          quarterTurns: 3,
+                          child: ListWheelScrollView.useDelegate(
+                            controller: controller,
+                            itemExtent: 25,
+                            diameterRatio: 100,
+                            physics: const FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (index) {
+                              setState(() {
+                                if (isKg) {
+                                  selectedWeightKg = kgValues[index];
+                                } else {
+                                  selectedWeightLbs = lbsValues[index];
+                                }
+                              });
+                            },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              childCount: values.length,
+                              builder: (context, index) {
+                                final val = values[index];
+                                final isLong = val % 5 == 0;
+                                return RotatedBox(
+                                  quarterTurns: 1,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        width: 20,
+                                        height: 60,
+                                        child: Align(
+                                          alignment: Alignment.topCenter,
+                                          child: Container(
+                                            width: 1.5,
+                                            height: isLong ? 60 : 35,
+                                            color:
+                                                isLong
+                                                    ? const Color(0xFF222326)
+                                                    : const Color(0xFF9EA3A9),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      if (isLong)
+                                        Container(
+                                          width: 30,
+                                          height: 20,
+                                          alignment: Alignment.center,
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              '$val',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF222326),
+                                              ),
+                                              maxLines: 1,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Center indicator line
+                    Positioned(
+                      top: 15,
+                      bottom: 35,
+                      child: Container(
+                        width: 3,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0C0C0C),
+                          borderRadius: BorderRadius.circular(1.5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Analytics Header with custom dropdown
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Analytics',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF222326),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Track weight progress with analytics',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF9EA3A9),
+                          ),
+                        ),
+                        Text(
+                          '-driven graphs',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF9EA3A9),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Custom styled dropdown
+                    StyledDropdownButton(
+                      value: selectedTimeFrame,
+                      items: const ['Weekly', 'Monthly', 'Quarterly', 'Yearly'],
+                      buttonColor: const Color(0xFFF8FBFB),
+
+                      textColor: Color(0xFF222326),
+
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            selectedTimeFrame = newValue;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 5, width: 15),
+
+              // Chart Card
+              Container(
+                width: double.infinity,
+                height: 290,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFFFF),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FBFB),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: CustomPaint(
+                    painter: WeightChartPainter(
+                      isKg: isKg,
+                      timeFrame: selectedTimeFrame,
+                    ),
+                    size: const Size(double.infinity, 200),
+                  ),
+                ),
+              ),
+              // SizedBox(
+              //   width: double.infinity, // 🔹 makes it full width
+              //   child: ElevatedButton(
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.black, // button color
+              //       foregroundColor: Colors.white, // text color
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(10), // rounded corners
+              //       ),
+              //       padding: const EdgeInsets.symmetric(
+              //         horizontal: 20,
+              //         vertical: 12,
+              //       ),
+              //     ),
+              //     onPressed: () {
+              //       // 👉 action
+              //     },
+              //     child: const Text("update"),
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white, // background for navbar
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, -2), // shadow upwards
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0), // 🔹 padding from all sides
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                ),
+                onPressed: () {
+                  // 👉 action
+                },
+                child: const Text(
+                  "Update",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
             ),
           ),
-          
-          const SizedBox(height: 5,width: 15,),
-          
-          // Chart Card
-          Container(
-            width: double.infinity,
-            height: 290,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FBFB),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: CustomPaint(
-                painter: WeightChartPainter(isKg: isKg, timeFrame: selectedTimeFrame),
-                size: const Size(double.infinity, 200),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -445,44 +518,46 @@ class _StyledDropdownButtonState extends State<StyledDropdownButton> {
     var size = renderBox.size;
 
     return OverlayEntry(
-      builder: (context) => Positioned(
-        width: size.width,
-        child: CompositedTransformFollower(
-          link: _layerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0.0, size.height + 4.0),
-          child: Material(
-            elevation: 8.0,
-            borderRadius: BorderRadius.circular(8.0),
-            color: Colors.white,
-            child: Container(
-              decoration: BoxDecoration(
+      builder:
+          (context) => Positioned(
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: _layerLink,
+              showWhenUnlinked: false,
+              offset: Offset(0.0, size.height + 4.0),
+              child: Material(
+                elevation: 8.0,
                 borderRadius: BorderRadius.circular(8.0),
                 color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: widget.items.map((item) {
-                  return _buildDropdownItem(item);
-                }).toList(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        widget.items.map((item) {
+                          return _buildDropdownItem(item);
+                        }).toList(),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 
   Widget _buildDropdownItem(String item) {
     final isSelected = item == widget.value;
-    
+
     return InkWell(
       onTap: () {
         widget.onChanged(item);
@@ -518,7 +593,6 @@ class _StyledDropdownButtonState extends State<StyledDropdownButton> {
           decoration: BoxDecoration(
             color: widget.buttonColor ?? const Color(0xFFF8FBFB),
             borderRadius: BorderRadius.circular(6),
-          
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -549,43 +623,53 @@ class _StyledDropdownButtonState extends State<StyledDropdownButton> {
 class WeightChartPainter extends CustomPainter {
   final bool isKg;
   final String timeFrame;
-  
+
   WeightChartPainter({required this.isKg, required this.timeFrame});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF2196F3)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+    final paint =
+        Paint()
+          ..color = const Color(0xFF2196F3)
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
 
     // Grid lines paint
-    final gridPaint = Paint()
-      ..color = const Color(0xFFE8E8E8)
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
+    final gridPaint =
+        Paint()
+          ..color = const Color(0xFFE8E8E8)
+          ..strokeWidth = 0.5
+          ..style = PaintingStyle.stroke;
 
     // Minor grid lines paint (for intermediate lines)
-    final minorGridPaint = Paint()
-      ..color = const Color(0xFFE8E8E8).withOpacity(0.5)
-      ..strokeWidth = 0.3
-      ..style = PaintingStyle.stroke;
+    final minorGridPaint =
+        Paint()
+          ..color = const Color(0xFFE8E8E8).withOpacity(0.5)
+          ..strokeWidth = 0.3
+          ..style = PaintingStyle.stroke;
 
     // Dotted line paint for average
-    final dottedPaint = Paint()
-      ..color = const Color(0xFF9E9E9E)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
+    final dottedPaint =
+        Paint()
+          ..color = const Color(0xFF9E9E9E)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
 
     // Background
-    final bgPaint = Paint()
-      ..color = const Color(0xFFFAFAFA)
-      ..style = PaintingStyle.fill;
-    
+    final bgPaint =
+        Paint()
+          ..color = const Color(0xFFFAFAFA)
+          ..style = PaintingStyle.fill;
+
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
     // Chart area with padding
-    final chartPadding = EdgeInsets.only(left: 50, right: 30, top: 20, bottom: 40);
+    final chartPadding = EdgeInsets.only(
+      left: 50,
+      right: 30,
+      top: 20,
+      bottom: 40,
+    );
     final chartRect = Rect.fromLTWH(
       chartPadding.left,
       chartPadding.top,
@@ -616,15 +700,17 @@ class WeightChartPainter extends CustomPainter {
     }
 
     // Draw L-shaped axis lines (X and Y axis)
-    final axisPaint = Paint()
-      ..color = const Color(0xFF767780)
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
+    final axisPaint =
+        Paint()
+          ..color = const Color(0xFF767780)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
 
     // Axis dots paint
-    final axisDotPaint = Paint()
-      ..color = const Color(0xFF767780)
-      ..style = PaintingStyle.fill;
+    final axisDotPaint =
+        Paint()
+          ..color = const Color(0xFF767780)
+          ..style = PaintingStyle.fill;
 
     // Y-axis line (left side)
     canvas.drawLine(
@@ -642,11 +728,7 @@ class WeightChartPainter extends CustomPainter {
 
     // Draw dots at the top ends of both axes
     // Dot at top of Y-axis
-    canvas.drawCircle(
-      Offset(chartRect.left, chartRect.top),
-      3,
-      axisDotPaint,
-    );
+    canvas.drawCircle(Offset(chartRect.left, chartRect.top), 3, axisDotPaint);
 
     // Dot at right end of X-axis
     canvas.drawCircle(
@@ -658,9 +740,10 @@ class WeightChartPainter extends CustomPainter {
     // Draw 4 intermediate vertical lines between each major grid line
     for (int i = 0; i < verticalGridLines; i++) {
       final startX = chartRect.left + (chartRect.width / verticalGridLines) * i;
-      final endX = chartRect.left + (chartRect.width / verticalGridLines) * (i + 1);
+      final endX =
+          chartRect.left + (chartRect.width / verticalGridLines) * (i + 1);
       final segmentWidth = endX - startX;
-      
+
       // Draw 4 intermediate lines
       for (int j = 1; j <= 4; j++) {
         final x = startX + (segmentWidth / 5) * j;
@@ -674,16 +757,46 @@ class WeightChartPainter extends CustomPainter {
 
     // Sample data points for the chart
     final dataPoints = [
-      Offset(chartRect.left + chartRect.width * 0.05, chartRect.bottom - chartRect.height * 0.2),  // Jan
-      Offset(chartRect.left + chartRect.width * 0.15, chartRect.bottom - chartRect.height * 0.3),  // Feb
-      Offset(chartRect.left + chartRect.width * 0.25, chartRect.bottom - chartRect.height * 0.25), // Mar
-      Offset(chartRect.left + chartRect.width * 0.35, chartRect.bottom - chartRect.height * 0.4),  // Apr
-      Offset(chartRect.left + chartRect.width * 0.45, chartRect.bottom - chartRect.height * 0.5),  // May
-      Offset(chartRect.left + chartRect.width * 0.55, chartRect.bottom - chartRect.height * 0.45), // Jun
-      Offset(chartRect.left + chartRect.width * 0.65, chartRect.bottom - chartRect.height * 0.6),  // Jul
-      Offset(chartRect.left + chartRect.width * 0.75, chartRect.bottom - chartRect.height * 0.55), // Aug
-      Offset(chartRect.left + chartRect.width * 0.85, chartRect.bottom - chartRect.height * 0.7),  // Sep
-      Offset(chartRect.left + chartRect.width * 0.95, chartRect.bottom - chartRect.height * 0.8),  // Oct
+      Offset(
+        chartRect.left + chartRect.width * 0.05,
+        chartRect.bottom - chartRect.height * 0.2,
+      ), // Jan
+      Offset(
+        chartRect.left + chartRect.width * 0.15,
+        chartRect.bottom - chartRect.height * 0.3,
+      ), // Feb
+      Offset(
+        chartRect.left + chartRect.width * 0.25,
+        chartRect.bottom - chartRect.height * 0.25,
+      ), // Mar
+      Offset(
+        chartRect.left + chartRect.width * 0.35,
+        chartRect.bottom - chartRect.height * 0.4,
+      ), // Apr
+      Offset(
+        chartRect.left + chartRect.width * 0.45,
+        chartRect.bottom - chartRect.height * 0.5,
+      ), // May
+      Offset(
+        chartRect.left + chartRect.width * 0.55,
+        chartRect.bottom - chartRect.height * 0.45,
+      ), // Jun
+      Offset(
+        chartRect.left + chartRect.width * 0.65,
+        chartRect.bottom - chartRect.height * 0.6,
+      ), // Jul
+      Offset(
+        chartRect.left + chartRect.width * 0.75,
+        chartRect.bottom - chartRect.height * 0.55,
+      ), // Aug
+      Offset(
+        chartRect.left + chartRect.width * 0.85,
+        chartRect.bottom - chartRect.height * 0.7,
+      ), // Sep
+      Offset(
+        chartRect.left + chartRect.width * 0.95,
+        chartRect.bottom - chartRect.height * 0.8,
+      ), // Oct
     ];
 
     // Draw the line chart connecting all points
@@ -693,19 +806,25 @@ class WeightChartPainter extends CustomPainter {
       path.lineTo(dataPoints[i].dx, dataPoints[i].dy);
     }
     canvas.drawPath(path, paint);
-    
+
     // Draw points
-    final pointPaint = Paint()
-      ..color = const Color(0xFF2196F3)
-      ..style = PaintingStyle.fill;
-    
+    final pointPaint =
+        Paint()
+          ..color = const Color(0xFF2196F3)
+          ..style = PaintingStyle.fill;
+
     for (final point in dataPoints) {
       canvas.drawCircle(point, 3, pointPaint);
     }
 
     // Draw average line (dotted)
     final averageY = chartRect.bottom - chartRect.height * 0.5;
-    _drawDottedLine(canvas, Offset(chartRect.left, averageY), Offset(chartRect.right, averageY), dottedPaint);
+    _drawDottedLine(
+      canvas,
+      Offset(chartRect.left, averageY),
+      Offset(chartRect.right, averageY),
+      dottedPaint,
+    );
 
     // Draw "Avg." text
     final avgTextPainter = TextPainter(
@@ -723,9 +842,13 @@ class WeightChartPainter extends CustomPainter {
     avgTextPainter.paint(canvas, Offset(chartRect.right + 5, averageY - 8));
 
     // Draw Y-axis labels (5 values)
-    final yLabels = isKg ? ['52.0', '53.0', '54.0', '55.0', '56.0'] : ['114', '117', '119', '121', '123'];
+    final yLabels =
+        isKg
+            ? ['52.0', '53.0', '54.0', '55.0', '56.0']
+            : ['114', '117', '119', '121', '123'];
     for (int i = 0; i < yLabels.length; i++) {
-      final y = chartRect.bottom - (chartRect.height / (yLabels.length - 1)) * i;
+      final y =
+          chartRect.bottom - (chartRect.height / (yLabels.length - 1)) * i;
       final labelPainter = TextPainter(
         text: TextSpan(
           text: yLabels[i],
@@ -738,17 +861,21 @@ class WeightChartPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       labelPainter.layout();
-      labelPainter.paint(canvas, Offset(chartRect.left - labelPainter.width - 8, y - 6));
+      labelPainter.paint(
+        canvas,
+        Offset(chartRect.left - labelPainter.width - 8, y - 6),
+      );
     }
 
     // Draw X-axis labels based on timeFrame
-    final xLabels = timeFrame == 'Weekly' 
-        ? ['Jan', 'Mar', 'May', 'Jul', 'Sep']
-        : timeFrame == 'Monthly'
+    final xLabels =
+        timeFrame == 'Weekly'
+            ? ['Jan', 'Mar', 'May', 'Jul', 'Sep']
+            : timeFrame == 'Monthly'
             ? ['Q1', 'Q2', 'Q3', 'Q4', 'Q5']
             : timeFrame == 'Quarterly'
-                ? ['2023', '2024', '2025', '2026', '2027']
-                : ['1Y', '2Y', '3Y', '4Y', '5Y'];
+            ? ['2023', '2024', '2025', '2026', '2027']
+            : ['1Y', '2Y', '3Y', '4Y', '5Y'];
     for (int i = 0; i < xLabels.length; i++) {
       final x = chartRect.left + (chartRect.width / (xLabels.length - 1)) * i;
       final labelPainter = TextPainter(
@@ -763,7 +890,10 @@ class WeightChartPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       labelPainter.layout();
-      labelPainter.paint(canvas, Offset(x - labelPainter.width / 2, chartRect.bottom + 10));
+      labelPainter.paint(
+        canvas,
+        Offset(x - labelPainter.width / 2, chartRect.bottom + 10),
+      );
     }
   }
 
@@ -774,8 +904,12 @@ class WeightChartPainter extends CustomPainter {
     final dashCount = (distance / (dashWidth + dashSpace)).floor();
 
     for (int i = 0; i < dashCount; i++) {
-      final startOffset = start + (end - start) * (i * (dashWidth + dashSpace) / distance);
-      final endOffset = start + (end - start) * ((i * (dashWidth + dashSpace) + dashWidth) / distance);
+      final startOffset =
+          start + (end - start) * (i * (dashWidth + dashSpace) / distance);
+      final endOffset =
+          start +
+          (end - start) *
+              ((i * (dashWidth + dashSpace) + dashWidth) / distance);
       canvas.drawLine(startOffset, endOffset, paint);
     }
   }

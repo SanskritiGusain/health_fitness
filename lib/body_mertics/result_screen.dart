@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 
-class BmrScreen extends StatelessWidget {
-  final int bmr;
+class ResultScreen extends StatelessWidget {
+  final String title;
+  final int value;
+  final String unit;
+  final String description;
+  final VoidCallback onAskLuna;
 
-  const BmrScreen({super.key, required this.bmr});
+  const ResultScreen({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.unit,
+    required this.description,
+    required this.onAskLuna,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +26,9 @@ class BmrScreen extends StatelessWidget {
         surfaceTintColor: const Color(0xFFF8FBFB),
         shadowColor: Colors.transparent,
         toolbarHeight: 80,
-        title: const Text(
-          "BMR",
-          style: TextStyle(
+        title: Text(
+          title,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xFF000000),
@@ -32,13 +43,10 @@ class BmrScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Divider under AppBar
-          Container(
-            height: 1,
-            color: Colors.grey.shade300,
-          ),
+          Container(height: 1, color: Colors.grey.shade300),
           const SizedBox(height: 20),
 
-          // BMR Card
+          // Result Card
           Padding(
             padding: const EdgeInsets.all(16),
             child: Container(
@@ -51,7 +59,7 @@ class BmrScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    bmr.toString(),
+                    value.toString(),
                     style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w600,
@@ -59,9 +67,9 @@ class BmrScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 0),
-                  const Text(
-                    'Kcal/day',
-                    style: TextStyle(
+                  Text(
+                    unit,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF767780),
                       fontWeight: FontWeight.w600,
@@ -75,9 +83,9 @@ class BmrScreen extends StatelessWidget {
           // Info Text
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const Text(
-              "BMR (Basal Metabolic Rate) is the number of calories your body needs to perform basic functions like breathing and digestion while at rest. It’s the foundation for determining your daily calorie needs.",
-              style: TextStyle(
+            child: Text(
+              description,
+              style: const TextStyle(
                 fontSize: 12,
                 color: Color(0xFF767780),
                 height: 1.5,
@@ -87,6 +95,27 @@ class BmrScreen extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: SizedBox(
+        height: 46,
+        child: FloatingActionButton.extended(
+          onPressed: onAskLuna,
+          backgroundColor: const Color.fromARGB(255, 170, 207, 171),
+          label: const Text(
+            "Ask Luna",
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+          icon: Image.asset("assets/icons/ai.png", height: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

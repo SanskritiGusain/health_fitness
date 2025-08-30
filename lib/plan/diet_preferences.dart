@@ -44,30 +44,22 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
                 children: [
                   _buildSection(
                     title: 'Basic Options',
-                    children: [
-                      _buildLevelOptions(),
-                    ],
+                    children: [_buildLevelOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Goal Based Options',
-                    children: [
-                      _buildWorkoutTypeOptions(),
-                    ],
+                    children: [_buildWorkoutTypeOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Allergy / Avoidance',
-                    children: [
-                      _buildAllergyOptions(),
-                    ],
+                    children: [_buildAllergyOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Other Specific Choices',
-                    children: [
-                      _buildSpecialNeedsOptions(),
-                    ],
+                    children: [_buildSpecialNeedsOptions()],
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -82,12 +74,12 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   // Handle next button
-                     Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>FitnessGoalLoadingScreen(),
-                                ),
-                              );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FitnessGoalLoadingScreen(),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
@@ -111,7 +103,10 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
     );
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -158,12 +153,7 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
   }
 
   Widget _buildAllergyOptions() {
-    final options = [
-      'Lactose-Free',
-      'Nut-Free',
-      'Soy-Free',
-      'Gluten-Free',
-    ];
+    final options = ['Lactose-Free', 'Nut-Free', 'Soy-Free', 'Gluten-Free'];
     return _buildResponsiveChipGrid(
       options: options,
       selectedItems: selectedAllergies,
@@ -198,15 +188,16 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
         return Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: options.map((option) {
-            final isSelected = selectedItems.contains(option);
-            return _buildSelectableChip(
-              text: option,
-              isSelected: isSelected,
-              onTap: () => onToggle(option),
-              maxWidth: constraints.maxWidth,
-            );
-          }).toList(),
+          children:
+              options.map((option) {
+                final isSelected = selectedItems.contains(option);
+                return _buildSelectableChip(
+                  text: option,
+                  isSelected: isSelected,
+                  onTap: () => onToggle(option),
+                  maxWidth: constraints.maxWidth,
+                );
+              }).toList(),
         );
       },
     );
@@ -225,22 +216,24 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
           text: TextSpan(
             text: text,
             style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
             ),
           ),
           maxLines: 1,
           textDirection: TextDirection.ltr,
         );
         textPainter.layout();
-        
+
         // Add padding to the text width
         final chipWidth = textPainter.width + 32; // 16px padding on each side
         final availableWidth = maxWidth;
-        
+
         // Ensure chip doesn't exceed available width
-        final finalWidth = chipWidth > availableWidth ? availableWidth : chipWidth;
-        
+        final finalWidth =
+            chipWidth > availableWidth ? availableWidth : chipWidth;
+
         return SizedBox(
           width: finalWidth,
           child: GestureDetector(

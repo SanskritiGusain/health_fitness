@@ -47,10 +47,7 @@ class _ProgressPageState extends State<ProgressPage> {
         titleSpacing: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: Colors.grey.shade300,
-            height: 1.0,
-          ),
+          child: Container(color: Colors.grey.shade300, height: 1.0),
         ),
       ),
       body: SingleChildScrollView(
@@ -69,9 +66,9 @@ class _ProgressPageState extends State<ProgressPage> {
                   });
                 },
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Meals Question Section
               _buildQuestionSection(
                 question: 'All meals done for the day?',
@@ -82,19 +79,19 @@ class _ProgressPageState extends State<ProgressPage> {
                   });
                 },
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Weight Section
               _buildWeightSection(),
-              
+
               const SizedBox(height: 24),
-              
+
               // Review Section
               _buildReviewSection(),
-              
+
               const SizedBox(height: 32),
-              
+
               // Done Button
               SizedBox(
                 width: double.infinity,
@@ -119,7 +116,7 @@ class _ProgressPageState extends State<ProgressPage> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 20), // Bottom padding for better scrolling
             ],
           ),
@@ -138,7 +135,7 @@ class _ProgressPageState extends State<ProgressPage> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -161,28 +158,22 @@ class _ProgressPageState extends State<ProgressPage> {
                     ),
                   ),
                 ),
-                
-                const SizedBox(height: 10),
-                
+
+                // const SizedBox(height: 10),
+
                 // Illustration
-               
-                 
-             
-                      // Background elements
-                       Image.asset(
-    'assets/images/task_completion.png',
-    height: 16,
-    width: 16,
-  ),
-                    
-                     
-                      
-                      // Main character
-                  
-   
-                
-                const SizedBox(height: 25),
-                
+
+                // Background elements
+                Image.asset(
+                  'assets/images/task_completion.png',
+
+                  width: 1000,
+                  height: 180,
+                ),
+
+                // Main character
+                const SizedBox(height: 15),
+
                 // Title
                 const Text(
                   'Great start!',
@@ -192,9 +183,9 @@ class _ProgressPageState extends State<ProgressPage> {
                     color: Color(0xFF222326),
                   ),
                 ),
-                
+
                 const SizedBox(height: 2),
-                
+
                 // Subtitle
                 const Text(
                   'One step forward toward your goal.',
@@ -205,7 +196,7 @@ class _ProgressPageState extends State<ProgressPage> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 20),
               ],
             ),
@@ -268,7 +259,11 @@ class _ProgressPageState extends State<ProgressPage> {
     );
   }
 
-  Widget _buildRadioOption(String value, String groupValue, Function(String) onChanged) {
+  Widget _buildRadioOption(
+    String value,
+    String groupValue,
+    Function(String) onChanged,
+  ) {
     return Row(
       children: [
         Radio<String>(
@@ -285,10 +280,7 @@ class _ProgressPageState extends State<ProgressPage> {
         ),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
+          style: const TextStyle(fontSize: 14, color: Colors.black87),
         ),
       ],
     );
@@ -324,7 +316,7 @@ class _ProgressPageState extends State<ProgressPage> {
                 },
                 child: Container(
                   width: 20,
-                  height:20,
+                  height: 20,
                   decoration: const BoxDecoration(
                     color: Colors.black,
                     shape: BoxShape.circle,
@@ -359,11 +351,7 @@ class _ProgressPageState extends State<ProgressPage> {
                     color: Colors.black,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 16,
-                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 16),
                 ),
               ),
             ],
@@ -394,11 +382,7 @@ class _ProgressPageState extends State<ProgressPage> {
           const SizedBox(height: 8),
           const Text(
             'Your feedback helps us shape better, more personalised plans for the future day',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.4),
           ),
           const SizedBox(height: 12),
           Container(
@@ -411,17 +395,11 @@ class _ProgressPageState extends State<ProgressPage> {
               maxLines: 4,
               decoration: InputDecoration(
                 hintText: 'Write your thoughts about today...',
-                hintStyle: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.all(12),
               ),
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.black87),
             ),
           ),
         ],

@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:test_app/pages/congratulation.dart';
 import 'package:test_app/plan/workout_completion.dart';
 
 class FitnessGoalLoadingScreen extends StatefulWidget {
   const FitnessGoalLoadingScreen({Key? key}) : super(key: key);
 
   @override
-  State<FitnessGoalLoadingScreen> createState() => _FitnessGoalLoadingScreenState();
+  State<FitnessGoalLoadingScreen> createState() =>
+      _FitnessGoalLoadingScreenState();
 }
 
 class _FitnessGoalLoadingScreenState extends State<FitnessGoalLoadingScreen> {
@@ -25,19 +27,12 @@ class _FitnessGoalLoadingScreenState extends State<FitnessGoalLoadingScreen> {
         timer.cancel();
         Future.delayed(const Duration(milliseconds: 300), () {
           // Replace with your actual navigation
-// In your FitnessGoalLoadingScreen, replace the navigation with:
-Navigator.pushReplacement(
-  context, 
-  MaterialPageRoute(
-    builder: (_) => WorkoutCompletionScreen(
-      exercises: [
-        WorkoutExercise(name: 'Squats', details: '3 sets × 15 reps', category: 'Strength'),
-        WorkoutExercise(name: 'Push-ups', details: '2 sets × 10 reps', category: 'Strength'),
-        WorkoutExercise(name: 'Running', details: '20 minutes', category: 'Cardio'),
-      ],
-    ),
-  ),
-);        });
+          // In your FitnessGoalLoadingScreen, replace the navigation with:
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => CongratulationsScreen()),
+          );
+        });
       } else {
         setState(() {
           progress += 0.01;
@@ -62,7 +57,7 @@ Navigator.pushReplacement(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 80),
+              const SizedBox(height: 150),
 
               // Animated Percentage
               TweenAnimationBuilder<double>(
@@ -73,7 +68,7 @@ Navigator.pushReplacement(
                   return Text(
                     "$percentage%",
                     style: const TextStyle(
-                      fontSize: 28,
+                      fontSize: 42,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
@@ -83,11 +78,11 @@ Navigator.pushReplacement(
               const SizedBox(height: 10),
 
               const Text(
-                "We're setting fitness goals according to your preference",
+                "We’re setting your personalized plan according to your preference ",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 20,
                   color: Colors.black87,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -110,10 +105,7 @@ Navigator.pushReplacement(
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFFFFE0B2),
-                                Color(0xFF00695C),
-                              ],
+                              colors: [Color(0xFFFFE0B2), Color(0xFF00695C)],
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -137,25 +129,25 @@ Navigator.pushReplacement(
                       color: Colors.black12,
                       blurRadius: 1,
                       offset: Offset(0, 1),
-                    )
+                    ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Daily Goals Preference",
+                      "Plan Preference",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    buildGoalRow("Level", progress >= 1.0),
-                    buildGoalRow("Workout Type", progress >= 0.75),
-                    buildGoalRow("Time Availability", progress >= 0.50),
-                    buildGoalRow("Special Needs", progress >= 0.25),
+                    const SizedBox(height: 16),
+                    buildGoalRow("Almost Done", progress >= 1.0),
+                    buildGoalRow("Dietary Preferences", progress >= 0.75),
+                    buildGoalRow("Workout Preferences", progress >= 0.50),
+                    buildGoalRow("Target Weight", progress >= 0.25),
                   ],
                 ),
               ),
@@ -166,39 +158,45 @@ Navigator.pushReplacement(
     );
   }
 
-Widget buildGoalRow(String title, bool isCompleted) {
-  return TweenAnimationBuilder<double>(
-    tween: Tween(begin: isCompleted ? 1 : 0, end: isCompleted ? 1 : 0),
-    duration: const Duration(milliseconds: 500),
-    builder: (context, value, child) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: title == "Basic Options" ? FontWeight.w600 : FontWeight.normal,
-                color: isCompleted ? Colors.black : Colors.grey[600],
+  Widget buildGoalRow(String title, bool isCompleted) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: isCompleted ? 1 : 0, end: isCompleted ? 1 : 0),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, value, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight:
+                      title == "Basic Options"
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                  color: isCompleted ? Colors.black : Colors.grey[600],
+                ),
               ),
-            ),
-            AnimatedSlide(
-              offset: isCompleted ? Offset(0, 0) : const Offset(0, 0.3),
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOut,
-              child: AnimatedOpacity(
+              AnimatedSlide(
+                offset: isCompleted ? Offset(0, 0) : const Offset(0, 0.3),
                 duration: const Duration(milliseconds: 500),
-                opacity: isCompleted ? 1.0 : 0.0,
-                child: const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                curve: Curves.easeOut,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 500),
+                  opacity: isCompleted ? 1.0 : 0.0,
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 18,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:test_app/utils/custom_date_picker.dart'; // Add this import for your custom calendar
+import 'package:test_app/utils/custom_date_picker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CalorieTrackerScreen extends StatefulWidget {
   @override
@@ -11,100 +12,44 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
   DateTime selectedDate = DateTime.now();
   String viewPeriod = 'Weekly';
 
-  // Sample data
-  final int totalBurn = 2100;
-  final int bmr = 1000;
-  final int activeBurn = 1100;
+  // Sample data matching the image
+  final int totalGoal = 2800;
+  final int restingBurn = 700;
+  final int activeBurn = 800;
   final int consumedCalories = 2500;
   final int burnedCalories = 2100;
   final int netCalories = -400;
-  final int dailyGoal = 2500;
-  final int dailyBurnGoal = 2800;
 
-  double get progress => burnedCalories / dailyBurnGoal;
+  double get restingProgress => restingBurn / totalGoal;
+  double get activeProgress => activeBurn / totalGoal;
 
-  // Data for Calories Burned (Red line)
+  // Data for chart
   List<FlSpot> getBurnedCaloriesData() {
     return [
-      FlSpot(0, 1700),
-      FlSpot(1, 1950),
-      FlSpot(2, 2150),
-      FlSpot(3, 2300),
-      FlSpot(4, 2500),
-      FlSpot(5, 2520),
-      FlSpot(6, 2650),
+      FlSpot(0, 1800),
+      FlSpot(1, 1900),
+      FlSpot(2, 2000),
+      FlSpot(3, 2200),
+      FlSpot(4, 2300),
+      FlSpot(5, 2400),
+      FlSpot(6, 2100),
     ];
   }
 
-  // Data for Calories Consumed (Blue line)
   List<FlSpot> getConsumedCaloriesData() {
     return [
-      FlSpot(0, 2200),
+      FlSpot(0, 2000),
       FlSpot(1, 2100),
-      FlSpot(2, 2400),
-      FlSpot(3, 2300),
-      FlSpot(4, 2500),
-      FlSpot(5, 2600),
-      FlSpot(6, 2700),
+      FlSpot(2, 2300),
+      FlSpot(3, 2200),
+      FlSpot(4, 2400),
+      FlSpot(5, 2500),
+      FlSpot(6, 2500),
     ];
   }
 
   List<String> getDayLabels() {
     return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  }
-
-  String get displayDateText {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final selected = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-    
-    if (selected == today) {
-      return "Today";
-    } else if (selected == today.subtract(Duration(days: 1))) {
-      return "Yesterday";
-    } else if (selected == today.add(Duration(days: 1))) {
-      return "Tomorrow";
-    } else {
-      return "${selected.day.toString().padLeft(2, '0')} ${_getMonthName(selected.month)}";
-    }
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[month - 1];
-  }
-
-  void _navigateToPreviousDay() {
-    setState(() {
-      selectedDate = selectedDate.subtract(Duration(days: 1));
-    });
-  }
-
-  void _navigateToNextDay() {
-    setState(() {
-      selectedDate = selectedDate.add(Duration(days: 1));
-    });
-  }
-
-  // Updated method to use your custom calendar
-  Future<void> _showDatePicker() async {
-    final DateTime? picked = await showDialog<DateTime>(
-      context: context,
-      builder: (context) => CustomDatePicker(
-        initialDate: selectedDate,
-        firstDate: DateTime(2020),
-        lastDate: DateTime.now().add(Duration(days: 365)),
-      ),
-    );
-    
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
   }
 
   @override
@@ -118,104 +63,31 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           icon: Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: _buildDateSelector(),
-        centerTitle: true,
-        actions: [SizedBox(width: 48)],
+        title: Text(
+          'Calories',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Calories Burned Summary",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color:  Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "$totalBurn",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Color(0xFFF32C21)),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        "Total burn",
-                        style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                            color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text("Resting (BMR):",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                              color: Colors.grey)),
-                      Spacer(),
-                      Text("$bmr kcal",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                              color: Colors.black)),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Text("Active:",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                              color: Colors.grey)),
-                      Spacer(),
-                      Text("$activeBurn kcal",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                              color: Colors.black)),
-                    ],
-                  ),
-                  SizedBox(height: 12),
-                  TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: progress),
-                    duration: Duration(seconds: 1),
-                    builder: (context, value, _) => LinearProgressIndicator(
-                      value: value,
-                      backgroundColor: Colors.grey.shade300,
-                      color: Colors.red,
-                      minHeight: 6,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    progress >= 1.0
-                        ? "You've reached your goal!"
-                        : "You're on track – Good job.",
-                    style: TextStyle(fontSize: 10),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
-            _buildNetCaloriesSnapshot(),
-            SizedBox(height: 24),
             _buildGoalSection(),
+            SizedBox(height: 44),
+            Text(
+              'Net Calories Snapshot',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 16),
+            _intakeSection(),
+            SizedBox(height: 24),
+            
+            _buildNetCaloriesSnapshot(),
             SizedBox(height: 24),
             _buildAnalyticsChart(),
             SizedBox(height: 16),
@@ -226,106 +98,296 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
     );
   }
 
-  Widget _buildDateSelector() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: _navigateToPreviousDay,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 2, offset: const Offset(0, 1)),
-              ],
-            ),
-            child: const Icon(Icons.arrow_back_ios, size: 16, color: Colors.black),
-          ),
-        ),
-        const SizedBox(width: 12),
-        GestureDetector(
-          onTap: _showDatePicker,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 2, offset: const Offset(0, 1)),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+Widget _buildGoalSection() {
+    double burned = 1000; // Example burned calories
+    double totalGoal = 2800; // Example total goal
+    double resting = 200;
+    double active = 800;
+
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Circular progress with center text
+          Container(
+            width: 100,
+            height: 100,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Text(
-                  displayDateText, 
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w400)
+                // Background circle
+                SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: CircularProgressIndicator(
+                    value: 1,
+                    strokeWidth: 10,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.grey[300]!,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.keyboard_arrow_down, size: 21, color: Colors.black),
+
+                // Progress arc (orange)
+                SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: CircularProgressIndicator(
+                    value: burned / totalGoal,
+                    strokeWidth: 10,
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                  ),
+                ),
+
+                // Center text
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${burned.toInt()} Kcal',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      'Burned',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        GestureDetector(
-          onTap: _navigateToNextDay,
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 2, offset: const Offset(0, 1)),
+
+          SizedBox(width: 24),
+
+          // Right-side: stack curve + text
+          Expanded(
+            child: Stack(
+               clipBehavior: Clip.none,
+              children: [
+                // Background curve
+               Positioned.fill(
+  child: SvgPicture.asset(
+    'assets/icons/curve.svg',
+    fit: BoxFit.fill, // 👈 fills both height and width
+    color: Colors.orangeAccent,
+  ),
+)
+,
+
+                // Text content on top
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Goal: ${totalGoal.toInt()} Kcal',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 13, color: Colors.black),
+                        children: [
+                          TextSpan(text: 'Resting (BMR): '),
+                          TextSpan(
+                            text: '${resting.toInt()} kcal',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 13, color: Colors.black),
+                        children: [
+                          TextSpan(text: 'Active: '),
+                          TextSpan(
+                            text: '${active.toInt()} kcal',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-            child: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+Widget _intakeSection() {
+    return Container(
+      padding: EdgeInsets.all(4),
+      child: Row(
+        children: [
+          // First box
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.restaurant,
+                      color: Colors.green,
+                      size: 28,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Goal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '2,500 Kcal',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(width: 16), // spacing between boxes
+          // Second box
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.local_fire_department,
+                      color: Colors.orange,
+                      size: 28,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Goal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '2,100 Kcal',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   Widget _buildNetCaloriesSnapshot() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Net Calories Snapshot',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        SizedBox(height: 16),
+        
         Container(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              _buildKeyValue('Consumed', '$consumedCalories kcal'),
-              SizedBox(height: 8),
-              _buildKeyValue('Burned', '$burnedCalories kcal'),
-              SizedBox(height: 8),
-              Divider(),
-              SizedBox(height: 8),
-              _buildKeyValue('Net', '$netCalories kcal',
-                  valueColor: Colors.green),
-              SizedBox(height: 18),
+              // Icons row
+             
+           
+              // Values
+              _buildKeyValue('Consumed', '2,500kcal'),
+              SizedBox(height: 12),
+              _buildKeyValue('Burned', '2,100kcal'),
+              SizedBox(height: 12),
+              Divider(color: Colors.grey[300]),
+              SizedBox(height: 12),
+              _buildKeyValue('Net', '-400 kcal', valueColor: Colors.green),
+              SizedBox(height: 16),
               Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Color(0xFFD6FAE4),
-                  borderRadius: BorderRadius.circular(4),
+                  color: Color(0xFFE8F5E8),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 child: Text(
-                  "You're in a calorie surplus today",
+                  "You're in a calories surplus today",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500),
+                    color: Colors.green[700],
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -344,57 +406,10 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           value,
           style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: valueColor ?? Colors.black,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildGoalSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Goal',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        SizedBox(height: 16),
-          Container(
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-         child: Column(
-            children: [
-        _buildKeyValue('Daily calories consumed goal', '$dailyGoal kcal'),
-        SizedBox(height: 8),
-        _buildKeyValue('Daily calories burned goal', '$dailyBurnGoal kcal'),
-        SizedBox(height: 24),
-        Container(
-          decoration: BoxDecoration(
-            color: Color(0xFFCEE2FE),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-            ],
-          ),
-          padding: EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.blue, size: 16),
-              SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  'Try to maintain calorie goal',
-                  style: TextStyle(color: Colors.blue, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-        ),
-            ],),),
       ],
     );
   }
@@ -406,48 +421,62 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Analytics',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            PopupMenuButton<String>(
-              onSelected: (value) => setState(() => viewPeriod = value),
-              itemBuilder: (context) => ['Weekly', 'Monthly']
-                  .map((e) => PopupMenuItem(value: e, child: Text(e)))
-                  .toList(),
+            Text(
+              'Analytics',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(6),
+              ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(viewPeriod,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                  Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                  Text(
+                    viewPeriod,
+                    style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.grey[600],
+                    size: 16,
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 2),
         Text(
           'Calories Burned Vs Calories Consumed',
-          style: TextStyle(color: Colors.grey[600], fontSize: 10),
+          style: TextStyle(color: Colors.grey[600], fontSize: 14),
         ),
         SizedBox(height: 20),
         Container(
-          height: 250,
-          padding: EdgeInsets.all(16),
+          height: 280,
+          padding: EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
           child: LineChart(
             LineChartData(
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: false,
-                horizontalInterval: 500,
+                horizontalInterval: 200,
                 getDrawingHorizontalLine: (value) {
-                  return FlLine(
-                    color: Colors.grey[300],
-                    strokeWidth: 1,
-                    dashArray: [5, 5],
-                  );
+                  return FlLine(color: Colors.grey[200], strokeWidth: 1);
                 },
               ),
               titlesData: FlTitlesData(
@@ -457,10 +486,13 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                     getTitlesWidget: (value, _) {
                       if (value.toInt() < getDayLabels().length) {
                         return Padding(
-                          padding: EdgeInsets.only(top: 4),
+                          padding: EdgeInsets.only(top: 8),
                           child: Text(
                             getDayLabels()[value.toInt()],
-                            style: TextStyle(color: Colors.grey[600], fontSize: 10),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
                           ),
                         );
                       }
@@ -471,19 +503,24 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 50,
-                    interval: 500,
-                    getTitlesWidget: (value, _) => Padding(
-                      padding: EdgeInsets.only(right: 4),
-                      child: Text(
-                        '${value.toInt()}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 10),
-                      ),
-                    ),
+                    reservedSize: 45,
+                    interval: 200,
+                    getTitlesWidget:
+                        (value, _) => Text(
+                          '${value.toInt()}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
                   ),
                 ),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
               ),
               borderData: FlBorderData(show: false),
               lineBarsData: [
@@ -491,41 +528,43 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
                 LineChartBarData(
                   spots: getBurnedCaloriesData(),
                   isCurved: true,
-                  curveSmoothness: 0.3,
+                  curveSmoothness: 0.2,
                   color: Colors.red,
-                  barWidth: 3,
+                  barWidth: 2.5,
                   dotData: FlDotData(
                     show: true,
-                    getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
-                      radius: 4,
-                      color: Colors.red,
-                      strokeWidth: 2,
-                      strokeColor: Colors.white,
-                    ),
+                    getDotPainter:
+                        (_, __, ___, ____) => FlDotCirclePainter(
+                          radius: 3,
+                          color: Colors.red,
+                          strokeWidth: 1.5,
+                          strokeColor: Colors.white,
+                        ),
                   ),
                   belowBarData: BarAreaData(show: false),
                 ),
-                // Calories Consumed (Blue line)
+                // Calories Consumed (Green line)
                 LineChartBarData(
                   spots: getConsumedCaloriesData(),
                   isCurved: true,
-                  curveSmoothness: 0.3,
-                  color: Colors.blue,
-                  barWidth: 3,
+                  curveSmoothness: 0.2,
+                  color: Colors.green,
+                  barWidth: 2.5,
                   dotData: FlDotData(
                     show: true,
-                    getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
-                      radius: 4,
-                      color: Colors.blue,
-                      strokeWidth: 2,
-                      strokeColor: Colors.white,
-                    ),
+                    getDotPainter:
+                        (_, __, ___, ____) => FlDotCirclePainter(
+                          radius: 3,
+                          color: Colors.green,
+                          strokeWidth: 1.5,
+                          strokeColor: Colors.white,
+                        ),
                   ),
                   belowBarData: BarAreaData(show: false),
                 ),
               ],
-              minY: 1500,
-              maxY: 3000,
+              minY: 1600,
+              maxY: 2600,
             ),
           ),
         ),
@@ -535,8 +574,8 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildLegendItem('Calories burned', Colors.red),
-            SizedBox(width: 24),
-            _buildLegendItem('Calories Consumed', Colors.blue),
+            SizedBox(width: 32),
+            _buildLegendItem('Calories Consumed', Colors.green),
           ],
         ),
       ],
@@ -548,43 +587,41 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 12,
-          height: 2,
+          width: 16,
+          height: 3,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(1),
+            borderRadius: BorderRadius.circular(1.5),
           ),
         ),
         SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
       ],
     );
   }
 
   Widget _buildTipsSection() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.teal[50],
-        borderRadius: BorderRadius.circular(8),
+        color: Color(0xFFFFF9E6),
+        borderRadius: BorderRadius.circular(12),
+        
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.teal, size: 20),
+              Icon(Icons.info_outline, color: const Color.fromARGB(255, 17, 17, 17), size: 20),
               SizedBox(width: 8),
               Text(
                 'Understanding your calories balance',
                 style: TextStyle(
-                    fontWeight: FontWeight.w600, color: Colors.teal[800]),
+                  fontWeight: FontWeight.w600,
+                  color: const Color.fromARGB(255, 17, 17, 17),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -592,7 +629,7 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           ...[
             'When you burn more calories than you consume, you\'re in a calorie deficit. This can lead to weight loss.',
             'When you consume more calories than you burn, you\'re in a calorie surplus. This can lead to weight gain.',
-            
+            'The difference between calories consumed and calories burned is your calorie balance for the day.',
           ].map(_buildTipItem),
         ],
       ),
@@ -608,13 +645,20 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           Container(
             width: 4,
             height: 4,
-            margin: EdgeInsets.only(top: 8, right: 8),
-            decoration: BoxDecoration(color: Colors.teal, shape: BoxShape.circle),
+            margin: EdgeInsets.only(top: 8, right: 12),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 12, 12, 12),
+              shape: BoxShape.circle,
+            ),
           ),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(color: Colors.teal[800], fontSize: 10, ),
+              style: TextStyle(
+                color: const Color.fromARGB(255, 7, 7, 7),
+                fontSize: 12,
+                height: 1.4,
+              ),
             ),
           ),
         ],

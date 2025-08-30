@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../pages/location_select.dart';
+import 'location_select.dart';
 import '../pages/exercise_times_input.dart';
 
 class GoalInputPage extends StatefulWidget {
@@ -14,7 +14,7 @@ class _GoalInputPageState extends State<GoalInputPage> {
     "Weight loss",
     "Balanced weight",
     "Just stay healthy",
-    "Improve stamina"
+    "Improve stamina",
   ];
 
   final List<String> selectedGoals = [];
@@ -57,7 +57,10 @@ class _GoalInputPageState extends State<GoalInputPage> {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               fontFamily: 'DM Sans',
-              color: isSelected ? const Color(0xFFFFFFFF) : const Color(0xFF222326),
+              color:
+                  isSelected
+                      ? const Color(0xFFFFFFFF)
+                      : const Color(0xFF222326),
             ),
           ),
         ),
@@ -126,9 +129,7 @@ class _GoalInputPageState extends State<GoalInputPage> {
             // Goal options
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: allGoals.map(_buildGoalOption).toList(),
-              ),
+              child: Column(children: allGoals.map(_buildGoalOption).toList()),
             ),
 
             const Spacer(),
@@ -142,9 +143,10 @@ class _GoalInputPageState extends State<GoalInputPage> {
                 child: ElevatedButton(
                   onPressed: selectedGoals.isNotEmpty ? _submit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedGoals.isNotEmpty
-                        ? const Color(0xFF0C0C0C)
-                        : const Color(0xFF7F8180),
+                    backgroundColor:
+                        selectedGoals.isNotEmpty
+                            ? const Color(0xFF0C0C0C)
+                            : const Color(0xFF7F8180),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

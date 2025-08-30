@@ -1,37 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:test_app/shift/checkout_screen.dart'; 
-import 'package:test_app/chat/chat_screen.dart'; 
-import 'package:test_app/tools/tools_screen.dart'; 
-import 'package:test_app/plan/fitness_wellness.dart';
-import 'package:test_app/utils/custom_bottom_nav.dart'; 
 
-class GamificationScreen extends StatelessWidget {
+import 'package:test_app/gamification/levels_screen.dart';
+import 'package:test_app/gamification/rewards_screen.dart';
+
+
+import '../utils/circlular progressbar.dart';
+
+class GamificationScreen extends StatefulWidget {
   const GamificationScreen({super.key});
+
+  @override
+  State<GamificationScreen> createState() => _GamificationScreenState();
+}
+
+class _GamificationScreenState extends State<GamificationScreen> {
+  DateTime selectedDate = DateTime.now();
+
+  String get displayDateText {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+
+    if (selected == today) {
+      return "Today";
+    } else if (selected == today.subtract(const Duration(days: 1))) {
+      return "Yesterday";
+    } else if (selected == today.add(const Duration(days: 1))) {
+      return "Tomorrow";
+    } else {
+      return "${selected.day.toString().padLeft(2, '0')} ${_getMonthName(selected.month)}";
+    }
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
+  }
+
+  void _navigateToPreviousDay() {
+    setState(() {
+      selectedDate = selectedDate.subtract(const Duration(days: 1));
+    });
+  }
+
+  void _navigateToNextDay() {
+    setState(() {
+      selectedDate = selectedDate.add(const Duration(days: 1));
+    });
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNavBar(context),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+      // bottomNavigationBar: _buildBottomNavBar(context),
+   appBar: AppBar(
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+        ),
         title: const Text(
           'Achievements',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        centerTitle: true,
+       // optional: centers the title
       ),
+
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 10),
-            _buildTrophyBanner(),
-            const SizedBox(height: 10),
-            _buildDateDropdown(),
+      
             const SizedBox(height: 20),
+       
             _buildLevelProgress(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             _buildMilestoneBoard(),
           ],
         ),
@@ -39,69 +106,135 @@ class GamificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrophyBanner() {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Image.asset('assets/images/trofy.jpg', height: 100),
-    );
-  }
+  
 
-  Widget _buildDateDropdown() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.arrow_back_ios, size: 16),
-        const SizedBox(width: 8),
-        DropdownButton<String>(
-          value: 'Today',
-          underline: const SizedBox(),
-          items: const [
-            DropdownMenuItem(value: 'Today', child: Text('Today')),
-            DropdownMenuItem(value: 'This Week', child: Text('This Week')),
-            DropdownMenuItem(value: 'This Month', child: Text('This Month')),
-          ],
-          onChanged: (value) {},
-        ),
-        const SizedBox(width: 8),
-        const Icon(Icons.arrow_forward_ios, size: 16),
-      ],
-    );
-  }
+  
+ Widget _buildLevelProgress({
+    int currentLevel = 7,
+    int currentXP = 2000,
+    int goalXP = 3000,
+  }) {
+    double progress = currentXP / goalXP;
 
-  Widget _buildLevelProgress() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Level Progress', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          const Text(
+            'Level Progress',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
-              Image.asset('assets/icons/level_icon.png', width: 20),
-              const SizedBox(width: 12),
+              // Circular Progress Indicator
+              SizedBox(
+                width: 110,
+                height: 110,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Background circle
+ 
+                    // Progress circle
+                         RoundedCircularProgress(
+                      progress: progress,
+                      remainingText: 'Level $currentLevel',
+                      strokeWidth: 11,
+                      progressColor: Colors.orange,
+                      backgroundColor: Colors.grey.shade300,
+                    ),
+                    // Level text in center
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          
+"assets/icons/level_icon.png",
+height: 24,
+width: 24,
+                        ),
+                        Text(
+                          'Level: $currentLevel',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 32),
+
+              // XP Details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Level 7'),
-                    const SizedBox(height: 6),
-                    LinearProgressIndicator(
-                      value: 3240 / 4000,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 16),
+                        children: [
+                          TextSpan(
+                            text: 'Goal: ',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '${goalXP.toString()} XP',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                             
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: Text('3,240 / 4,000 XP'),
-                    ),
+                    const SizedBox(height: 8),
+                  RichText(
+  text: TextSpan(
+    style: const TextStyle(fontSize: 16),
+    children: [
+      TextSpan(
+        text: 'Earned:',
+        style: TextStyle(
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      const WidgetSpan(child: SizedBox(width: 6)), // <-- space
+      TextSpan(
+        text: '${currentXP.toString()} XP',
+        style: const TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ],
+  ),
+),
+
+                    const SizedBox(height: 8),
+                    // Progress bar (optional - can remove if you only want circular)
+                    
                   ],
                 ),
               ),
@@ -118,38 +251,49 @@ class GamificationScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Your Milestone Board', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'Your Milestone Board',
+            style: TextStyle(fontWeight: FontWeight.w600,fontSize: 20),
+          ),
           const SizedBox(height: 16),
           _buildMilestoneCard(
             imagePath: 'assets/icons/points_icon.png',
             title: 'Points',
-            subtitle: 'Today: +600\nGoal: 1200',
+            tracking:'Today: +600p',
+            goal: 'Goal: 1200',
             buttonText: 'View Points',
+            destination: GamificationScreen(),
           ),
           const SizedBox(height: 12),
           _buildMilestoneCard(
             imagePath: 'assets/icons/level_icon.png',
             title: 'Levels',
-            subtitle: 'Completed: 6\nTotal: 12',
+            tracking: 'Completed: 6',
+            goal:"Total: 12",
             buttonText: 'View Levels',
+            destination: LevelsScreen(),
           ),
           const SizedBox(height: 12),
           _buildMilestoneCard(
             imagePath: 'assets/icons/streak.png',
             title: 'Streak',
-            subtitle: 'Current: 6 days\nBest: 12 days',
+          
+             tracking: 'Current: 6 days',
+            goal: "Best: 12 days",
             buttonText: 'View Streak',
+              destination: RewardsScreen(),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildMilestoneCard({
+Widget _buildMilestoneCard({
     required String imagePath,
     required String title,
-    required String subtitle,
+    required String tracking,
+    required String goal,
     required String buttonText,
+    required Widget destination, // new parameter
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -159,61 +303,124 @@ class GamificationScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-       Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-               
-  Row(
-        children: [
-Container(
-             padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 158, 226, 220),
-        border: Border.all(width:1.5,color: const Color.fromARGB(255, 26, 25, 25)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-  child: Image.asset(
-    imagePath,
-    width: 30,
-  ),
-),
-          const SizedBox(width: 12),
-                Text(subtitle, style: const TextStyle(color: Color.fromARGB(136, 5, 145, 96),fontSize: 12,fontWeight: FontWeight.w500)),
-        ] 
-  )
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Image.asset(imagePath, width: 30, height: 30),
+              ),
             ],
-       ),
-
-          const SizedBox(width: 12),
-        
-      
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tracking,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  goal,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => destination),
+              );
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  buttonText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomNavBar(BuildContext context) {
-    return CustomBottomNav(
-      currentIndex: 3,
-      onTap: (index) {
-        if (index == 3) return;
 
-        switch (index) {
-          case 0:
-            Navigator.push(context, MaterialPageRoute(builder: (context) => FitnessWellnessScreen()));
-            break;
-          case 1:
-            Navigator.push(context, MaterialPageRoute(builder: (context) => HealthDashboardScreen()));
-            break;
-          case 2:
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatWelcomeScreen()));
-            break;
-          case 4:
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ToolsScreen()));
-            break;
-        }
-      },
-    );
-  }
+
+  // Widget _buildBottomNavBar(BuildContext context) {
+  //   return CustomBottomNav(
+  //     currentIndex: 3,
+  //     onTap: (index) {
+  //       if (index == 3) return;
+
+  //       switch (index) {
+  //         case 0:
+  //           // Navigator.push(
+  //           //   context,
+  //           //   MaterialPageRoute(builder: (context) => FitnessWellnessScreen()),
+  //           // );
+  //           break;
+  //         case 1:
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(builder: (context) => HealthDashboardScreen()),
+  //           );
+  //           break;
+  //         case 2:
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(builder: (context) => ChatWelcomeScreen()),
+  //           );
+  //           break;
+  //         case 4:
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(builder: (context) => ToolsScreen()),
+  //           );
+  //           break;
+  //       }
+  //     },
+  //   );
+  // }
 }

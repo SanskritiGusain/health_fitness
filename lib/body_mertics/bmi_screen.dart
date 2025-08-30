@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:test_app/pages/success_page.dart';
+import 'package:test_app/pages/exercise_times_input.dart';
+import 'package:test_app/plan/diet_preferences.dart';
+import 'package:test_app/plan/workout_preferences.dart';
 
 void main() {
   runApp(const BMIApp());
@@ -16,10 +18,7 @@ class BMIApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BMI Calculator',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
-      ),
+
       home: const BMIScreen(bmi: 22.5),
       debugShowCheckedModeBanner: false,
     );
@@ -40,14 +39,20 @@ class BMIGaugePainter extends CustomPainter {
 
   final List<double> bmiRanges = [0, 18.5, 24.9, 29.9, 34.9, 40];
 
-  final List<String> labels = ["<18.5", "18.5-24.9", "25-29.9", "30-34.9", ">35"];
+  final List<String> labels = [
+    "<18.5",
+    "18.5-24.9",
+    "25-29.9",
+    "30-34.9",
+    ">35",
+  ];
 
   final List<String> categories = [
     "UNDERWEIGHT",
     "NORMAL",
     "OVERWEIGHT",
     "OBESE",
-    "EXTREMELY OBESE"
+    "EXTREMELY OBESE",
   ];
 
   @override
@@ -94,9 +99,10 @@ class BMIGaugePainter extends CustomPainter {
     );
 
     // Colored ranges
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 105;
+    final paint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 105;
 
     for (int i = 0; i < colors.length; i++) {
       paint.color = colors[i];
@@ -125,20 +131,34 @@ class BMIGaugePainter extends CustomPainter {
     for (int i = 0; i < categories.length; i++) {
       final sectionStart = startAngle + i * sweepPerRange;
       final sectionEnd = startAngle + (i + 1) * sweepPerRange;
-      _drawCircularText(canvas, categories[i], center, radius + 30,
-          sectionStart, sectionEnd,
-          fontSize: 12, color: const Color(0xFF6B6B6B), fontWeight: FontWeight.w700);
+      _drawCircularText(
+        canvas,
+        categories[i],
+        center,
+        radius + 30,
+        sectionStart,
+        sectionEnd,
+        fontSize: 12,
+        color: const Color(0xFF6B6B6B),
+        fontWeight: FontWeight.w700,
+      );
     }
 
     // BMI range labels
     for (int i = 0; i < labels.length; i++) {
       final sectionStart = startAngle + i * sweepPerRange;
       final sectionEnd = startAngle + (i + 1) * sweepPerRange;
-      _drawCircularText(canvas, labels[i], center, radius - 30, sectionStart,
-          sectionEnd,
-          fontSize: 12,
-          color: const Color(0xFFF8FBFB),
-          fontWeight: FontWeight.bold);
+      _drawCircularText(
+        canvas,
+        labels[i],
+        center,
+        radius - 30,
+        sectionStart,
+        sectionEnd,
+        fontSize: 12,
+        color: const Color(0xFFF8FBFB),
+        fontWeight: FontWeight.bold,
+      );
     }
 
     // Needle
@@ -148,72 +168,78 @@ class BMIGaugePainter extends CustomPainter {
 
   void _drawNeedle(Canvas canvas, Offset center, double angle, double length) {
     const needleWidth = 13;
-    final tip = Offset(center.dx + length * cos(angle),
-        center.dy + length * sin(angle));
-    final baseLeft = Offset(center.dx + needleWidth * cos(angle + pi / 2),
-        center.dy + needleWidth * sin(angle + pi / 2));
-    final baseRight = Offset(center.dx + needleWidth * cos(angle - pi / 2),
-        center.dy + needleWidth * sin(angle - pi / 2));
+    final tip = Offset(
+      center.dx + length * cos(angle),
+      center.dy + length * sin(angle),
+    );
+    final baseLeft = Offset(
+      center.dx + needleWidth * cos(angle + pi / 2),
+      center.dy + needleWidth * sin(angle + pi / 2),
+    );
+    final baseRight = Offset(
+      center.dx + needleWidth * cos(angle - pi / 2),
+      center.dy + needleWidth * sin(angle - pi / 2),
+    );
 
-    final path = Path()
-      ..moveTo(tip.dx, tip.dy)
-      ..lineTo(baseLeft.dx, baseLeft.dy)
-      ..lineTo(baseRight.dx, baseRight.dy)
-      ..close();
+    final path =
+        Path()
+          ..moveTo(tip.dx, tip.dy)
+          ..lineTo(baseLeft.dx, baseLeft.dy)
+          ..lineTo(baseRight.dx, baseRight.dy)
+          ..close();
 
     // Shadow
     canvas.drawPath(
-        path,
-        Paint()
-          ..color = Colors.black26
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2));
+      path,
+      Paint()
+        ..color = Colors.black26
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+    );
 
     // Needle fill
     canvas.drawPath(
-        path,
-        Paint()
-          ..shader = const LinearGradient(colors: [
-            Color(0xFF111111),
-            Color(0xFF0E0E0E),
-            Color(0xFF000000)
-          ], stops: [
-            0.0,
-            0.5,
-            1.0
-          ]).createShader(Rect.fromPoints(baseLeft, tip)));
+      path,
+      Paint()
+        ..shader = const LinearGradient(
+          colors: [Color(0xFF111111), Color(0xFF0E0E0E), Color(0xFF000000)],
+          stops: [0.0, 0.5, 1.0],
+        ).createShader(Rect.fromPoints(baseLeft, tip)),
+    );
 
     // Center hub
     const hubRadius = 12.0;
     canvas.drawCircle(
-        Offset(center.dx + 1, center.dy + 1),
-        hubRadius,
-        Paint()
-          ..color = Colors.black26);
+      Offset(center.dx + 1, center.dy + 1),
+      hubRadius,
+      Paint()..color = Colors.black26,
+    );
 
     canvas.drawCircle(
-        center,
-        hubRadius,
-        Paint()
-          ..shader = const RadialGradient(colors: [
-            Color(0xFF1A1A1A),
-            Color(0xFF0A0A0A),
-          ]).createShader(Rect.fromCircle(center: center, radius: hubRadius)));
+      center,
+      hubRadius,
+      Paint()
+        ..shader = const RadialGradient(
+          colors: [Color(0xFF1A1A1A), Color(0xFF0A0A0A)],
+        ).createShader(Rect.fromCircle(center: center, radius: hubRadius)),
+    );
 
     canvas.drawCircle(
-        center,
-        hubRadius,
-        Paint()
-          ..color = const Color(0xFF0B0B0B)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5);
+      center,
+      hubRadius,
+      Paint()
+        ..color = const Color(0xFF0B0B0B)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
 
     canvas.drawCircle(
-        center,
-        hubRadius * 0.6,
-        Paint()
-          ..color = const Color(0xFF6A6A6A)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1);
+      center,
+      hubRadius * 0.6,
+      Paint()
+        ..color = const Color(0xFF6A6A6A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
   }
 
   double _getNeedleAngle(double bmi) {
@@ -236,36 +262,60 @@ class BMIGaugePainter extends CustomPainter {
     return startAngle + (index + percent) * sweepPerRange + needleOffset;
   }
 
-  void _drawCircularText(Canvas canvas, String text, Offset center,
-      double radius, double start, double end,
-      {double fontSize = 12,
-      Color color = Colors.black,
-      FontWeight fontWeight = FontWeight.normal}) {
+  void _drawCircularText(
+    Canvas canvas,
+    String text,
+    Offset center,
+    double radius,
+    double start,
+    double end, {
+    double fontSize = 12,
+    Color color = Colors.black,
+    FontWeight fontWeight = FontWeight.normal,
+  }) {
     final sweep = end - start;
     final spacing = sweep / (text.length + 1);
 
     for (int i = 0; i < text.length; i++) {
       final char = text[i];
       final angle = start + (i + 1) * spacing;
-      final pos = Offset(center.dx + radius * cos(angle),
-          center.dy + radius * sin(angle));
-      _drawRotatedText(canvas, char, pos, angle + pi / 2,
-          fontSize: fontSize, color: color, fontWeight: fontWeight);
+      final pos = Offset(
+        center.dx + radius * cos(angle),
+        center.dy + radius * sin(angle),
+      );
+      _drawRotatedText(
+        canvas,
+        char,
+        pos,
+        angle + pi / 2,
+        fontSize: fontSize,
+        color: color,
+        fontWeight: fontWeight,
+      );
     }
   }
 
-  void _drawRotatedText(Canvas canvas, String text, Offset offset, double angle,
-      {double fontSize = 12,
-      Color color = Colors.black,
-      FontWeight fontWeight = FontWeight.normal}) {
+  void _drawRotatedText(
+    Canvas canvas,
+    String text,
+    Offset offset,
+    double angle, {
+    double fontSize = 12,
+    Color color = Colors.black,
+    FontWeight fontWeight = FontWeight.normal,
+  }) {
     final textPainter = TextPainter(
-        text: TextSpan(
-            text: text,
-            style: TextStyle(
-                fontSize: fontSize, color: color, fontWeight: fontWeight)),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr)
-      ..layout();
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontSize: fontSize,
+          color: color,
+          fontWeight: fontWeight,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout();
 
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
@@ -290,10 +340,12 @@ class BMIScreen extends StatefulWidget {
 }
 
 class _BMIScreenState extends State<BMIScreen> {
-  final TextEditingController _heightController =
-      TextEditingController(text: "170");
-  final TextEditingController _weightController =
-      TextEditingController(text: "70");
+  final TextEditingController _heightController = TextEditingController(
+    text: "170",
+  );
+  final TextEditingController _weightController = TextEditingController(
+    text: "70",
+  );
 
   double _height = 170; // in cm
   double _weight = 70; // in kg
@@ -311,7 +363,7 @@ class _BMIScreenState extends State<BMIScreen> {
     final categoryMessage = _getBMICategoryMessage(_bmi);
     final categoryColor = _getCategoryColor(_bmi);
     final currentBMI = _bmi;
-    
+
     // Screen dimensions
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
@@ -325,7 +377,7 @@ class _BMIScreenState extends State<BMIScreen> {
         backgroundColor: const Color(0xFFF8FBFB),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black,size:26),
+          icon: const Icon(Icons.arrow_back, color: Colors.black, size: 26),
           onPressed: () => Navigator.pop(context),
         ),
         title: Container(
@@ -351,8 +403,6 @@ class _BMIScreenState extends State<BMIScreen> {
                   ),
                 ),
               ),
-          
-              
             ],
           ),
         ),
@@ -362,9 +412,7 @@ class _BMIScreenState extends State<BMIScreen> {
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: isTablet ? 32.0 : 16.0,
@@ -379,6 +427,7 @@ class _BMIScreenState extends State<BMIScreen> {
                           // BMI Gauge
                           Container(
                             width: double.infinity,
+                            // height: 400,
                             padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -396,8 +445,12 @@ class _BMIScreenState extends State<BMIScreen> {
                               children: [
                                 CustomPaint(
                                   size: Size(
-                                    isTablet ? 350 : (isSmallScreen ? 250 : 285),
-                                    isTablet ? 200 : (isSmallScreen ? 130 : 160),
+                                    isTablet
+                                        ? 350
+                                        : (isSmallScreen ? 250 : 285),
+                                    isTablet
+                                        ? 200
+                                        : (isSmallScreen ? 130 : 160),
                                   ),
                                   painter: BMIGaugePainter(currentBMI),
                                 ),
@@ -405,7 +458,10 @@ class _BMIScreenState extends State<BMIScreen> {
                                 Text(
                                   "Your BMI is",
                                   style: TextStyle(
-                                    fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                    fontSize:
+                                        isTablet
+                                            ? 16
+                                            : (isSmallScreen ? 12 : 14),
                                     color: Colors.black87,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -414,18 +470,26 @@ class _BMIScreenState extends State<BMIScreen> {
                                 Text(
                                   currentBMI.toStringAsFixed(1),
                                   style: TextStyle(
-                                    fontSize: isTablet ? 28 : (isSmallScreen ? 18 : 20),
+                                    fontSize:
+                                        isTablet
+                                            ? 28
+                                            : (isSmallScreen ? 18 : 20),
                                     fontWeight: FontWeight.w700,
                                     color: categoryColor,
                                   ),
                                 ),
                                 SizedBox(height: screenHeight * 0.01),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
                                   child: Text(
                                     categoryMessage,
                                     style: TextStyle(
-                                      fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                      fontSize:
+                                          isTablet
+                                              ? 16
+                                              : (isSmallScreen ? 12 : 14),
                                       color: const Color(0xFF7F7F7F),
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -458,25 +522,37 @@ class _BMIScreenState extends State<BMIScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
                                   child: RichText(
                                     textAlign: TextAlign.center,
                                     text: TextSpan(
                                       style: TextStyle(
-                                        fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                        fontSize:
+                                            isTablet
+                                                ? 16
+                                                : (isSmallScreen ? 12 : 14),
                                         fontWeight: FontWeight.w600,
                                         color: const Color(0xFF7F7F7F),
                                       ),
                                       children: [
-                                        const TextSpan(text: "Your ideal weight should be in "),
+                                        const TextSpan(
+                                          text:
+                                              "Your ideal weight should be in ",
+                                        ),
                                         TextSpan(
                                           text: "${_getMinWeight()}",
-                                          style: const TextStyle(color: Color(0xFF97CD17)),
+                                          style: const TextStyle(
+                                            color: Color(0xFF97CD17),
+                                          ),
                                         ),
                                         const TextSpan(text: " to "),
                                         TextSpan(
                                           text: "${_targetWeight.toInt()}",
-                                          style: const TextStyle(color: Color(0xFF97CD17)),
+                                          style: const TextStyle(
+                                            color: Color(0xFF97CD17),
+                                          ),
                                         ),
                                         const TextSpan(text: " kg"),
                                       ],
@@ -485,21 +561,22 @@ class _BMIScreenState extends State<BMIScreen> {
                                 ),
 
                                 SizedBox(height: screenHeight * 0.015),
-                                
+
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     GestureDetector(
                                       onTap: () {
                                         setState(() {
-                                          if (_targetWeight > 40) _targetWeight -= 1;
+                                          if (_targetWeight > 40)
+                                            _targetWeight -= 1;
                                         });
                                       },
                                       child: Container(
                                         width: isSmallScreen ? 20 : 24,
                                         height: isSmallScreen ? 20 : 24,
                                         decoration: BoxDecoration(
-                                         color: Colors.black,
+                                          color: Colors.black,
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
@@ -513,7 +590,10 @@ class _BMIScreenState extends State<BMIScreen> {
                                     Text(
                                       "${_targetWeight.toInt()}kg",
                                       style: TextStyle(
-                                        fontSize: isTablet ? 28 : (isSmallScreen ? 20 : 24),
+                                        fontSize:
+                                            isTablet
+                                                ? 28
+                                                : (isSmallScreen ? 20 : 24),
                                         fontWeight: FontWeight.w700,
                                         color: _getTargetWeightColor(),
                                       ),
@@ -522,7 +602,8 @@ class _BMIScreenState extends State<BMIScreen> {
                                     GestureDetector(
                                       onTap: () {
                                         setState(() {
-                                          if (_targetWeight < 120) _targetWeight += 1;
+                                          if (_targetWeight < 120)
+                                            _targetWeight += 1;
                                         });
                                       },
                                       child: Container(
@@ -541,11 +622,13 @@ class _BMIScreenState extends State<BMIScreen> {
                                     ),
                                   ],
                                 ),
-                                
+
                                 SizedBox(height: screenHeight * 0.015),
-                                
+
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
                                   child: _getTargetWeightMessageWidget(),
                                 ),
                               ],
@@ -573,14 +656,18 @@ class _BMIScreenState extends State<BMIScreen> {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SuccessPage()),
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => const WorkoutPreferences(),
+                                ),
                               );
                             },
                             child: Text(
                               "Done",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: isTablet ? 18 : (isSmallScreen ? 14 : 16),
+                                fontSize:
+                                    isTablet ? 18 : (isSmallScreen ? 14 : 16),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -610,7 +697,7 @@ class _BMIScreenState extends State<BMIScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 12, 
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: Color(0xFF7F7F7F),
           ),
@@ -624,8 +711,10 @@ class _BMIScreenState extends State<BMIScreen> {
             isDense: true,
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -651,7 +740,7 @@ class _BMIScreenState extends State<BMIScreen> {
     final maxWeight = (24.9 * heightInM * heightInM).round();
     return "${minWeight} to ${minWeight}";
   }
-  
+
   int _getMinWeight() {
     final heightInM = _height / 100;
     return (18.5 * heightInM * heightInM).round();
@@ -659,7 +748,7 @@ class _BMIScreenState extends State<BMIScreen> {
 
   String _getWeightRangeText() {
     final idealRange = _getIdealWeightRange();
-    
+
     if (_bmi < 18.5) {
       return "Your ideal weight should be in $idealRange";
     } else if (_bmi >= 18.5 && _bmi <= 24.9) {
@@ -691,7 +780,7 @@ class _BMIScreenState extends State<BMIScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
     final isTablet = screenWidth > 600;
-    
+
     if (targetBMI >= 18.5 && targetBMI <= 24.9) {
       return RichText(
         textAlign: TextAlign.center,
@@ -710,7 +799,10 @@ class _BMIScreenState extends State<BMIScreen> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const TextSpan(text: ".\nYou're aiming lean stay consistent and you'll hit it strong and healthy."),
+            const TextSpan(
+              text:
+                  ".\nYou're aiming lean stay consistent and you'll hit it strong and healthy.",
+            ),
           ],
         ),
       );
@@ -728,7 +820,10 @@ class _BMIScreenState extends State<BMIScreen> {
               text: weightText,
               style: const TextStyle(color: Color(0xFF0C0C0C)),
             ),
-            const TextSpan(text: ".\nYour goal seems a bit unrealistic. Let's aim for a healthier target"),
+            const TextSpan(
+              text:
+                  ".\nYour goal seems a bit unrealistic. Let's aim for a healthier target",
+            ),
           ],
         ),
       );
@@ -746,7 +841,10 @@ class _BMIScreenState extends State<BMIScreen> {
               text: weightText,
               style: const TextStyle(color: Colors.black),
             ),
-            const TextSpan(text: ".\nGood Effort, once you reach here, we'll guide you further if you choose to reduce more"),
+            const TextSpan(
+              text:
+                  ".\nGood Effort, once you reach here, we'll guide you further if you choose to reduce more",
+            ),
           ],
         ),
       );
@@ -764,7 +862,10 @@ class _BMIScreenState extends State<BMIScreen> {
               text: weightText,
               style: const TextStyle(color: Colors.black),
             ),
-            const TextSpan(text: ".\nYour goal seems a bit unrealistic. Let's aim for a\nhealthier target"),
+            const TextSpan(
+              text:
+                  ".\nYour goal seems a bit unrealistic. Let's aim for a\nhealthier target",
+            ),
           ],
         ),
       );

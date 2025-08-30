@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "115488980508",
+    "project_id": "healthandfitness-4bc11",
+    "storage_bucket": "healthandfitness-4bc11.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:115488980508:android:08babdc367f3820f5169d9",
+        "android_client_info": {
+          "package_name": "health.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "115488980508-sism47e6kur1hsduikg8ipep03gq7i43.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "health.com",
+            "certificate_hash": "b2ebb7a9e44f8f354c1003e8395b5350a8a2a531"
+          }
+        },
+        {
+          "client_id": "115488980508-qbj88hgm1g4bq94te7ms2nv5oe58boe0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCCWU_Lu-FVQCxv2eDnwhDsx5GxI4mq2U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "115488980508-qbj88hgm1g4bq94te7ms2nv5oe58boe0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

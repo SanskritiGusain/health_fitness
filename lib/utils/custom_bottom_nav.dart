@@ -1,69 +1,74 @@
+// lib/widgets/custom_nav_bar.dart
 import 'package:flutter/material.dart';
 
-class CustomBottomNav extends StatelessWidget {
+class CustomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
 
-  const CustomBottomNav({
-    Key? key,
+  const CustomNavBar({
+    super.key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // 📏 Responsive sizing
+    final iconSize = (screenWidth * 0.07).clamp(18.0, 28.0);
+    final fontSize = (screenWidth * 0.03).clamp(10.0, 14.0);
+
     return BottomNavigationBar(
-      currentIndex: currentIndex,
-      selectedItemColor: Colors.black,
-      unselectedItemColor: Colors.grey,
       type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
+      elevation: 0,
+      currentIndex: currentIndex,
       onTap: onTap,
+      backgroundColor: theme.colorScheme.onPrimary,
+
+      selectedItemColor: theme.colorScheme.secondary,
+      unselectedItemColor: theme.colorScheme.outlineVariant,
+
+      selectedIconTheme: IconThemeData(
+        color: theme.colorScheme.secondary,
+        size: iconSize,
+      ),
+      unselectedIconTheme: IconThemeData(
+        color: theme.colorScheme.outlineVariant,
+        size: iconSize,
+      ),
+
+      selectedLabelStyle: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.w600,
+        inherit: true, // ✅ fixes TextStyle interpolation issue
+      ),
+      unselectedLabelStyle: TextStyle(fontSize: fontSize, inherit: true),
+
       items: [
         BottomNavigationBarItem(
-          icon: Image.asset(
-            'assets/icons/ant-design_home-outlined.png',
-            width: 24,
-            height: 24,
-            color: currentIndex == 0 ? Colors.black : Colors.grey,
-          ),
-          label: 'Home',
+          icon: Image.asset("assets/icons/home.png", height: iconSize),
+          label: "Home",
+        ),
+        BottomNavigationBarItem(
+          icon: Image.asset("assets/icons/diet.png", height: iconSize),
+          label: "Diet",
+        ),
+        BottomNavigationBarItem(
+          icon: Image.asset("assets/icons/workout.png", height: iconSize),
+          label: "Workout",
+        ),
+        BottomNavigationBarItem(
+          icon: Image.asset("assets/icons/metrics.png", height: iconSize),
+          label: "Metrics",
         ),
         BottomNavigationBarItem(
           icon: Image.asset(
-            'assets/icons/plan.png',
-            width: 24,
-            height: 24,
-            color: currentIndex == 1 ? Colors.black : Colors.grey,
-          ),
-          label: 'My Plan',
-        ),
-        BottomNavigationBarItem(
-          icon: Image.asset(
-            'assets/icons/tabler_message.png',
-            width: 24,
-            height: 24,
-            color: currentIndex == 2 ? Colors.black : Colors.grey,
-          ),
-          label: 'Chat',
-        ),
-        BottomNavigationBarItem(
-          icon: Image.asset(
-            'assets/icons/heroicons_trophy.png',
-            width: 24,
-            height: 24,
-            color: currentIndex == 3 ? Colors.black : Colors.grey,
-          ),
-          label: 'Merits',
-        ),
-        BottomNavigationBarItem(
-          icon: Image.asset(
-            'assets/icons/tools_icon.png',
-            width: 24,
-            height: 24,
-            color: currentIndex == 4 ? Colors.black : Colors.grey,
-          ),
-          label: 'Tools',
+            "assets/icons/tools .png",
+            height: iconSize,
+          ), // ✅ remove extra space in filename
+          label: "Tools",
         ),
       ],
     );

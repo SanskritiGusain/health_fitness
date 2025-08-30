@@ -1,12 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:test_app/profile/rewards.dart'; 
-
-
-
-
-
+import 'package:test_app/profile/rewards.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_app/utils/custom_app_bars.dart';
 class ReferralScreen extends StatefulWidget {
   @override
   _ReferralScreenState createState() => _ReferralScreenState();
@@ -16,257 +12,243 @@ class _ReferralScreenState extends State<ReferralScreen> {
   bool _copied = false;
 
   void _copyReferralCode() {
-    Clipboard.setData(ClipboardData(text: 'FITDAY20'));
-    setState(() {
-      _copied = true;
-    });
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        _copied = false;
-      });
-    });
+    Clipboard.setData(const ClipboardData(text: 'FITDAY20'));
+    setState(() => _copied = true);
+    Future.delayed(
+      const Duration(seconds: 2),
+      () => setState(() => _copied = false),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Refer Friend',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: false,
-      ),
+      backgroundColor: const Color(0xFFF8FBFB),
+         appBar: CustomAppBars.backAppBar(context, "Refer Friend"),
+   
       body: Padding(
-
-
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-                    Divider(
-  color: Colors.grey[300], // light grey line
-  thickness: 1.0,          // line thickness
-  height: 0,               // space above/below the line
-),SizedBox(height: 24),
-            // Title Section
-            Text(
+            
+            const SizedBox(height: 24),
+            const Text(
               'Refer Friends.',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 24,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 6),
             RichText(
-              text: TextSpan(
-                style: TextStyle(fontSize: 22,color: Colors.black,fontWeight: FontWeight.w600,),
+              text: const TextSpan(
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
                 children: [
-                  TextSpan(text: 'Get a '),
+                  TextSpan(text: 'Get a ',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   TextSpan(
                     text: 'coupon',
                     style: TextStyle(
-                      color:  Colors.green,
+                      fontSize: 24,
+                      color: Colors.green,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  TextSpan(text: ' For Each Signup.'),
+                  TextSpan(text: ' For Each Signup.',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 12),
-              RichText(
-              text: TextSpan(
-                style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-                children: [
+            const SizedBox(height: 16),
+            Text.rich(
+              TextSpan(
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                children: const [
                   TextSpan(text: 'They get '),
                   TextSpan(
                     text: 'Upto ₹200 OFF',
                     style: TextStyle(
-                      color:  const Color.fromARGB(255, 40, 40, 40),
+                      fontSize: 16,
+                      color: Color(0xFF282828),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  TextSpan(text: 'on their first purchase'),
+                  TextSpan(text: ' on their first purchase',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color.fromARGB(255, 116, 115, 115),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ),
-           
-            SizedBox(height: 30),
-
-            // Action Buttons
+            const SizedBox(height: 40),
             Row(
               children: [
-                Expanded(
-                  child: Container(
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Share functionality
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.share, color: Colors.white, size: 14),
-                          SizedBox(width: 8),
-                          Text(
-                            'Share Link',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    height: 44,
-                    child: ElevatedButton(
-                      onPressed: _copyReferralCode,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _copied ? Icons.check : Icons.copy,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            _copied ? 'COPIED!' : 'FITDAY20',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                _buildActionButton('Share Link', Icons.share, Colors.black, () {
+                  // Share functionality
+                }),
+                const SizedBox(width: 12),
+                _buildActionButton(
+                  _copied ? 'COPIED!' : 'FITDAY20',
+                  _copied ? Icons.check : Icons.copy,
+                  Colors.black,
+                  _copyReferralCode,
                 ),
               ],
             ),
-            SizedBox(height: 20),
-
-            // Rewards Section
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => RewardsScreen()),
-                  );
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(Icons.card_giftcard, color: Colors.black),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Rewards',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
-                    Spacer(),
-                    Icon(Icons.arrow_forward_ios, color: const Color.fromARGB(255, 40, 40, 40), size: 17),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 30),
-
-            // How it works section
-            Text(
+            const SizedBox(height: 30),
+            _buildRewardsSection(context),
+            const SizedBox(height: 50),
+            const Text(
               'How it works:',
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 14),
-            _buildHowItWorksItem('Share your referral code with friends'),
-            _buildHowItWorksItem('They get Upto ₹200 OFF on their first purchase'),
-            _buildHowItWorksItem('You earn a coupon when they subscribe'),
-            _buildHowItWorksItem('Use your earned coupons on future purchases'),
+            const SizedBox(height: 16),
+            ...[
+              'Share your referral code with friends',
+              'They get Upto ₹200 OFF on their first purchase',
+              'You earn a coupon when they subscribe',
+              'Use your earned coupons on future purchases',
+            ].map(_buildHowItWorksItem),
           ],
         ),
       ),
     );
   }
 
+  Expanded _buildActionButton(
+    String text,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return Expanded(
+      child: SizedBox(
+        height: 54,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                text,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRewardsSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+         boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15), // lighter shadow
+            spreadRadius: 1, // minimal spread
+            blurRadius: 6, // soft blur
+            offset: const Offset(0, 2), // slight vertical offset
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => RewardsScreen()),
+            ),
+    child: Row(
+          children: [
+            SvgPicture.asset(
+              'assets/icons_update/gift.svg',
+              height: 24, // optional size
+              width: 24,
+            ),
+            const SizedBox(width: 14),
+            const Text(
+              'Rewards',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            const Spacer(),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF282828),
+              size: 17,
+            ),
+          ],
+        ),
+
+      ),
+    );
+  }
+
+
   Widget _buildHowItWorksItem(String text) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 8),
             width: 4,
             height: 4,
-            decoration: BoxDecoration(
+            margin: const EdgeInsets.only(top: 8),
+            decoration: const BoxDecoration(
               color: Colors.black,
               shape: BoxShape.circle,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
-                fontSize: 12,
+              style: const TextStyle(
+                fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: const Color.fromARGB(255, 29, 28, 28),
-               
+                color: Color(0xFF1D1C1C),
               ),
             ),
           ),

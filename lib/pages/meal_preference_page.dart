@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../pages/transformation.dart';
-import '../pages/medical_condition.dart';
+import 'medical_condition.dart';
 
 class MealPreferencePage extends StatefulWidget {
   const MealPreferencePage({super.key});
