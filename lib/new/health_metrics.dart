@@ -145,12 +145,12 @@ class HealthMetricsScreen extends StatelessWidget {
       //   ),
       // ⬅️ custom height
       //),
-      bottomNavigationBar: CustomNavBar(
-        currentIndex: 3, // example
-        onTap: (index) {
-          // handle navigation
-        },
-      ),
+      // bottomNavigationBar: CustomNavBar(
+      //   currentIndex: 3, // example
+      //   onTap: (index) {
+      //     // handle navigation
+      //   },
+      // ),
     );
   }
 

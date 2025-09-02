@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/main.dart';
+import 'package:test_app/profile/notification_settings_page.dart';
 import '/profile/delete_account.dart';
 class SettingsPage extends StatefulWidget {
   @override
@@ -10,8 +12,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -23,19 +27,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: Color(0xFFCBD5E1)),
+                        bottom: BorderSide(color: theme.dividerColor),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.arrow_back_ios, size: 20),
+                        Icon(Icons.arrow_back_ios, size: 20, color: theme.iconTheme.color),
                         SizedBox(width: 12),
                         Text(
                           'Settings',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: theme.textTheme.titleMedium,
                         ),
                       ],
                     ),
@@ -68,8 +69,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             onTap: () {
                               showDialog(
                                 context: context,
-                                builder:
-                                    (context) => const DeleteAccountDialog(),
+                                builder: (context) => const DeleteAccountDialog(),
                               );
                             },
                           ),
@@ -87,7 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
               height: 4,
               margin: EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: theme.iconTheme.color,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -102,6 +102,8 @@ class _SettingsPageState extends State<SettingsPage> {
     required String title,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -118,7 +120,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(
-                    color: Colors.grey,
+                    color: theme.dividerColor,
                     width: 1,
                   ),
                 ),
@@ -126,24 +128,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   iconAsset,
                   width: 16,
                   height: 16,
-                  color: Colors.black,
+                  color: theme.iconTheme.color,
                 ),
               ),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
               Icon(
                 Icons.chevron_right,
                 size: 26,
-                color: Colors.black,
+                color: theme.iconTheme.color,
               ),
             ],
           ),
@@ -153,6 +151,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
 void _showThemeDialog() {
+  final theme = Theme.of(context);
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -162,7 +162,7 @@ void _showThemeDialog() {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white, // 🔴 Background set to black
+            color: theme.cardColor, // Dialog background
             borderRadius: BorderRadius.circular(16),
           ),
           padding: EdgeInsets.all(24),
@@ -174,29 +174,25 @@ void _showThemeDialog() {
                 children: [
                   Text(
                     'Choose theme',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black, // 🔴 Text color white
+                    style: theme.textTheme.titleMedium!.copyWith(
+                      color: theme.colorScheme.onSurface, // ensures visibility
                     ),
                   ),
                   SizedBox(height: 12),
-                  ...['System Default', 'Light', 'Dark'].map((theme) {
+                  ...['System Default', 'Light', 'Dark'].map((themeOption) {
                     return RadioListTile<String>(
                       title: Text(
-                        theme,
-                        style: TextStyle(
-                           fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: const Color.fromARGB(255, 100, 100, 100), // 🔴 White text
+                        themeOption,
+                        style: theme.textTheme.bodyMedium!.copyWith(
+                          color: theme.colorScheme.onSurface, // visible in light/dark
                         ),
                       ),
-                      value: theme,
+                      value: themeOption,
                       groupValue: selectedTheme,
                       onChanged: (value) {
                         setState(() => selectedTheme = value!);
                       },
-                      activeColor: Colors.black, // 🔴 Radio active color
+                      activeColor: theme.colorScheme.primary,
                       contentPadding: EdgeInsets.zero,
                     );
                   }).toList(),
@@ -208,9 +204,8 @@ void _showThemeDialog() {
                         onPressed: () => Navigator.of(context).pop(),
                         child: Text(
                           'Cancel',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black, // 🔴 Button text white
+                          style: theme.textTheme.bodyMedium!.copyWith(
+                            color: theme.colorScheme.primary, // visible
                           ),
                         ),
                       ),
@@ -218,13 +213,18 @@ void _showThemeDialog() {
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          // Apply theme logic here
+                          if (selectedTheme == 'Light') {
+                            MyApp.of(context)?.setThemeMode(ThemeMode.light);
+                          } else if (selectedTheme == 'Dark') {
+                            MyApp.of(context)?.setThemeMode(ThemeMode.dark);
+                          } else {
+                            MyApp.of(context)?.setThemeMode(ThemeMode.system);
+                          }
                         },
                         child: Text(
                           'OK',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black, // 🔴 Button text white
+                          style: theme.textTheme.bodyMedium!.copyWith(
+                            color: theme.colorScheme.primary, // visible
                           ),
                         ),
                       ),
@@ -239,104 +239,4 @@ void _showThemeDialog() {
     },
   );
 }
-
-}
-
-class NotificationSettingsPage extends StatefulWidget {
-  @override
-  _NotificationSettingsPageState createState() => _NotificationSettingsPageState();
-}
-
-class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
-  bool generalNotification = false;
-  bool sound = true;
-  bool dontDisturbMode = false;
-  bool vibrate = true;
-  bool lockScreen = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Icon(Icons.arrow_back_ios, size: 20),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Notifications Settings',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Notification Options
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    _buildSwitchItem('General Notification', generalNotification, (val) => setState(() => generalNotification = val)),
-                    _buildSwitchItem('Sound', sound, (val) => setState(() => sound = val)),
-                    _buildSwitchItem("Don't Disturb Mode", dontDisturbMode, (val) => setState(() => dontDisturbMode = val)),
-                    _buildSwitchItem('Vibrate', vibrate, (val) => setState(() => vibrate = val)),
-                    _buildSwitchItem('Lock Screen', lockScreen, (val) => setState(() => lockScreen = val)),
-                  ],
-                ),
-              ),
-            ),
-
-            // Home Indicator
-            Container(
-              width: 120,
-              height: 4,
-              margin: EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchItem(String title, bool value, Function(bool) onChanged) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: Colors.green,
-            activeTrackColor: Colors.green.withOpacity(0.3),
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: Colors.grey[300],
-          ),
-        ],
-      ),
-    );
-  }
 }

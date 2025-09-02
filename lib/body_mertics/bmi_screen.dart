@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:test_app/pages/exercise_times_input.dart';
 import 'package:test_app/plan/diet_preferences.dart';
@@ -357,6 +358,24 @@ class _BMIScreenState extends State<BMIScreen> {
 
   double get _bmi => _weight / ((_height / 100) * (_height / 100));
   double get _targetBMI => _targetWeight / ((_height / 100) * (_height / 100));
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData(); // ✅ Load saved target weight & BMI
+  }
+    Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _targetWeight = prefs.getDouble("user_target_weight") ?? 65;
+      _weight = prefs.getDouble("user_weight") ?? 70;
+      _height = prefs.getDouble("user_height") ?? 170;
+    });
+  }
+   Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble("user_bmi", _bmi);
+    await prefs.setDouble("user_target_weight", _targetWeight);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -653,15 +672,15 @@ class _BMIScreenState extends State<BMIScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => const WorkoutPreferences(),
-                                ),
-                              );
-                            },
+                        onPressed: () async {
+    await _saveData(); // ✅ Save before navigating
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const WorkoutPreferences(),
+      ),
+    );
+  },
                             child: Text(
                               "Done",
                               style: TextStyle(

@@ -1,11 +1,15 @@
+// lib/pages/location_select.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:test_app/pages/height_input.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:test_app/pages/user_details.dart';
+import 'package:test_app/utils/persistent_data.dart';
 
 class LocationSelectionPage extends StatefulWidget {
   const LocationSelectionPage({super.key});
-  
+
   @override
   _LocationSelectionPageState createState() => _LocationSelectionPageState();
 }
@@ -13,29 +17,109 @@ class LocationSelectionPage extends StatefulWidget {
 class _LocationSelectionPageState extends State<LocationSelectionPage> {
   String? selectedState;
   String? selectedCountry;
+  String? selectedCountryId;
+  String? selectedStateId;
   bool _isButtonEnabled = false;
 
-  final List<String> states = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
-    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
-    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
-    'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-  ];
+  List<Map<String, dynamic>> countries = [];
+  List<Map<String, dynamic>> states = [];
 
-  final List<String> countries = [
-    'India', 'United States', 'United Kingdom', 'Canada', 'Australia',
-    'Germany', 'France', 'Japan', 'China', 'Brazil',
-    'South Africa', 'Russia', 'Italy', 'Spain', 'Netherlands'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchCountries();
+  }
+
+  Future<void> _loadSavedLocation() async {
+    final country = await PersistentData.getCountry();
+    final state = await PersistentData.getState();
+
+    if (country != null) {
+      setState(() {
+        selectedCountry = country;
+      });
+
+      // Find country ID and fetch states if needed
+      final countryData = countries.firstWhere(
+        (c) => c["name"] == country,
+        orElse: () => {},
+      );
+      
+      if (countryData.isNotEmpty) {
+        selectedCountryId = countryData["id"];
+        await _fetchStates(selectedCountryId!, selectedCountry!);
+        
+        if (state != null && selectedCountry == "India") {
+          setState(() {
+            selectedState = state;
+            // Find state ID
+            final stateData = states.firstWhere(
+              (s) => s["name"] == state,
+              orElse: () => {},
+            );
+            if (stateData.isNotEmpty) {
+              selectedStateId = stateData["id"];
+            }
+          });
+        }
+      }
+    }
+
+    _checkFormValid();
+  }
+
+  Future<void> _fetchCountries() async {
+    final url = Uri.parse("http://192.168.1.30:8000/public/countries");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      setState(() {
+        countries = data.map((e) => {
+              "id": e["id"],
+              "name": e["name"],
+            }).toList();
+      });
+      
+      // Load saved data after countries are fetched
+      _loadSavedLocation();
+    }
+  }
+
+  Future<void> _fetchStates(String countryId, String countryName) async {
+    if (countryName != "India") {
+      setState(() {
+        states = [];
+        selectedState = null;
+        selectedStateId = null;
+      });
+      return;
+    }
+
+    final url = Uri.parse("http://192.168.1.30:8000/public/countries/$countryId/states");
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      setState(() {
+        states = data.map((e) => {
+              "id": e["id"],
+              "name": e["name"],
+            }).toList();
+      });
+    } else {
+      setState(() {
+        states = [];
+      });
+    }
+  }
 
   void _checkFormValid() {
     setState(() {
-      if (selectedCountry == 'India') {
-        _isButtonEnabled = selectedState != null;
+      if (selectedCountry == "India") {
+        _isButtonEnabled = selectedState != null && selectedStateId != null;
       } else {
-        _isButtonEnabled = selectedCountry != null;
+        _isButtonEnabled = selectedCountry != null && selectedCountryId != null;
       }
     });
   }
@@ -48,13 +132,13 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Back button
+            // Back + Progress bar
             Padding(
               padding: const EdgeInsets.only(left: 6, top: 28, right: 10),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back,color: Colors.black,size: 28,),
+                    icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -62,13 +146,11 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                       );
                     },
                   ),
-
-                  // Progress bar
                   Expanded(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: const LinearProgressIndicator(
-                        value: 0.50,
+                        value: 0.30,
                         minHeight: 6,
                         backgroundColor: Color(0xFFECEFEE),
                         color: Color(0xFF0C0C0C),
@@ -95,7 +177,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
             ),
             const SizedBox(height: 24),
 
-            // Country Label + Dropdown
+            // Country Dropdown
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -103,18 +185,14 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                 children: [
                   const Text(
                     'Country',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF7F7F7F),
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF7F7F7F)),
                   ),
                   const SizedBox(height: 6),
                   Container(
                     height: 56,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFFFFF),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
                     ),
@@ -122,51 +200,23 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                       child: DropdownButton2<String>(
                         isExpanded: true,
                         value: selectedCountry,
-                        hint: const Text('Select Country'),
-                        iconStyleData: const IconStyleData(
-                          icon: Icon(Icons.expand_more, color: Color(0xFF6B7280)),
-                        ),
-                        dropdownStyleData: DropdownStyleData(
-                          maxHeight: 300,
-                          width: MediaQuery.of(context).size.width - 16,
-                          offset: const Offset(0, -2),
-                          elevation: 0, // Remove shadow
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                            border: Border.fromBorderSide(
-                              BorderSide(color: Color(0xFFE5E7EB), width: 1)
-                            ),
-                          ),
-                          scrollbarTheme: ScrollbarThemeData(
-                            radius: const Radius.circular(40),
-                            thickness: MaterialStateProperty.all(4),
-                            thumbVisibility: MaterialStateProperty.all(true),
-                            thumbColor: MaterialStateProperty.all(const Color(0xFFE5E7EB)),
-                          ),
-                        ),
-                        menuItemStyleData: const MenuItemStyleData(
-                          height: 48,
-                        ),
-                        items: countries.map((country) {
+                        hint: const Text("Select Country"),
+                        items: countries.map((c) {
                           return DropdownMenuItem<String>(
-                            value: country,
-                            child: Text(
-                              country,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Color(0xFF374151),
-                                fontFamily: 'DM Sans',
-                              ),
-                            ),
+                            value: c["name"],
+                            child: Text(c["name"]),
                           );
                         }).toList(),
-                        onChanged: (value) {
+                        onChanged: (value) async {
+                          final selected = countries.firstWhere((c) => c["name"] == value);
                           setState(() {
-                            selectedCountry = value;
+                            selectedCountry = selected["name"];
+                            selectedCountryId = selected["id"];
                             selectedState = null;
-                            _checkFormValid();
+                            selectedStateId = null;
                           });
+                          await _fetchStates(selectedCountryId!, selectedCountry!);
+                          _checkFormValid();
                         },
                       ),
                     ),
@@ -177,27 +227,23 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
 
             const SizedBox(height: 24),
 
-            // State Label + Dropdown (only if India is selected)
-            if (selectedCountry == 'India')
+            // State Dropdown (only for India)
+            if (selectedCountry == "India")
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'State',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF7F7F7F),
-                      ),
+                      "State",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF7F7F7F)),
                     ),
                     const SizedBox(height: 6),
                     Container(
                       height: 56,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFFFFF),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
                       ),
@@ -205,51 +251,20 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                         child: DropdownButton2<String>(
                           isExpanded: true,
                           value: selectedState,
-                          hint: const Text('Select State'),
-                          iconStyleData: const IconStyleData(
-                            icon: Icon(Icons.expand_more, color: Color(0xFF6B7280)),
-                          ),
-                          dropdownStyleData: DropdownStyleData(
-                            maxHeight: 300,
-                            width: MediaQuery.of(context).size.width - 16,
-                            offset: const Offset(0, -2),
-                            elevation: 0, // Remove shadow
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(12)),
-                              border: Border.fromBorderSide(
-                                BorderSide(color: Color(0xFFE5E7EB), width: 1)
-                              ),
-                            ),
-                            scrollbarTheme: ScrollbarThemeData(
-                              radius: const Radius.circular(40),
-                              thickness: MaterialStateProperty.all(4),
-                              thumbVisibility: MaterialStateProperty.all(true),
-                              thumbColor: MaterialStateProperty.all(const Color(0xFFE5E7EB)),
-                            ),
-                          ),
-                          menuItemStyleData: const MenuItemStyleData(
-                            height: 48,
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                          items: states.map((state) {
+                          hint: const Text("Select State"),
+                          items: states.map((s) {
                             return DropdownMenuItem<String>(
-                              value: state,
-                              child: Text(
-                                state,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF374151),
-                                  fontFamily: 'DM Sans',
-                                ),
-                              ),
+                              value: s["name"],
+                              child: Text(s["name"]),
                             );
                           }).toList(),
                           onChanged: (value) {
+                            final selected = states.firstWhere((s) => s["name"] == value);
                             setState(() {
-                              selectedState = value;
-                              _checkFormValid();
+                              selectedState = selected["name"];
+                              selectedStateId = selected["id"];
                             });
+                            _checkFormValid();
                           },
                         ),
                       ),
@@ -268,7 +283,15 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled
-                      ? () {
+                      ? () async {
+                          // Save location data with IDs
+                          await PersistentData.saveLocation(
+                            country: selectedCountry!,
+                            countryId: selectedCountryId!,
+                            state: selectedState,
+                            stateId: selectedStateId,
+                          );
+                          
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const HeightInputPage()),
@@ -276,24 +299,16 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _isButtonEnabled ? const Color(0xFF0C0C0C) : const Color(0xFF7F8180),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    backgroundColor: _isButtonEnabled ? const Color(0xFF0C0C0C) : const Color(0xFF7F8180),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: const Text(
-                    'Next',
-                    style: TextStyle(
-                      fontFamily: 'DM Sans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFFFFFFF),
-                    ),
+                    "Next",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

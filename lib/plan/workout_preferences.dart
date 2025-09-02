@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/plan/diet_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class WorkoutPreferences extends StatefulWidget {
   const WorkoutPreferences({Key? key}) : super(key: key);
@@ -13,6 +15,27 @@ class _WorkoutPreferencesState extends State<WorkoutPreferences> {
   List<String> selectedWorkoutTypes = [];
   String selectedTimeAvailability = '';
   List<String> selectedSpecialNeeds = [];
+ @override
+  void initState() {
+    super.initState();
+    _loadPreferences(); // ✅ Load saved prefs
+  }
+    Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedLevel = prefs.getString("workout_level") ?? '';
+      selectedWorkoutTypes = prefs.getStringList("workout_types") ?? [];
+      selectedTimeAvailability = prefs.getString("time_availability") ?? '';
+      selectedSpecialNeeds = prefs.getStringList("special_needs") ?? [];
+    });
+  }
+    Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("workout_level", selectedLevel);
+    await prefs.setStringList("workout_types", selectedWorkoutTypes);
+    await prefs.setString("time_availability", selectedTimeAvailability);
+    await prefs.setStringList("special_needs", selectedSpecialNeeds);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +95,8 @@ class _WorkoutPreferencesState extends State<WorkoutPreferences> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                 
+                onPressed: ()async {
+                   await _savePreferences(); 
                   Navigator.push(
                     context,
                     MaterialPageRoute(

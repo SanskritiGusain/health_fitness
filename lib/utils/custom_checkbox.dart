@@ -17,10 +17,11 @@ class CustomSvgCheckbox extends StatelessWidget {
       onTap: () => onChanged(!value),
       child: SvgPicture.asset(
         value
-            ? "assets/icons/checkbox_checked.svg"
-            : "assets/icons/checkbox_unchecked.svg",
-        width: 28,
-        height: 28,
+            ? "assets/icons_update/checkbox_checked.svg"
+            : "assets/icons_update/checkbox-unchecked.svg",
+        width: 20,
+        height: 20,
+    
       ),
     );
   }

@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:test_app/new/subscription.dart';
 import 'package:test_app/profile/alert_screen.dart';
@@ -14,12 +14,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
-  Future<void> signout() async {
-    await FirebaseAuth.instance.signOut();
-  }
+  // Future<void> signout() async {
+  //   await FirebaseAuth.instance.signOut();
+  // }
   @override
   Widget build(BuildContext context) {
-   final user = FirebaseAuth.instance.currentUser;
+  //  final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBars.backAppBar(context, "Body Metrics"),
@@ -362,7 +362,7 @@ class ProfileScreen extends StatelessWidget {
                     child: ElevatedButton(
                        onPressed: () async {
                         Navigator.pop(context); // Close the dialog first
-                        await signout(); // Then sign out
+                        // await signout(); // Then sign out
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,

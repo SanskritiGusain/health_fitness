@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:test_app/body_mertics/bmi_screen.dart';
 import 'package:test_app/pages/gif_splash_page.dart';
 import 'package:test_app/pages/height_input.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class WeightInputPage extends StatefulWidget {
   final double height;
@@ -38,6 +40,7 @@ class _WeightInputPageState extends State<WeightInputPage> {
     _controllerLbs = FixedExtentScrollController(
       initialItem: lbsValues.indexOf(selectedWeightLbs),
     );
+      _loadSavedWeight(); 
   }
 
   @override
@@ -47,12 +50,31 @@ class _WeightInputPageState extends State<WeightInputPage> {
     super.dispose();
   }
 
-  void _submit() {
-    final double heightInMeters = widget.height / 100;
-    final double weight =
-        isKg ? selectedWeightKg.toDouble() : selectedWeightLbs / 2.20462;
-    final double bmi = weight / (heightInMeters * heightInMeters);
+ Future<void> _loadSavedWeight() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedWeight = prefs.getDouble("user_weight"); // always stored in kg
 
+    if (savedWeight != null) {
+      setState(() {
+        selectedWeightKg = savedWeight.round();
+        selectedWeightLbs = (savedWeight * 2.20462).round();
+
+        // update scroll positions
+        _controllerKg.jumpToItem(kgValues.indexOf(selectedWeightKg));
+        _controllerLbs.jumpToItem(lbsValues.indexOf(selectedWeightLbs));
+      });
+    }
+  }
+    Future<void> _saveWeight(double weightKg) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble("user_weight", weightKg);
+  }
+  void _submit()async {
+    final double heightInMeters = widget.height / 100;
+    final double weightKg =
+        isKg ? selectedWeightKg.toDouble() : selectedWeightLbs / 2.20462;
+    final double bmi = weightKg / (heightInMeters * heightInMeters);
+      await _saveWeight(weightKg);
     // Navigator.push(
     //   context,
     //   MaterialPageRoute(

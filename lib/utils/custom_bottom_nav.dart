@@ -1,15 +1,46 @@
 // lib/widgets/custom_nav_bar.dart
 import 'package:flutter/material.dart';
+import 'package:test_app/pages/home_page.dart';
+import 'package:test_app/plan/fitness_wellness.dart';
+
+import 'package:test_app/plan/workout.dart';
+import 'package:test_app/body_mertics/measurement_screen.dart';
+import 'package:test_app/shift/nutrition_tracker.dart';
+import 'package:test_app/tools/tools_screen.dart';
 
 class CustomNavBar extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
 
-  const CustomNavBar({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const CustomNavBar({super.key, required this.currentIndex});
+
+  void _navigateTo(int index, BuildContext context) {
+    Widget destination;
+
+    switch (index) {
+      case 0:
+        destination = const FitnessWellnessScreen();
+        break;
+      case 1:
+        destination = const NutritionScreen();
+        break;
+      case 2:
+        destination = const WorkoutScreen();
+        break;
+      case 3:
+        destination = const MeasurementScreen();
+        break;
+      case 4:
+        destination = const ToolsScreen();
+        break;
+      default:
+        destination = const FitnessWellnessScreen();
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => destination),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +55,7 @@ class CustomNavBar extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       elevation: 0,
       currentIndex: currentIndex,
-      onTap: onTap,
+      onTap: (index) => _navigateTo(index, context),
       backgroundColor: theme.colorScheme.onPrimary,
 
       selectedItemColor: theme.colorScheme.secondary,
@@ -42,9 +73,8 @@ class CustomNavBar extends StatelessWidget {
       selectedLabelStyle: TextStyle(
         fontSize: fontSize,
         fontWeight: FontWeight.w600,
-        inherit: true, // ✅ fixes TextStyle interpolation issue
       ),
-      unselectedLabelStyle: TextStyle(fontSize: fontSize, inherit: true),
+      unselectedLabelStyle: TextStyle(fontSize: fontSize),
 
       items: [
         BottomNavigationBarItem(
@@ -64,10 +94,7 @@ class CustomNavBar extends StatelessWidget {
           label: "Metrics",
         ),
         BottomNavigationBarItem(
-          icon: Image.asset(
-            "assets/icons/tools .png",
-            height: iconSize,
-          ), // ✅ remove extra space in filename
+          icon: Image.asset("assets/icons/tools .png", height: iconSize),
           label: "Tools",
         ),
       ],

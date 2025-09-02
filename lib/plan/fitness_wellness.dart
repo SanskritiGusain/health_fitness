@@ -4,6 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:test_app/pages/weight_input.dart';
+import 'package:test_app/plan/Diet_tracker.dart';
+import 'package:test_app/plan/workout.dart';
+import 'package:test_app/shift/nutrition_tracker.dart';
 // ... other imports ...
 
 class FitnessWellnessScreen extends StatefulWidget {
@@ -210,11 +213,20 @@ void _showWeightBottomSheet(BuildContext context, double height) {
     );
   }
 
-  Widget _buildPlanCard(String title, String subtitle, String iconPath) {
-    return Container(
+ Widget _buildPlanCard(String title, String subtitle, String iconPath, BuildContext context, Widget targetScreen) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => targetScreen,
+        ),
+      );
+    },
+    child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFFFFFFFF),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -226,10 +238,9 @@ void _showWeightBottomSheet(BuildContext context, double height) {
             title,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
-
           Text(
             subtitle,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               color: Color(0xFF707070),
               fontWeight: FontWeight.w500,
@@ -237,8 +248,9 @@ void _showWeightBottomSheet(BuildContext context, double height) {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildDateSelector() {
     return SizedBox(
@@ -536,8 +548,9 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                       'Diet',
                       '2000 kcal target',
                       'assets/icons/diet_icon.png',
-                      // () => Navigator.push(context,
-                      //   MaterialPageRoute(builder: (_) => NutritionScreen()))
+                       context,
+                     
+                     DietScreen()
                     ),
                   ),
                   SizedBox(width: 12),
@@ -546,8 +559,8 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                       'Workout',
                       '15-30 min session',
                       'assets/icons/fitness_icon.png',
-                      // () => Navigator.push(context,
-                      //   MaterialPageRoute(builder: (_) => WorkoutScreen()))
+                       context,WorkoutScreen()
+                      
                     ),
                   ),
                 ],

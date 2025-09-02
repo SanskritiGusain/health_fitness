@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:test_app/signUp/signup_email.dart';
 import 'package:test_app/login/login_page.dart';
-import 'package:test_app/pages/sign_up_google.dart';
+// import 'package:test_app/pages/sign_up_google.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 

@@ -1,6 +1,8 @@
+// lib/pages/height_input.dart
 import 'package:flutter/material.dart';
 import 'package:test_app/pages/location_select.dart';
-import 'weight_input.dart';
+import 'package:test_app/pages/weight_input.dart';
+import 'package:test_app/utils/persistent_data.dart';
 
 class HeightInputPage extends StatefulWidget {
   const HeightInputPage({super.key});
@@ -12,10 +14,10 @@ class HeightInputPage extends StatefulWidget {
 class _HeightInputPageState extends State<HeightInputPage> {
   bool isCm = true;
   int selectedHeightCm = 165;
-  int selectedHeightInch = 165;
+  int selectedHeightInch = 65;
   bool _isButtonEnabled = true;
 
-  final List<int> cmValues = List.generate(200, (index) => index + 20);
+  final List<int> cmValues = List.generate(200, (index) => index + 50);
   final List<int> inchValues = List.generate(151, (index) => index + 20);
 
   late FixedExtentScrollController _controllerCm;
@@ -24,12 +26,9 @@ class _HeightInputPageState extends State<HeightInputPage> {
   @override
   void initState() {
     super.initState();
-    _controllerCm = FixedExtentScrollController(
-      initialItem: selectedHeightCm - 50,
-    );
-    _controllerIn = FixedExtentScrollController(
-      initialItem: selectedHeightInch - 20,
-    );
+    _controllerCm = FixedExtentScrollController(initialItem: selectedHeightCm - 50);
+    _controllerIn = FixedExtentScrollController(initialItem: selectedHeightInch - 20);
+    _loadSavedHeight();
   }
 
   @override
@@ -39,17 +38,31 @@ class _HeightInputPageState extends State<HeightInputPage> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _loadSavedHeight() async {
+    final savedHeight = await PersistentData.getHeight();
+
+    if (savedHeight != null) {
+      setState(() {
+        selectedHeightCm = savedHeight.round();
+        selectedHeightInch = (savedHeight / 2.54).round();
+
+        // Move pickers to correct position
+        _controllerCm.jumpToItem(selectedHeightCm - 50);
+        _controllerIn.jumpToItem(selectedHeightInch - 20);
+      });
+    }
+  }
+
+  void _submit() async {
+    final heightInCm = isCm ? selectedHeightCm.toDouble() : selectedHeightInch * 2.54;
+
+    // Save height using utility class
+    await PersistentData.saveHeight(heightInCm);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => WeightInputPage(
-              height:
-                  isCm
-                      ? selectedHeightCm.toDouble()
-                      : selectedHeightInch * 2.54,
-            ),
+        builder: (context) => WeightInputPage(height: heightInCm),
       ),
     );
   }
@@ -69,7 +82,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Back button and Progress bar in same row
+            // Back button and Progress bar
             Padding(
               padding: const EdgeInsets.only(left: 10, top: 28, right: 16),
               child: Row(
@@ -93,7 +106,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: const LinearProgressIndicator(
-                        value: 0.35,
+                        value: 0.45,
                         minHeight: 6,
                         backgroundColor: Color(0xFFECEFEE),
                         color: Color(0xFF0C0C0C),
@@ -142,8 +155,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                     ),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 200),
-                      alignment:
-                          isCm ? Alignment.centerLeft : Alignment.centerRight,
+                      alignment: isCm ? Alignment.centerLeft : Alignment.centerRight,
                       child: Container(
                         width: 20,
                         height: 20,
@@ -179,10 +191,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
                       TextSpan(
                         children: [
                           TextSpan(
-                            text:
-                                isCm
-                                    ? '$selectedHeightCm'
-                                    : '$selectedHeightInch',
+                            text: isCm ? '$selectedHeightCm' : '$selectedHeightInch',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -258,10 +267,9 @@ class _HeightInputPageState extends State<HeightInputPage> {
                                           child: Container(
                                             width: isLong ? 60 : 35,
                                             height: 1,
-                                            color:
-                                                isLong
-                                                    ? const Color(0xFF222326)
-                                                    : const Color(0xFF9EA3A9),
+                                            color: isLong
+                                                ? const Color(0xFF222326)
+                                                : const Color(0xFF9EA3A9),
                                           ),
                                         ),
                                       ),
@@ -306,10 +314,9 @@ class _HeightInputPageState extends State<HeightInputPage> {
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled ? _submit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _isButtonEnabled
-                            ? const Color(0xFF0C0C0C)
-                            : const Color(0xFF7F8180),
+                    backgroundColor: _isButtonEnabled
+                        ? const Color(0xFF0C0C0C)
+                        : const Color(0xFF7F8180),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_app/utils/custom_app_bars.dart';
-import 'package:test_app/utils/circlular progressbar.dart';
-import 'package:test_app/plan/today_workout.dart';
 import 'dart:async';
 
 class TodayWorkoutScreen extends StatefulWidget {
@@ -31,7 +29,7 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
       "plan": [
         {
           "name": "Push-ups",
-          "image": "assets/images_update/pushup.svg",
+          "image": "assets/icons_update/pushup.svg",
           "sets": 3,
           "reps": "10–15",
           "rest": "60s",
@@ -39,7 +37,7 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
         },
         {
           "name": "Bicep Curls",
-          "image": "assets/images_update/bicep.svg",
+          "image": "assets/icons_update/bicep.svg",
           "sets": 3,
           "reps": "10–15",
           "rest": "60s",
@@ -47,15 +45,15 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
         },
         {
           "name": "Full Plank",
-          "image": "assets/images_update/plank.svg",
+          "image": "assets/icons_update/plank.svg",
           "sets": 3,
-          "reps": "10–15",
+          "duration": "30 sec",
           "rest": "60s",
-          "note": "Keep elbows tucked",
+          "note": "Keep body straight",
         },
         {
           "name": "Shoulder Raises",
-          "image": "assets/images_update/shoulder.svg",
+          "image": "assets/icons_update/shoulder.svg",
           "sets": 3,
           "reps": "10–15",
           "rest": "60s",
@@ -119,31 +117,29 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
   }
 
   void _resetWorkout() {
-    // Cancel all timers
     _workoutTimer?.cancel();
     _restTimer?.cancel();
 
-    // Show confirmation dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.grey.shade200, // Dialog background
+          backgroundColor: Colors.grey.shade200,
           title: const Text(
             'Reset Workout',
-            style: TextStyle(color: Colors.black), // Title color
+            style: TextStyle(color: Colors.black),
           ),
           content: const Text(
             'Are you sure you want to reset and go back? All progress will be lost.',
-            style: TextStyle(fontSize: 14, color: Colors.black38), // Text color
+            style: TextStyle(fontSize: 14, color: Colors.black38),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                backgroundColor: Colors.white, // Button background
+                backgroundColor: Colors.white,
               ),
               child: const Text(
                 'Cancel',
@@ -152,23 +148,22 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Go back to previous screen
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                backgroundColor: Colors.black, // Button background
+                backgroundColor: Colors.black,
               ),
               child: const Text('Reset', style: TextStyle(color: Colors.white)),
             ),
           ],
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Rounded corners
+            borderRadius: BorderRadius.circular(12),
           ),
         );
       },
     );
   }
-
 
   void _nextExercise() {
     final totalExercises = workoutSchedule[selectedDayIndex]["plan"].length;
@@ -182,34 +177,12 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
       _restTimer?.cancel();
     } else {
       // Workout completed
+      setState(() {
+        currentExerciseIndex = totalExercises; // mark as completed
+      });
       _workoutTimer?.cancel();
       _restTimer?.cancel();
-      _showWorkoutCompleteDialog();
     }
-  }
-
-  void _showWorkoutCompleteDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Workout Complete!'),
-          content: Text(
-            'Great job! You completed your workout in ${_formatTime(workoutSeconds)}.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Done'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   String _formatTime(int seconds) {
@@ -221,7 +194,7 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
   @override
   Widget build(BuildContext context) {
     final todayPlan = workoutSchedule[selectedDayIndex]["plan"];
-    final currentExercise = todayPlan[currentExerciseIndex];
+    bool isWorkoutCompleted = currentExerciseIndex >= todayPlan.length;
 
     return Scaffold(
       appBar: CustomAppBars.backAppBar(context, "Today's Workout"),
@@ -230,157 +203,186 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Timer Container
-            Container(
-              width: double.infinity,
-           
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: const Color.fromARGB(255, 235, 234, 234),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Dual Timer Display
-                  if (isResting) ...[
-                
-                    
-                 
-                     
-                        Text(
-                          " ${_formatTime(workoutSeconds)}",
-                          style: const TextStyle(
-                            fontSize: 30,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                          "Rest Time:",
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _formatTime(restSeconds),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey,
-                          ),
-                        ),
-                          ],
-                         )
-                   
-                  ] else ...[
-                    // Workout Timer (Primary)
-                    Text(
-                      _formatTime(workoutSeconds),
-                      style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
+            // ✅ Completed container
+            if (isWorkoutCompleted)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                   SvgPicture.asset(
+  "assets/icons_update/checkbox_checked.svg",
+  height: 40,
+  width: 40,
+),
+
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Workout Completed! 🎉",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
                       ),
                     ),
+                    const SizedBox(height: 6),
                     Text(
-                      "Exercise ${currentExerciseIndex + 1} of ${todayPlan.length}",
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      "Great job! You've completed today's workout in ${_formatTime(workoutSeconds)}.\nKeep up the momentum!",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 14, color: Colors.black87),
                     ),
                   ],
-                  const SizedBox(height: 10),
-                  // Control Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Pause/Resume Button
-                      ElevatedButton.icon(
-                        onPressed: _pauseTimers,
-                        icon: Icon(
-                          (isResting ? isRestPaused : isWorkoutPaused)
-                              ? Icons.play_arrow
-                              : Icons.pause,
-                        ),
-                        label: Text(
-                          (isResting ? isRestPaused : isWorkoutPaused)
-                              ? "Resume"
-                              : "Pause",
-                        ),
-                        style: ElevatedButton.styleFrom(
-                             backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                        ),
-                      ),
-                      // Reset Button
-                      ElevatedButton.icon(
-                        onPressed: _resetWorkout,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text("Reset"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                        ),
-                      ),
-                      // Next Button
-                  isResting
-                          ? SizedBox.shrink() // Empty widget when resting
-                          : ElevatedButton.icon(
-                            onPressed: () {
-                              if (currentExerciseIndex < todayPlan.length - 1) {
-                                _startRestTimer();
-                              } else {
-                                _nextExercise();
-                              }
-                            },
-                            icon: const Icon(Icons.skip_next),
-                            label: const Text("Next"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
+                ),
+              )
+            else
+              _buildTimerContainer(todayPlan),
 
-                    ],
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 16),
 
-            // Current Exercise Highlight
-         
-            // All Exercises List
-            Text(
+            const Text(
               "Workout Plan:",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+
             Column(
-              children:
-                  todayPlan.asMap().entries.map<Widget>((entry) {
-                    int index = entry.key;
-                    Map<String, dynamic> workout = entry.value;
-                    return _workoutCard(
-                      workout,
-                      isCurrentExercise:
-                          index == currentExerciseIndex && !isResting,
-                      isCompleted: index < currentExerciseIndex,
-                    );
-                  }).toList(),
+              children: todayPlan.asMap().entries.map<Widget>((entry) {
+                int index = entry.key;
+                Map<String, dynamic> workout = entry.value;
+                return _workoutCard(
+                  workout,
+                  isCurrentExercise:
+                      index == currentExerciseIndex && !isResting && !isWorkoutCompleted,
+                  isCompleted: index < currentExerciseIndex || isWorkoutCompleted,
+                );
+              }).toList(),
             ),
-            const SizedBox(height: 16),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTimerContainer(List todayPlan) {
+    final currentExercise = todayPlan[currentExerciseIndex];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: const Color.fromARGB(255, 235, 234, 234),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          if (isResting) ...[
+            Text(
+              " ${_formatTime(workoutSeconds)}",
+              style: const TextStyle(
+                fontSize: 30,
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Rest Time:",
+                    style: TextStyle(fontSize: 14, color: Colors.grey)),
+                const SizedBox(width: 4),
+                Text(
+                  _formatTime(restSeconds),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            )
+          ] else ...[
+            Text(
+              _formatTime(workoutSeconds),
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              "Exercise ${currentExerciseIndex + 1} of ${todayPlan.length}",
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          ],
+          const SizedBox(height: 10),
+
+          // Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _pauseTimers,
+                icon: Icon(
+                  (isResting ? isRestPaused : isWorkoutPaused)
+                      ? Icons.play_arrow
+                      : Icons.pause,
+                ),
+                label: Text(
+                  (isResting ? isRestPaused : isWorkoutPaused)
+                      ? "Resume"
+                      : "Pause",
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: _resetWorkout,
+                icon: const Icon(Icons.refresh),
+                label: const Text("Reset"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                ),
+              ),
+              if (!isResting) ...[
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (currentExerciseIndex <
+                        todayPlan.length - 1) {
+                      _startRestTimer();
+                    } else {
+                      _nextExercise();
+                    }
+                  },
+                  icon: const Icon(Icons.skip_next),
+                  label: const Text("Next"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ]
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -394,36 +396,24 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:
-            isCurrentExercise
-                ? Colors.grey.shade300
-                : isCompleted
-                ? Colors.grey.shade100
-                : Colors.grey.shade100,
+        color: isCurrentExercise
+            ? Colors.grey.shade300
+            : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
-        border:
-            isCurrentExercise
-                ? Border.all(color: Colors.transparent, width: 0)
-                : isCompleted
-                ? Border.all(color: Colors.green, width: 2)
-                : null,   
+        border: isCompleted
+            ? Border.all(color: Colors.green, width: 2)
+            : null,
       ),
       child: Row(
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SvgPicture.asset(
-                  workout["image"],
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              
-               
-            ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SvgPicture.asset(
+              workout["image"],
+              height: 80,
+              width: 80,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -435,24 +425,20 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
                     Expanded(
                       child: Text(
                         workout["name"],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          color:  Colors.black,
+                          color: Colors.black,
                         ),
                       ),
                     ),
-                 
-                     
-               if (isCompleted)
-                  
-                         SvgPicture.asset(
-                          'assets/icons_update/tabler_checkbox.svg', 
-                          color: Colors.green, 
-                          width: 22,
-                          height: 22,
-                        ),
-                    
+                    if (isCompleted)
+                      SvgPicture.asset(
+                        'assets/icons_update/tabler_checkbox.svg',
+                        color: Colors.green,
+                        width: 22,
+                        height: 22,
+                      ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -460,12 +446,14 @@ class _TodayWorkoutScreenState extends State<TodayWorkoutScreen> {
                   "Sets: ${workout["sets"] ?? "-"}   "
                   "${workout["reps"] != null ? "Reps: ${workout["reps"]}" : "Duration: ${workout["duration"] ?? "-"}"}   "
                   "Rest: ${workout["rest"] ?? "-"}",
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  style:
+                      const TextStyle(fontSize: 14, color: Colors.black54),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   "Note: ${workout["note"] ?? ""}",
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  style:
+                      const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
             ),

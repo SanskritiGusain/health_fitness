@@ -1,5 +1,7 @@
+// lib/pages/user_details.dart
 import 'package:flutter/material.dart';
-import 'package:test_app/pages/location_select.dart'; // Make sure this exists
+import 'package:test_app/pages/location_select.dart';
+import 'package:test_app/utils/persistent_data.dart';
 
 class UserDetailsPage extends StatefulWidget {
   const UserDetailsPage({super.key});
@@ -23,6 +25,21 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     super.initState();
     _nameController.addListener(_validateForm);
     _ageController.addListener(_validateForm);
+    _loadSavedData();
+  }
+
+  Future<void> _loadSavedData() async {
+    final name = await PersistentData.getName();
+    final age = await PersistentData.getAge();
+    final gender = await PersistentData.getGender();
+
+    setState(() {
+      _nameController.text = name ?? '';
+      _ageController.text = age?.toString() ?? '';
+      _selectedGender = gender;
+    });
+
+    _validateForm();
   }
 
   void _validateForm() {
@@ -43,12 +60,19 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     });
   }
 
-  void _submit() {
+  void _submit() async {
     if (_formKey.currentState!.validate()) {
+      // Save user details using the utility class
+      await PersistentData.saveUserDetails(
+        name: _nameController.text.trim(),
+        age: int.parse(_ageController.text.trim()),
+        gender: _selectedGender!,
+      );
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>  LocationSelectionPage(),
+          builder: (context) => const LocationSelectionPage(),
         ),
       );
     }
@@ -65,7 +89,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FBFB),
-      body: SafeArea( // Added SafeArea for better layout
+      body: SafeArea(
         child: Stack(
           children: [
             // Progress Bar
@@ -76,7 +100,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Color(0xFF222326),size: 28,),
+                    icon: const Icon(Icons.arrow_back, color: Color(0xFF222326), size: 28),
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
@@ -231,8 +255,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           fontSize: 14,
           color: Color(0xFF9DA1A8),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFDDE5F0)),

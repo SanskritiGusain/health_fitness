@@ -1,4 +1,6 @@
+
 import 'package:flutter/material.dart';
+import 'package:test_app/pages/user_details.dart';
 import 'package:test_app/plan/plan_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -23,6 +25,7 @@ class _LoginEmailState extends State<LoginEmail> {
   bool _isOtpValid = false;
   bool _isLoading = false;
   String _lastSentEmail = '';
+  String _otpToken = ''; // <-- Store token here
 
   // Timer related variables
   Timer? _resendTimer;
@@ -31,9 +34,9 @@ class _LoginEmailState extends State<LoginEmail> {
   int _resendAttempts = 0;
 
   // API Configuration
-  static const String baseUrl = 'http://192.168.1.12:8000';
-  static const String sendOtpEndpoint = '/auth/signup/email';
-  static const String verifyOtpEndpoint = '/auth/verify-otp';
+  static const String baseUrl = 'http://192.168.1.30:8000';
+  static const String sendOtpEndpoint = '/send_otp_and_register';
+  static const String verifyOtpEndpoint = '/verify_otp_for_register';
 
   @override
   void initState() {
@@ -49,6 +52,7 @@ class _LoginEmailState extends State<LoginEmail> {
     if (_isOtpSent && emailText != _lastSentEmail) {
       setState(() {
         _isOtpSent = false;
+        _otpToken = '';
         _otpController.clear();
         _resetTimer();
       });
@@ -69,7 +73,7 @@ class _LoginEmailState extends State<LoginEmail> {
     _resendAttempts++;
     setState(() {
       _canResend = false;
-      _resendCountdown = 600; // 10 minutes in seconds
+      _resendCountdown = 600;
     });
 
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -121,9 +125,9 @@ class _LoginEmailState extends State<LoginEmail> {
         setState(() {
           _isOtpSent = true;
           _lastSentEmail = email;
+          _otpToken = responseData['token'] ?? '';
         });
 
-        // Start timer after first OTP is sent
         _startResendTimer();
 
         if (mounted) {
@@ -178,15 +182,16 @@ class _LoginEmailState extends State<LoginEmail> {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        // Start timer again after resend
+        setState(() {
+          _otpToken = responseData['token'] ?? '';
+        });
+
         _startResendTimer();
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                responseData['message'] ?? 'OTP resent successfully',
-              ),
+              content: Text(responseData['message'] ?? 'OTP resent successfully'),
               backgroundColor: Colors.green,
             ),
           );
@@ -228,8 +233,8 @@ class _LoginEmailState extends State<LoginEmail> {
         Uri.parse('$baseUrl$verifyOtpEndpoint'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': _lastSentEmail,
           'otp': _otpController.text.trim(),
+          'token': _otpToken,
         }),
       );
 
@@ -247,7 +252,7 @@ class _LoginEmailState extends State<LoginEmail> {
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const PlanScreen()),
+          MaterialPageRoute(builder: (context) => const UserDetailsPage()),
         );
       } else {
         final errorData = jsonDecode(response.body);
@@ -312,23 +317,7 @@ class _LoginEmailState extends State<LoginEmail> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: screenHeight * 0.03,
-                    left: screenWidth * 0.03,
-                    child: IconButton(
-                      icon: Image.asset(
-                        'assets/icons/Group(2).png',
-                        width: screenWidth * 0.06,
-                        height: screenWidth * 0.06,
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HomePage()),
-                        );
-                      },
-                    ),
-                  ),
+              
                 ],
               ),
             ),

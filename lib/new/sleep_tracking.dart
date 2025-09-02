@@ -23,8 +23,8 @@ class SleepTrackerScreen extends StatelessWidget {
                   children: [
                     // Today's Goal Section
                     Padding(
-                      // padding: EdgeInsets.symmetric(horizontal: 14),
-                      padding: EdgeInsetsGeometry.fromLTRB(14, 28, 30, 0),
+                      padding: EdgeInsets.symmetric(horizontal: 14),
+                      // padding: EdgeInsetsGeometry.fromLTRB(14, 28, 30, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -321,12 +321,12 @@ class SleepTrackerScreen extends StatelessWidget {
       ),
 
       // Bottom Navigation
-      bottomNavigationBar: CustomNavBar(
-        currentIndex: 3, // example
-        onTap: (index) {
-          // handle navigation
-        },
-      ),
+      // bottomNavigationBar: CustomNavBar(
+      //   currentIndex: 3, // example
+      //   onTap: (index) {
+      //     // handle navigation
+      //   },
+      // ),
     );
   }
 

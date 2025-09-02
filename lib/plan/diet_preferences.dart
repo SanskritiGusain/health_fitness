@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/plan/fitness_goal_loading.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/persistent_data.dart';
+import '../utils/api_service.dart';
 
 class DietPreferencesScreen extends StatefulWidget {
   const DietPreferencesScreen({Key? key}) : super(key: key);
@@ -14,6 +17,28 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
   List<String> selectedAllergies = []; // Changed to support multiple selections
   List<String> selectedSpecialNeeds = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences(); // ✅ Load saved prefs on screen open
+  }
+  
+    Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      selectedLevel = prefs.getString("diet_level") ?? '';
+      selectedWorkoutTypes = prefs.getStringList("diet_goal_options") ?? [];
+      selectedAllergies = prefs.getStringList("diet_allergies") ?? [];
+      selectedSpecialNeeds = prefs.getStringList("diet_special_needs") ?? [];
+    });
+  }
+    Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("diet_level", selectedLevel);
+    await prefs.setStringList("diet_goal_options", selectedWorkoutTypes);
+    await prefs.setStringList("diet_allergies", selectedAllergies);
+    await prefs.setStringList("diet_special_needs", selectedSpecialNeeds);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,16 +97,26 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle next button
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FitnessGoalLoadingScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
+onPressed: () async {
+  await _savePreferences(); // Save current screen preferences
+
+  final allData = await PersistentData.getAllPersistentData();
+
+  final success = await ApiService.updateUserData(allData);
+
+  if (success) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const FitnessGoalLoadingScreen(),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to update user data')),
+    );
+  }
+},    style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
