@@ -485,8 +485,8 @@ class _MeasurementScreenState extends State<MeasurementScreen> {
         break;
       case "BMI":
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BMIScreen(bmi: 23.4)),
+          context,MaterialPageRoute(builder: (context) => BMIScreen()),
+
         );
         break;
       case "BMR":

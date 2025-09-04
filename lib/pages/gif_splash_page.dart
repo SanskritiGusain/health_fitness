@@ -27,7 +27,7 @@ class _GifSplashPageState extends State<GifSplashPage>
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (_, __, ___) => const BMIScreen(bmi: 54.45),
+          pageBuilder: (_, __, ___) => const   BMIScreen(), 
           transitionsBuilder: (_, animation, __, child) {
             final springAnimation = CurvedAnimation(
               parent: animation,

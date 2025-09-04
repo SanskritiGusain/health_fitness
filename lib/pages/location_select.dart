@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:test_app/pages/height_input.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:test_app/pages/user_details.dart';
-import 'package:test_app/utils/persistent_data.dart';
+import 'package:test_app/shared_preferences.dart';
 
 class LocationSelectionPage extends StatefulWidget {
   const LocationSelectionPage({super.key});
@@ -30,61 +30,74 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
     _fetchCountries();
   }
 
-  Future<void> _loadSavedLocation() async {
-    final country = await PersistentData.getCountry();
-    final state = await PersistentData.getState();
-
-    if (country != null) {
+Future<void> _loadSavedLocation() async {
+final savedCountryId = await PersistentData.getCountryId();
+    final savedCountryName = await PersistentData.getCountryName();
+    final savedStateId = await PersistentData.getStateId();
+    final savedStateName = await PersistentData.getStateName();
+   
+if (savedCountryId != null && savedCountryName != null) {
       setState(() {
-        selectedCountry = country;
+        selectedCountryId = savedCountryId;
+        selectedCountry = savedCountryName;
       });
 
-      // Find country ID and fetch states if needed
-      final countryData = countries.firstWhere(
-        (c) => c["name"] == country,
-        orElse: () => {},
-      );
-      
-      if (countryData.isNotEmpty) {
-        selectedCountryId = countryData["id"];
-        await _fetchStates(selectedCountryId!, selectedCountry!);
-        
-        if (state != null && selectedCountry == "India") {
+      if (savedCountryName == "India") {
+        await _fetchStates(savedCountryId, savedCountryName);
+
+        if (savedStateId != null && savedStateName != null) {
           setState(() {
-            selectedState = state;
-            // Find state ID
-            final stateData = states.firstWhere(
-              (s) => s["name"] == state,
-              orElse: () => {},
-            );
-            if (stateData.isNotEmpty) {
-              selectedStateId = stateData["id"];
-            }
+            selectedStateId = savedStateId;
+            selectedState = savedStateName;
           });
         }
       }
     }
-
     _checkFormValid();
   }
 
-  Future<void> _fetchCountries() async {
+ Future<void> _fetchCountries() async {
     final url = Uri.parse("http://192.168.1.30:8000/public/countries");
-    final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      setState(() {
-        countries = data.map((e) => {
-              "id": e["id"],
-              "name": e["name"],
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        // Map countries safely
+        final mappedCountries =
+            data.map((e) {
+              return {
+                "id": e["id"] ?? "", // Ensure id is never null
+                "name": e["name"] ?? "",
+              };
             }).toList();
+
+        if (!mounted) return;
+
+        setState(() {
+          countries = mappedCountries;
+        });
+
+        // Load saved location only after countries are fetched
+        await _loadSavedLocation();
+      } else {
+        print("❌ Failed to load countries: ${response.statusCode}");
+        if (!mounted) return;
+        setState(() {
+          countries = [];
+        });
+      }
+    } catch (e) {
+      print("🔥 Exception while fetching countries: $e");
+      if (!mounted) return;
+      setState(() {
+        countries = [];
       });
-      
-      // Load saved data after countries are fetched
-      _loadSavedLocation();
     }
   }
+
 
   Future<void> _fetchStates(String countryId, String countryName) async {
     if (countryName != "India") {
@@ -98,6 +111,8 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
 
     final url = Uri.parse("http://192.168.1.30:8000/public/countries/$countryId/states");
     final response = await http.get(url);
+print("🌍 Fetching countries from: $url");
+    print("📡 Response: ${response.statusCode} ${response.body}");
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -285,12 +300,19 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
                   onPressed: _isButtonEnabled
                       ? () async {
                           // Save location data with IDs
-                          await PersistentData.saveLocation(
-                            country: selectedCountry!,
-                            countryId: selectedCountryId!,
-                            state: selectedState,
-                            stateId: selectedStateId,
-                          );
+                         await PersistentData.saveLocation(
+                              countryId: selectedCountryId!,
+                              country: selectedCountry!, // ✅ Save name too
+                              stateId:
+                                  selectedCountry == "India"
+                                      ? selectedStateId
+                                      : null,
+                              state:
+                                  selectedCountry == "India"
+                                      ? selectedState
+                                      : null,
+                            );
+
                           
                           Navigator.push(
                             context,

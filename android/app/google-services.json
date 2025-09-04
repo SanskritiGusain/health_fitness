@@ -1,42 +1,49 @@
 {
   "project_info": {
-    "project_number": "115488980508",
-    "project_id": "healthandfitness-4bc11",
-    "storage_bucket": "healthandfitness-4bc11.firebasestorage.app"
+    "project_number": "79150003785",
+    "project_id": "fitara-ai-3fe36",
+    "storage_bucket": "fitara-ai-3fe36.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:115488980508:android:08babdc367f3820f5169d9",
+        "mobilesdk_app_id": "1:79150003785:android:0e3b649e0ae34a13e5b198",
         "android_client_info": {
           "package_name": "health.com"
         }
       },
       "oauth_client": [
         {
-          "client_id": "115488980508-sism47e6kur1hsduikg8ipep03gq7i43.apps.googleusercontent.com",
+          "client_id": "79150003785-2unfrvinmsp56jr88oi6oi0lbanqd3gn.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "health.com",
-            "certificate_hash": "b2ebb7a9e44f8f354c1003e8395b5350a8a2a531"
+            "certificate_hash": "50159c3954a95535b479de423186e0e0f92670cd"
           }
         },
         {
-          "client_id": "115488980508-qbj88hgm1g4bq94te7ms2nv5oe58boe0.apps.googleusercontent.com",
+          "client_id": "79150003785-ud4h7lsl7jb27gi5l64n169pnbmuc52s.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDCCWU_Lu-FVQCxv2eDnwhDsx5GxI4mq2U"
+          "current_key": "AIzaSyDtjoU8MOiOUl1lUG8w_-sOw5_hCuLPngU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "115488980508-qbj88hgm1g4bq94te7ms2nv5oe58boe0.apps.googleusercontent.com",
+              "client_id": "79150003785-ud4h7lsl7jb27gi5l64n169pnbmuc52s.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "79150003785-dm7c6ifk97kqphgjn440d0o08b22k8rj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.testApp"
+              }
             }
           ]
         }

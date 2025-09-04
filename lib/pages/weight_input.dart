@@ -3,6 +3,9 @@ import 'package:test_app/body_mertics/bmi_screen.dart';
 import 'package:test_app/pages/gif_splash_page.dart';
 import 'package:test_app/pages/height_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_app/api/api_service.dart';
+import 'package:test_app/shared_preferences.dart' as userApi;
+
 
 
 class WeightInputPage extends StatefulWidget {
@@ -69,22 +72,45 @@ class _WeightInputPageState extends State<WeightInputPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble("user_weight", weightKg);
   }
-  void _submit()async {
-    final double heightInMeters = widget.height / 100;
-    final double weightKg =
-        isKg ? selectedWeightKg.toDouble() : selectedWeightLbs / 2.20462;
-    final double bmi = weightKg / (heightInMeters * heightInMeters);
-      await _saveWeight(weightKg);
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => BMIScreen(bmi: bmi),
-    //   ),
-    // );
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => GifSplashPage()),
-    );
+void _submit() async {
+    setState(() => _isButtonEnabled = false);
+
+    try {
+      final double weightKg =
+          isKg ? selectedWeightKg.toDouble() : selectedWeightLbs / 2.20462;
+
+      // Save weight locally
+      await userApi.PersistentData.saveWeight(weightKg);
+
+      // Get first-phase user data from shared preferences
+      final body = await userApi.PersistentData.getFirstPhaseUserData();
+
+      // 🖥️ Debug log
+      print("📤 API  first api Request Body (user/): $body");
+      // Send API call using the generic PUT method
+      final response = await ApiService.putRequest("user/", body);
+
+      print("✅ Data sent successfully: $response");
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Data sent successfully!")));
+
+      // Navigate to GifSplashPage after successful API call
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const GifSplashPage()),
+        );
+      }
+    } catch (e) {
+      print("🔥 Exception in submit: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Failed to send data.")));
+    } finally {
+      setState(() => _isButtonEnabled = true);
+    }
   }
 
   @override

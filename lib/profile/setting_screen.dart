@@ -212,14 +212,14 @@ void _showThemeDialog() {
                       SizedBox(width: 6),
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
-                          if (selectedTheme == 'Light') {
-                            MyApp.of(context)?.setThemeMode(ThemeMode.light);
-                          } else if (selectedTheme == 'Dark') {
-                            MyApp.of(context)?.setThemeMode(ThemeMode.dark);
-                          } else {
-                            MyApp.of(context)?.setThemeMode(ThemeMode.system);
-                          }
+                          // Navigator.of(context).pop();
+                          // if (selectedTheme == 'Light') {
+                          //   MyApp.of(context)?.setThemeMode(ThemeMode.light);
+                          // } else if (selectedTheme == 'Dark') {
+                          //   MyApp.of(context)?.setThemeMode(ThemeMode.dark);
+                          // } else {
+                          //   MyApp.of(context)?.setThemeMode(ThemeMode.system);
+                          // }
                         },
                         child: Text(
                           'OK',

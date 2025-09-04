@@ -1,4 +1,4 @@
-package health.fitness.com
+package health.com
 
 
 import io.flutter.embedding.android.FlutterActivity

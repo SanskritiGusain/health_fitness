@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/api/api_service.dart';
+import 'package:test_app/pages/congratulation.dart';
+import 'package:test_app/pages/transformation.dart';
 import 'package:test_app/plan/fitness_goal_loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/persistent_data.dart';
-import '../utils/api_service.dart';
+import 'package:test_app/shared_preferences.dart' as userApi;
+
 
 class DietPreferencesScreen extends StatefulWidget {
   const DietPreferencesScreen({Key? key}) : super(key: key);
@@ -23,22 +26,85 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
     _loadPreferences(); // ✅ Load saved prefs on screen open
   }
   
-    Future<void> _loadPreferences() async {
+  Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      selectedLevel = prefs.getString("diet_level") ?? '';
-      selectedWorkoutTypes = prefs.getStringList("diet_goal_options") ?? [];
-      selectedAllergies = prefs.getStringList("diet_allergies") ?? [];
-      selectedSpecialNeeds = prefs.getStringList("diet_special_needs") ?? [];
-    });
+
+    final savedLevels = prefs.getStringList("diet_level") ?? [];
+    selectedLevel = savedLevels.isNotEmpty ? savedLevels.first : "";
+
+    selectedWorkoutTypes = prefs.getStringList("diet_goal_options") ?? [];
+    selectedAllergies = prefs.getStringList("diet_allergies") ?? [];
+    selectedSpecialNeeds = prefs.getStringList("diet_special_needs") ?? [];
+
+    print("📂 Loaded Diet Preferences:");
+    print("Level: $selectedLevel");
+    print("Goals: $selectedWorkoutTypes");
+    print("Allergies: $selectedAllergies");
+    print("Special Needs: $selectedSpecialNeeds");
+
+    setState(() {});
   }
-    Future<void> _savePreferences() async {
+bool _isButtonEnabled = true;
+Future<void> _submitAll() async {
+    setState(() => _isButtonEnabled = false);
+
+    try {
+      // ✅ Save diet preferences before sending
+      await _savePreferences();
+
+      // ✅ Collect everything from SharedPreferences
+      final body = await userApi.PersistentData.getAllPersistentData();
+  
+      // 🖥️ Debug log
+      print("📤 API Request Body (user/): $body");
+
+      // ✅ API call
+      final response = await ApiService.putRequest("user/", body);
+
+      // 🖥️ Debug log response
+      print("✅ API Response: $response");
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("All data saved successfully!")),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) =>  FitnessGoalLoadingScreen()),
+      );
+    }  catch (e) {
+      print("🔥 Exception in submit: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Failed to send data.")));
+    } finally {
+      setState(() => _isButtonEnabled = true);
+    }
+  }
+
+
+   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("diet_level", selectedLevel);
+
+    // Save level (single string, so wrap it into a list if you want array-style)
+    if (selectedLevel.isNotEmpty) {
+      await prefs.setStringList("diet_level", [selectedLevel]);
+    }
+
+    // Save as arrays
     await prefs.setStringList("diet_goal_options", selectedWorkoutTypes);
     await prefs.setStringList("diet_allergies", selectedAllergies);
     await prefs.setStringList("diet_special_needs", selectedSpecialNeeds);
+
+    print("✅ Saved Diet Preferences:");
+    print("Level: $selectedLevel");
+    print("Goals: $selectedWorkoutTypes");
+    print("Allergies: $selectedAllergies");
+    print("Special Needs: $selectedSpecialNeeds");
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,26 +163,10 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-onPressed: () async {
-  await _savePreferences(); // Save current screen preferences
+onPressed: _isButtonEnabled ? _submitAll : null,
 
-  final allData = await PersistentData.getAllPersistentData();
 
-  final success = await ApiService.updateUserData(allData);
-
-  if (success) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const FitnessGoalLoadingScreen(),
-      ),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Failed to update user data')),
-    );
-  }
-},    style: ElevatedButton.styleFrom(
+    style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -330,4 +380,7 @@ onPressed: () async {
       }
     });
   }
+  
+
+
 }

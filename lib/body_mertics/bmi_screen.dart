@@ -1,69 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/api/api_service.dart';
 import 'dart:math';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:test_app/pages/exercise_times_input.dart';
-import 'package:test_app/plan/diet_preferences.dart';
 import 'package:test_app/plan/workout_preferences.dart';
 
-void main() {
-  runApp(const BMIApp());
-}
+// --- API Model Classes ---
+class BMICategory {
+  final String id;
+  final String label;
+  final Color color;
+  final double bmiMin;
+  final double? bmiMax;
+  final bool isCurrent;
 
-class BMIApp extends StatelessWidget {
-  const BMIApp({super.key});
+  BMICategory({
+    required this.id,
+    required this.label,
+    required this.color,
+    required this.bmiMin,
+    required this.bmiMax,
+    required this.isCurrent,
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'BMI Calculator',
-
-      home: const BMIScreen(bmi: 22.5),
-      debugShowCheckedModeBanner: false,
+  factory BMICategory.fromJson(Map<String, dynamic> json) {
+    final hex = (json["color"] as String).replaceAll("#", "");
+    return BMICategory(
+      id: json["id"],
+      label: json["label"],
+      color: Color(int.parse("0xFF$hex")),
+      bmiMin: (json["bmi_min"] as num).toDouble(),
+      bmiMax: json["bmi_max"] != null ? (json["bmi_max"] as num).toDouble() : null,
+      isCurrent: json["is_current"] ?? false,
     );
   }
 }
+Future<Map<String, dynamic>> fetchUserBMIData() async {
+  final response = await ApiService.getRequest("user/");
 
+  // Parse categories list
+  List<BMICategory> categories =
+      (response["current_bmi_category"] as List)
+          .map((json) => BMICategory.fromJson(json))
+          .toList();
+
+  return {
+    "bmi": (response["current_bmi"] as num).toDouble(),
+    "height": (response["current_height"] as num).toDouble(),
+    "weight": (response["current_weight"] as num).toDouble(),
+    "targetWeight": (response["target_weight"] as num).toDouble(),
+    "categories": categories,
+  };
+}
+class PersistentData {
+  static const _targetWeightKey = "target_weight";
+
+  static Future<void> saveTargetWeight(double weight) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_targetWeightKey, weight);
+  }
+
+  static Future<double?> getTargetWeight() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_targetWeightKey);
+  }
+}
+// --- CustomPainter Using Dynamic Data ---
 class BMIGaugePainter extends CustomPainter {
   final double bmi;
-  BMIGaugePainter(this.bmi);
+  final List<BMICategory> categories;
 
-  final List<Color> colors = [
-    const Color(0xFF52C9F7), // Underweight
-    const Color(0xFF97CD17), // Normal
-    const Color(0xFFFEDA00), // Overweight
-    const Color(0xFFF8931F), // Obese
-    const Color(0xFFFE0000), // Extremely Obese
-  ];
-
-  final List<double> bmiRanges = [0, 18.5, 24.9, 29.9, 34.9, 40];
-
-  final List<String> labels = [
-    "<18.5",
-    "18.5-24.9",
-    "25-29.9",
-    "30-34.9",
-    ">35",
-  ];
-
-  final List<String> categories = [
-    "UNDERWEIGHT",
-    "NORMAL",
-    "OVERWEIGHT",
-    "OBESE",
-    "EXTREMELY OBESE",
-  ];
+  BMIGaugePainter(this.bmi, this.categories);
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 1.2);
     final radius = size.width / 2.2;
-    final sweepPerRange = pi / (bmiRanges.length - 1);
+    final sweepCount = categories.length;
+    final sweepPerRange = pi / sweepCount;
     final startAngle = -pi;
 
-    // Outer dark blue border
+    // Draw outer border
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius + 48),
       pi,
@@ -75,7 +92,7 @@ class BMIGaugePainter extends CustomPainter {
         ..strokeWidth = 6,
     );
 
-    // Light grey background stroke
+    // Light grey background
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius + 30),
       pi,
@@ -99,14 +116,12 @@ class BMIGaugePainter extends CustomPainter {
         ..strokeWidth = 4,
     );
 
-    // Colored ranges
-    final paint =
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 105;
-
-    for (int i = 0; i < colors.length; i++) {
-      paint.color = colors[i];
+    // Draw dynamic colored ranges and labels
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 105;
+    for (int i = 0; i < categories.length; i++) {
+      paint.color = categories[i].color;
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius - 35),
         startAngle + i * sweepPerRange,
@@ -128,30 +143,29 @@ class BMIGaugePainter extends CustomPainter {
         ..strokeWidth = 4,
     );
 
-    // Category labels
+    // Draw dynamic labels and BMI ranges
     for (int i = 0; i < categories.length; i++) {
+      final cat = categories[i];
       final sectionStart = startAngle + i * sweepPerRange;
       final sectionEnd = startAngle + (i + 1) * sweepPerRange;
       _drawCircularText(
         canvas,
-        categories[i],
+        cat.label,
         center,
-        radius + 30,
+        radius + 28,
         sectionStart,
         sectionEnd,
         fontSize: 12,
         color: const Color(0xFF6B6B6B),
         fontWeight: FontWeight.w700,
       );
-    }
 
-    // BMI range labels
-    for (int i = 0; i < labels.length; i++) {
-      final sectionStart = startAngle + i * sweepPerRange;
-      final sectionEnd = startAngle + (i + 1) * sweepPerRange;
+      String rangeLabel = (cat.bmiMax != null)
+          ? "${cat.bmiMin.toStringAsFixed(1)}-${cat.bmiMax!.toStringAsFixed(1)}"
+          : ">${cat.bmiMin.toStringAsFixed(1)}";
       _drawCircularText(
         canvas,
-        labels[i],
+        rangeLabel,
         center,
         radius - 30,
         sectionStart,
@@ -162,9 +176,31 @@ class BMIGaugePainter extends CustomPainter {
       );
     }
 
-    // Needle
+    // Needle calculation
     final angle = _getNeedleAngle(bmi);
     _drawNeedle(canvas, center, angle, radius - 60);
+  }
+
+  double _getNeedleAngle(double bmi) {
+    int index = 0;
+    for (int i = 0; i < categories.length; i++) {
+      final min = categories[i].bmiMin;
+      final max = categories[i].bmiMax;
+      if (max != null && bmi >= min && bmi < max) {
+        index = i;
+        break;
+      } else if (max == null && bmi >= min) {
+        index = i;
+        break;
+      }
+    }
+    final rangeStart = categories[index].bmiMin;
+    final rangeEnd = categories[index].bmiMax ?? (categories[index].bmiMin + 5);
+    double percent = (bmi - rangeStart) / (rangeEnd - rangeStart);
+    final sweepPerRange = pi / categories.length;
+    final startAngle = -pi;
+    const needleOffset = -0.2;
+    return startAngle + (index + percent) * sweepPerRange + needleOffset;
   }
 
   void _drawNeedle(Canvas canvas, Offset center, double angle, double length) {
@@ -181,14 +217,11 @@ class BMIGaugePainter extends CustomPainter {
       center.dx + needleWidth * cos(angle - pi / 2),
       center.dy + needleWidth * sin(angle - pi / 2),
     );
-
-    final path =
-        Path()
-          ..moveTo(tip.dx, tip.dy)
-          ..lineTo(baseLeft.dx, baseLeft.dy)
-          ..lineTo(baseRight.dx, baseRight.dy)
-          ..close();
-
+    final path = Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..lineTo(baseLeft.dx, baseLeft.dy)
+      ..lineTo(baseRight.dx, baseRight.dy)
+      ..close();
     // Shadow
     canvas.drawPath(
       path,
@@ -196,7 +229,6 @@ class BMIGaugePainter extends CustomPainter {
         ..color = Colors.black26
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
     );
-
     // Needle fill
     canvas.drawPath(
       path,
@@ -206,7 +238,6 @@ class BMIGaugePainter extends CustomPainter {
           stops: [0.0, 0.5, 1.0],
         ).createShader(Rect.fromPoints(baseLeft, tip)),
     );
-
     // Center hub
     const hubRadius = 12.0;
     canvas.drawCircle(
@@ -214,7 +245,6 @@ class BMIGaugePainter extends CustomPainter {
       hubRadius,
       Paint()..color = Colors.black26,
     );
-
     canvas.drawCircle(
       center,
       hubRadius,
@@ -223,7 +253,6 @@ class BMIGaugePainter extends CustomPainter {
           colors: [Color(0xFF1A1A1A), Color(0xFF0A0A0A)],
         ).createShader(Rect.fromCircle(center: center, radius: hubRadius)),
     );
-
     canvas.drawCircle(
       center,
       hubRadius,
@@ -232,7 +261,6 @@ class BMIGaugePainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5,
     );
-
     canvas.drawCircle(
       center,
       hubRadius * 0.6,
@@ -241,26 +269,6 @@ class BMIGaugePainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
-  }
-
-  double _getNeedleAngle(double bmi) {
-    int index = 0;
-    for (int i = 0; i < bmiRanges.length - 1; i++) {
-      if (bmi >= bmiRanges[i] && bmi < bmiRanges[i + 1]) {
-        index = i;
-        break;
-      }
-    }
-    if (bmi >= bmiRanges.last) index = bmiRanges.length - 2;
-
-    double rangeStart = bmiRanges[index];
-    double rangeEnd = bmiRanges[index + 1];
-    double percent = (bmi - rangeStart) / (rangeEnd - rangeStart);
-    final sweepPerRange = pi / (bmiRanges.length - 1);
-    final startAngle = -pi;
-    const needleOffset = -0.2;
-
-    return startAngle + (index + percent) * sweepPerRange + needleOffset;
   }
 
   void _drawCircularText(
@@ -276,7 +284,6 @@ class BMIGaugePainter extends CustomPainter {
   }) {
     final sweep = end - start;
     final spacing = sweep / (text.length + 1);
-
     for (int i = 0; i < text.length; i++) {
       final char = text[i];
       final angle = start + (i + 1) * spacing;
@@ -317,7 +324,6 @@ class BMIGaugePainter extends CustomPainter {
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     )..layout();
-
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
     canvas.rotate(angle);
@@ -328,62 +334,141 @@ class BMIGaugePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant BMIGaugePainter oldDelegate) =>
-      oldDelegate.bmi != bmi;
+      oldDelegate.bmi != bmi || oldDelegate.categories != categories;
 }
 
+// --- Main BMIScreen Widget ---
 class BMIScreen extends StatefulWidget {
-  final double bmi;
-
-  const BMIScreen({super.key, required this.bmi});
+  const BMIScreen({Key? key}) : super(key: key);
 
   @override
   State<BMIScreen> createState() => _BMIScreenState();
 }
 
 class _BMIScreenState extends State<BMIScreen> {
-  final TextEditingController _heightController = TextEditingController(
-    text: "170",
-  );
-  final TextEditingController _weightController = TextEditingController(
-    text: "70",
-  );
+  double? bmi;
+  double? height;
+  double? weight;
+  double? targetWeight;
+  List<BMICategory> categories = [];
 
-  double _height = 170; // in cm
-  double _weight = 70; // in kg
-  double _targetWeight = 65; // Target weight
+  bool isLoading = true;
 
-  // Progress tracking - you can adjust these values based on your app's flow
-  int currentStep = 3; // Current step (e.g., BMI calculation step)
-  int totalSteps = 5; // Total steps in your onboarding/setup flow
-
-  double get _bmi => _weight / ((_height / 100) * (_height / 100));
-  double get _targetBMI => _targetWeight / ((_height / 100) * (_height / 100));
   @override
   void initState() {
     super.initState();
-    _loadSavedData(); // ✅ Load saved target weight & BMI
+    _loadUserBMI();
   }
-    Future<void> _loadSavedData() async {
-    final prefs = await SharedPreferences.getInstance();
+// Save & Update Target Weight
+  void _updateTargetWeight(int change) async {
     setState(() {
-      _targetWeight = prefs.getDouble("user_target_weight") ?? 65;
-      _weight = prefs.getDouble("user_weight") ?? 70;
-      _height = prefs.getDouble("user_height") ?? 170;
+      targetWeight = (targetWeight! + change).clamp(30.0, 200.0); // safe bounds
     });
+    await PersistentData.saveTargetWeight(targetWeight!);
   }
-   Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble("user_bmi", _bmi);
-    await prefs.setDouble("user_target_weight", _targetWeight);
+
+  // Dynamic Color Logic
+  Color _targetWeightColor(double weight) {
+    final idealCat = categories.firstWhere(
+      (c) => c.label.toLowerCase().contains("normal"),
+      orElse: () => categories[0],
+    );
+    final minW = idealCat.bmiMin * pow(height! / 100, 2);
+    final maxW = idealCat.bmiMax! * pow(height! / 100, 2);
+
+    if (weight >= minW && weight <= maxW) {
+      return Colors.green; // ✅ Normal
+    } else if ((weight < minW && weight >= minW - 5) ||
+        (weight > maxW && weight <= maxW + 5)) {
+      return Colors.orange; // ⚠️ Slightly outside
+    } else {
+      return Colors.red; // ❌ Far outside
+    }
+  }
+
+  Future<void> _loadUserBMI() async {
+    try {
+      final data = await fetchUserBMIData();
+      setState(() {
+        bmi = data["bmi"];
+        height = data["height"];
+        weight = data["weight"];
+        targetWeight = data["targetWeight"];
+        categories = data["categories"];
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("❌ Error loading BMI data: $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+  // --- Helpers (moved here from old Stateless widget) ---
+  Color _categoryColor(double bmi) {
+    for (var c in categories) {
+      final min = c.bmiMin;
+      final max = c.bmiMax ?? double.infinity;
+      if (bmi >= min && bmi < max) return c.color;
+    }
+    return Colors.grey;
+  }
+
+  BMICategory get currentCategory {
+    return categories.lastWhere((c) {
+      if (c.bmiMax != null) {
+        return bmi! >= c.bmiMin && bmi! < c.bmiMax!;
+      } else {
+        return bmi! >= c.bmiMin;
+      }
+    }, orElse: () => categories.first);
+  }
+
+  String get categoryMessage {
+    return "You're in the ${currentCategory.label} range.";
+  }
+
+  String get targetWeightMessage {
+    final targetBmi = targetWeight! / ((height! / 100) * (height! / 100));
+    final idealCat = categories.firstWhere(
+      (c) => c.label.toLowerCase().contains("normal"),
+      orElse: () => categories[0],
+    );
+    if (targetBmi >= idealCat.bmiMin &&
+        (idealCat.bmiMax == null || targetBmi <= idealCat.bmiMax!)) {
+      return "Your target weight is set to ${targetWeight!.toStringAsFixed(1)}kg.\nYou're aiming lean stay consistent and you'll hit it strong and healthy.";
+    } else if (targetBmi < idealCat.bmiMin) {
+      return "Your target weight is set to ${targetWeight!.toStringAsFixed(1)}kg.\nYour goal seems a bit unrealistic. Let's aim for a healthier target";
+    } else {
+      return "Your target weight is set to ${targetWeight!.toStringAsFixed(1)}kg.\nGood effort. If you reach here, we'll guide you further.";
+    }
+  }
+
+  String get idealWeightRange {
+    final idealCat = categories.firstWhere(
+      (c) => c.label.toLowerCase().contains("normal"),
+      orElse: () => categories[0],
+    );
+    final minW = (idealCat.bmiMin * pow(height! / 100, 2)).round();
+    final maxW =
+        idealCat.bmiMax != null
+            ? (idealCat.bmiMax! * pow(height! / 100, 2)).round()
+            : "-";
+    return "$minW to $maxW kg";
   }
 
   @override
   Widget build(BuildContext context) {
-    final categoryMessage = _getBMICategoryMessage(_bmi);
-    final categoryColor = _getCategoryColor(_bmi);
-    final currentBMI = _bmi;
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    // Screen dimensions
+    if (bmi == null || categories.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text("Failed to load BMI data")),
+      );
+    }
+
+    // --- your original UI code below ---
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
@@ -412,7 +497,7 @@ class _BMIScreenState extends State<BMIScreen> {
                   ),
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
-                    widthFactor: currentStep / totalSteps,
+                    widthFactor: 3 / 5,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.black,
@@ -442,11 +527,9 @@ class _BMIScreenState extends State<BMIScreen> {
                       Column(
                         children: [
                           SizedBox(height: screenHeight * 0.12),
-
-                          // BMI Gauge
+                          // --- BMI Gauge ---
                           Container(
                             width: double.infinity,
-                            // height: 400,
                             padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -460,69 +543,56 @@ class _BMIScreenState extends State<BMIScreen> {
                                 ),
                               ],
                             ),
-                            child: Column(
-                              children: [
-                                CustomPaint(
-                                  size: Size(
-                                    isTablet
-                                        ? 350
-                                        : (isSmallScreen ? 250 : 285),
-                                    isTablet
-                                        ? 200
-                                        : (isSmallScreen ? 130 : 160),
-                                  ),
-                                  painter: BMIGaugePainter(currentBMI),
-                                ),
-                                SizedBox(height: screenHeight * 0.018),
-                                Text(
-                                  "Your BMI is",
-                                  style: TextStyle(
-                                    fontSize:
-                                        isTablet
-                                            ? 16
-                                            : (isSmallScreen ? 12 : 14),
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                SizedBox(height: screenHeight * 0.005),
-                                Text(
-                                  currentBMI.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    fontSize:
-                                        isTablet
-                                            ? 28
-                                            : (isSmallScreen ? 18 : 20),
-                                    fontWeight: FontWeight.w700,
-                                    color: categoryColor,
-                                  ),
-                                ),
-                                SizedBox(height: screenHeight * 0.01),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                  ),
-                                  child: Text(
-                                    categoryMessage,
-                                    style: TextStyle(
-                                      fontSize:
-                                          isTablet
-                                              ? 16
-                                              : (isSmallScreen ? 12 : 14),
-                                      color: const Color(0xFF7F7F7F),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ],
-                            ),
+           child: Column(
+  children: [
+    if (bmi != null && categories.isNotEmpty) ...[
+      CustomPaint(
+        size: Size(
+          isTablet ? 350 : (isSmallScreen ? 250 : 285),
+          isTablet ? 200 : (isSmallScreen ? 130 : 160),
+        ),
+        painter: BMIGaugePainter(bmi!, categories), // force unwrap
+      ),
+      SizedBox(height: screenHeight * 0.018),
+      Text(
+        "Your BMI is",
+        style: TextStyle(
+          fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+          color: Colors.black87,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      SizedBox(height: screenHeight * 0.005),
+      Text(
+        bmi!.toStringAsFixed(1),
+        style: TextStyle(
+          fontSize: isTablet ? 28 : (isSmallScreen ? 18 : 20),
+          fontWeight: FontWeight.w700,
+          color: _categoryColor(bmi!), // pass non-null bmi
+        ),
+      ),
+      SizedBox(height: screenHeight * 0.01),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Text(
+          categoryMessage,
+          style: TextStyle(
+            fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+            color: const Color(0xFF7F7F7F),
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ] else ...[
+      const Text("Loading BMI data..."),
+    ]
+  ],
+),
                           ),
-
                           SizedBox(height: screenHeight * 0.03),
-
-                          // Dynamic Weight Card
-                          Container(
+                          // --- Dynamic Weight Card ---
+          Container(
                             width: double.infinity,
                             padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                             decoration: BoxDecoration(
@@ -561,102 +631,89 @@ class _BMIScreenState extends State<BMIScreen> {
                                               "Your ideal weight should be in ",
                                         ),
                                         TextSpan(
-                                          text: "${_getMinWeight()}",
+                                          text: idealWeightRange,
                                           style: const TextStyle(
                                             color: Color(0xFF97CD17),
                                           ),
                                         ),
-                                        const TextSpan(text: " to "),
-                                        TextSpan(
-                                          text: "${_targetWeight.toInt()}",
-                                          style: const TextStyle(
-                                            color: Color(0xFF97CD17),
-                                          ),
-                                        ),
-                                        const TextSpan(text: " kg"),
                                       ],
                                     ),
                                   ),
                                 ),
+                                SizedBox(height: screenHeight * 0.02),
 
-                                SizedBox(height: screenHeight * 0.015),
-
+                                // --- Add & Subtract Buttons ---
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          if (_targetWeight > 40)
-                                            _targetWeight -= 1;
-                                        });
-                                      },
-                                      child: Container(
-                                        width: isSmallScreen ? 20 : 24,
-                                        height: isSmallScreen ? 20 : 24,
-                                        decoration: BoxDecoration(
-                                          color: Colors.black,
-                                          shape: BoxShape.circle,
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.remove_circle,
+                                        size: 32,
+                                        color: Colors.black54,
+                                      ),
+                                      onPressed: () => _updateTargetWeight(-1),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                        horizontal: 20,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
                                         ),
-                                        child: Icon(
-                                          Icons.remove,
-                                          size: isSmallScreen ? 14 : 16,
-                                          color: Colors.white,
+                                      ),
+                                      child: Text(
+                                        "${targetWeight!.toStringAsFixed(0)}kg",
+                                        style: TextStyle(
+                                          fontSize: isTablet ? 20 : 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: _targetWeightColor(
+                                            targetWeight!,
+                                          ), // ✅ Dynamic color
                                         ),
                                       ),
                                     ),
-                                    SizedBox(width: screenWidth * 0.05),
-                                    Text(
-                                      "${_targetWeight.toInt()}kg",
-                                      style: TextStyle(
-                                        fontSize:
-                                            isTablet
-                                                ? 28
-                                                : (isSmallScreen ? 20 : 24),
-                                        fontWeight: FontWeight.w700,
-                                        color: _getTargetWeightColor(),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.add_circle,
+                                        size: 32,
+                                        color: Colors.black54,
                                       ),
-                                    ),
-                                    SizedBox(width: screenWidth * 0.05),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          if (_targetWeight < 120)
-                                            _targetWeight += 1;
-                                        });
-                                      },
-                                      child: Container(
-                                        width: isSmallScreen ? 20 : 24,
-                                        height: isSmallScreen ? 20 : 24,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.black,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          Icons.add,
-                                          size: isSmallScreen ? 14 : 16,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      onPressed: () => _updateTargetWeight(1),
                                     ),
                                   ],
                                 ),
 
-                                SizedBox(height: screenHeight * 0.015),
+                                SizedBox(height: screenHeight * 0.02),
 
+                                // --- Target Weight Message ---
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8.0,
                                   ),
-                                  child: _getTargetWeightMessageWidget(),
+                                  child: Text(
+                                    targetWeightMessage,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize:
+                                          isTablet
+                                              ? 14
+                                              : (isSmallScreen ? 10 : 12),
+                                      color: const Color(0xFF7F7F7F),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
+                          )
+
                         ],
                       ),
-
-                      // CTA Button
+                      // --- CTA Button ---
                       Padding(
                         padding: EdgeInsets.only(
                           top: screenHeight * 0.04,
@@ -672,21 +729,19 @@ class _BMIScreenState extends State<BMIScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                        onPressed: () async {
-    await _saveData(); // ✅ Save before navigating
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const WorkoutPreferences(),
-      ),
-    );
-  },
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => WorkoutPreferences(),
+                                ),
+                              );
+                            },
                             child: Text(
                               "Done",
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize:
-                                    isTablet ? 18 : (isSmallScreen ? 14 : 16),
+                                fontSize: isTablet ? 18 : (isSmallScreen ? 14 : 16),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -702,216 +757,5 @@ class _BMIScreenState extends State<BMIScreen> {
         ),
       ),
     );
-  }
-
-  // Reusable Input Widget
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    required Function(String) onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF7F7F7F),
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF97CD17), width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _getIdealWeightRange() {
-    // Calculate ideal weight range based on BMI 18.5-24.9
-    final heightInM = _height / 100;
-    final minWeight = (18.5 * heightInM * heightInM).round();
-    final maxWeight = (24.9 * heightInM * heightInM).round();
-    return "${minWeight} to ${minWeight}";
-  }
-
-  int _getMinWeight() {
-    final heightInM = _height / 100;
-    return (18.5 * heightInM * heightInM).round();
-  }
-
-  String _getWeightRangeText() {
-    final idealRange = _getIdealWeightRange();
-
-    if (_bmi < 18.5) {
-      return "Your ideal weight should be in $idealRange";
-    } else if (_bmi >= 18.5 && _bmi <= 24.9) {
-      return "Your ideal weight should be in $idealRange";
-    } else if (_bmi >= 25 && _bmi < 30) {
-      return "Your ideal weight should be in $idealRange";
-    } else if (_bmi >= 30 && _bmi < 35) {
-      return "Your ideal weight should be in $idealRange";
-    } else {
-      return "Your ideal weight should be in $idealRange";
-    }
-  }
-
-  Color _getTargetWeightColor() {
-    if (_targetBMI >= 18.5 && _targetBMI <= 24.9) {
-      return const Color(0xFF97CD17); // Green for ideal range
-    } else if (_targetBMI < 18.5) {
-      return const Color(0xFFE74C3C); // Red for too low
-    } else if (_targetBMI < 30) {
-      return const Color(0xFFF39C12); // Orange for overweight
-    } else {
-      return const Color(0xFFE74C3C); // Red for obese
-    }
-  }
-
-  Widget _getTargetWeightMessageWidget() {
-    final targetBMI = _targetBMI;
-    final weightText = "${_targetWeight.toInt()}kg";
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 360;
-    final isTablet = screenWidth > 600;
-
-    if (targetBMI >= 18.5 && targetBMI <= 24.9) {
-      return RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
-            color: const Color(0xFF7F7F7F),
-            fontWeight: FontWeight.w500,
-          ),
-          children: [
-            const TextSpan(text: "Your target weight is set to "),
-            TextSpan(
-              text: weightText,
-              style: const TextStyle(
-                color: Color(0xFF0C0C0C),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const TextSpan(
-              text:
-                  ".\nYou're aiming lean stay consistent and you'll hit it strong and healthy.",
-            ),
-          ],
-        ),
-      );
-    } else if (targetBMI < 18.5) {
-      return RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
-            color: const Color(0xFF7F7F7F),
-          ),
-          children: [
-            const TextSpan(text: "Your target weight is set to "),
-            TextSpan(
-              text: weightText,
-              style: const TextStyle(color: Color(0xFF0C0C0C)),
-            ),
-            const TextSpan(
-              text:
-                  ".\nYour goal seems a bit unrealistic. Let's aim for a healthier target",
-            ),
-          ],
-        ),
-      );
-    } else if (targetBMI >= 25 && targetBMI < 30) {
-      return RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
-            color: const Color(0xFF7F7F7F),
-          ),
-          children: [
-            const TextSpan(text: "Your target weight is set to "),
-            TextSpan(
-              text: weightText,
-              style: const TextStyle(color: Colors.black),
-            ),
-            const TextSpan(
-              text:
-                  ".\nGood Effort, once you reach here, we'll guide you further if you choose to reduce more",
-            ),
-          ],
-        ),
-      );
-    } else {
-      return RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: isTablet ? 14 : (isSmallScreen ? 10 : 12),
-            color: const Color(0xFF7F7F7F),
-          ),
-          children: [
-            const TextSpan(text: "Your target weight is set to "),
-            TextSpan(
-              text: weightText,
-              style: const TextStyle(color: Colors.black),
-            ),
-            const TextSpan(
-              text:
-                  ".\nYour goal seems a bit unrealistic. Let's aim for a\nhealthier target",
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  String _getBMICategoryMessage(double bmi) {
-    if (bmi < 18.5) return "You're in the underweight range";
-    if (bmi < 25) return "You're in the normal range";
-    if (bmi < 30) return "You're in the overweight range";
-    if (bmi < 35) return "You're in the obese range";
-    return "You're in the extremely obese range";
-  }
-
-  String _getBMICategory(double bmi) {
-    if (bmi < 18.5) return "Underweight";
-    if (bmi < 25) return "Normal";
-    if (bmi < 30) return "Overweight";
-    if (bmi < 35) return "Obese";
-    return "Extremely Obese";
-  }
-
-  Color _getCategoryColor(double bmi) {
-    if (bmi < 18.5) return const Color(0xFF52C9F7);
-    if (bmi < 25) return const Color(0xFF97CD17);
-    if (bmi < 30) return const Color(0xFFFEDA00);
-    if (bmi < 35) return const Color(0xFFF8931F);
-    return const Color(0xFFFE0000);
   }
 }

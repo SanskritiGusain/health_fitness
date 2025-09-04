@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/plan/fitness_wellness.dart';
+import 'package:test_app/shared_preferences.dart';
+import 'package:test_app/web_socket/chat_socket.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class CongratulationsScreen extends StatelessWidget {
   // Hardcoded data - will be replaced with API data in future
@@ -15,6 +18,31 @@ class CongratulationsScreen extends StatelessWidget {
     ],
     'trialText': 'Unlock 7 days Free Trial',
   };
+  Future<void> _startTrial() async {
+    String? token = await PersistentData.getAuthToken();
+    if (token == null) {
+      debugPrint("❌ No auth token found");
+      return;
+    }
+    debugPrint("🟢 Auth token: $token");
+    try {
+      final channel = WebSocketChannel.connect(
+        Uri.parse("ws://192.168.1.30:8000/chat/ws/user?token=$token"),
+      );
+
+      // Send user details once
+      final userData = await PersistentData.getAllPersistentData();
+      channel.sink.add(userData.toString());
+
+      debugPrint("✅ Trial user data sent: $userData");
+
+      // Disconnect after sending
+      await Future.delayed(const Duration(seconds: 1));
+      await channel.sink.close();
+    } catch (e) {
+      debugPrint("❌ Trial WebSocket error: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,13 +225,20 @@ class CongratulationsScreen extends StatelessWidget {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Navigator.push(
                 //   context,
                 //   MaterialPageRoute(
-                //     builder: (context) => const FitnessWellnessScreen(),
+                //     builder: (context) => const ChatSocketPage(),
                 //   ),
                 // );
+                await _startTrial();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FitnessWellnessScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,

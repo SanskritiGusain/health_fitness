@@ -7,7 +7,7 @@ plugins {
 
 android {
      namespace ="health.com"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -22,7 +22,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "health.com"
-             minSdk = 23
+             minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"

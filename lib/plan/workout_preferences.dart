@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:test_app/plan/diet_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,22 +22,54 @@ class _WorkoutPreferencesState extends State<WorkoutPreferences> {
     super.initState();
     _loadPreferences(); // ✅ Load saved prefs
   }
-    Future<void> _loadPreferences() async {
+Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      selectedLevel = prefs.getString("workout_level") ?? '';
-      selectedWorkoutTypes = prefs.getStringList("workout_types") ?? [];
-      selectedTimeAvailability = prefs.getString("time_availability") ?? '';
-      selectedSpecialNeeds = prefs.getStringList("special_needs") ?? [];
-    });
+    final String? jsonString = prefs.getString("workout_preferences");
+
+    if (jsonString != null) {
+      print("📥 Loaded JSON from SharedPreferences: $jsonString");
+
+      final Map<String, dynamic> data = jsonDecode(jsonString);
+
+      setState(() {
+        selectedLevel = data["level"] ?? '';
+        selectedWorkoutTypes = List<String>.from(data["workout_types"] ?? []);
+        selectedTimeAvailability = data["time_availability"] ?? '';
+        selectedSpecialNeeds = List<String>.from(data["special_needs"] ?? []);
+      });
+
+      // 🔍 Debugging state
+      print("🎯 Current State after loading:");
+      print("Level: $selectedLevel");
+      print("Workout Types: $selectedWorkoutTypes");
+      print("Time Availability: $selectedTimeAvailability");
+      print("Special Needs: $selectedSpecialNeeds");
+    } else {
+      print("⚠️ No workout_preferences found in SharedPreferences");
+    }
   }
-    Future<void> _savePreferences() async {
+
+
+Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("workout_level", selectedLevel);
-    await prefs.setStringList("workout_types", selectedWorkoutTypes);
-    await prefs.setString("time_availability", selectedTimeAvailability);
-    await prefs.setStringList("special_needs", selectedSpecialNeeds);
+
+    final Map<String, dynamic> data = {
+      "level": selectedLevel,
+      "workout_types": selectedWorkoutTypes,
+      "time_availability": selectedTimeAvailability,
+      "special_needs": selectedSpecialNeeds,
+    };
+
+    final String jsonString = jsonEncode(data);
+
+    // Save JSON string
+    await prefs.setString("workout_preferences", jsonString);
+
+    // 🔍 Debugging
+    print("✅ Preferences saved to SharedPreferences:");
+    print(jsonString);
   }
+
 
   @override
   Widget build(BuildContext context) {

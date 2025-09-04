@@ -184,6 +184,22 @@ class PersistentData {
         .cast<String>()
         .toList();
   }
+// lib/utils/persistent_data.dart
+
+  /// Data for first API call (Screens 1–4)
+  static Future<Map<String, dynamic>> getFirstPhaseUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return {
+      "name": prefs.getString(keyName) ?? "",
+      "age": prefs.getInt(keyAge) ?? 0,
+      "gender": prefs.getString(keyGender) ?? "",
+      "country_id": prefs.getString(keyCountryId) ?? "",
+      "state_id": prefs.getString(keyStateId),
+      "current_height": (prefs.getDouble(keyHeight) ?? 0).toInt(),
+      "current_weight": (prefs.getDouble(keyWeight) ?? 0).toInt(),
+    };
+  }
 
   /// Get specific data pieces for debugging or display
   static Future<String?> getName() async {

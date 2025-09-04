@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 // import 'package:google_sign_in/google_sign_in.dart';
 import 'package:test_app/login/login_email.dart';
 import 'package:test_app/pages/home_page.dart';
+import '../auth/google_auth.dart';
 
 
 class LoginSelectionPage extends StatefulWidget {
@@ -17,47 +18,9 @@ class LoginSelectionPage extends StatefulWidget {
 
 
 class _LoginSelectionPageState extends State<LoginSelectionPage> {
-  // Future<void> login(BuildContext context) async {
-  //   try {
-  //     // Initialize Google Sign In
-  //     final GoogleSignIn googleSignIn = GoogleSignIn();
+ 
 
-  //     // Trigger the authentication flow
-  //     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-  //     if (googleUser == null) {
-  //       // User cancelled the sign-in
-  //       return;
-  //     }
-
-  //     // Obtain the auth details from the request
-  //     final GoogleSignInAuthentication googleAuth =
-  //         await googleUser.authentication;
-
-  //     // Create a new credential using only idToken for version 7.x.x
-  //     final credential = GoogleAuthProvider.credential(
-  //       idToken: googleAuth.idToken,
-  //     );
-
-  //     // Once signed in, return the UserCredential
-  //     await FirebaseAuth.instance.signInWithCredential(credential);
-
-  //     if (mounted) {
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const HomePage()),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('Error: $e');
-  //     if (mounted) {
-  //       ScaffoldMessenger.of(
-  //         context,
-  //       ).showSnackBar(SnackBar(content: Text('Sign in failed: $e')));
-  //     }
-  //   }
-  // }
-
+final GoogleAuth _googleAuth = GoogleAuth();
 
 
   final List<String> images = [
@@ -205,8 +168,8 @@ class _LoginSelectionPageState extends State<LoginSelectionPage> {
                     SizedBox(
                       width: double.infinity,
                       child: GestureDetector(
-                        onTap: () {
-                          // login(context);
+                   onTap: () async {
+                        await _googleAuth.signInAndNotify(context);
                         },
 
                         child: Container(

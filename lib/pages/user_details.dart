@@ -1,6 +1,7 @@
 // lib/pages/user_details.dart
 import 'package:flutter/material.dart';
 import 'package:test_app/pages/location_select.dart';
+import 'package:test_app/pages/logout.dart';
 import 'package:test_app/utils/persistent_data.dart';
 
 class UserDetailsPage extends StatefulWidget {
@@ -28,7 +29,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     _loadSavedData();
   }
 
-  Future<void> _loadSavedData() async {
+Future<void> _loadSavedData() async {
     final name = await PersistentData.getName();
     final age = await PersistentData.getAge();
     final gender = await PersistentData.getGender();
@@ -41,6 +42,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
     _validateForm();
   }
+
 
   void _validateForm() {
     final name = _nameController.text.trim();
@@ -60,23 +62,23 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     });
   }
 
-  void _submit() async {
+void _submit() async {
     if (_formKey.currentState!.validate()) {
-      // Save user details using the utility class
+      // Save user details to SharedPreferences
       await PersistentData.saveUserDetails(
         name: _nameController.text.trim(),
         age: int.parse(_ageController.text.trim()),
         gender: _selectedGender!,
       );
 
+      // Navigate to the next screen
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const LocationSelectionPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const LocationSelectionPage()),
       );
     }
   }
+
 
   @override
   void dispose() {
