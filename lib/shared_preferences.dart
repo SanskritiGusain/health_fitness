@@ -144,24 +144,24 @@ class PersistentData {
 
   /// Save diet preferences
   static Future<void> saveDietPreferences({
-    required String dietLevel,
-    required List<String> goalOptions,
-    required List<String> allergies,
-    required List<String> specialNeeds,
+    required String selectedBasicOptions,
+    required List<String> selectedGoalBasedOptions,
+    required List<String> selectedAllergies,
+    required List<String> selectedSpecialNeeds,
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setString(keyDietLevel, dietLevel);
-    await prefs.setStringList(keyDietGoalOptions, goalOptions);
-    await prefs.setStringList(keyDietAllergies, allergies);
-    await prefs.setStringList(keyDietSpecialNeeds, specialNeeds);
+    await prefs.setString(keyDietLevel, selectedBasicOptions);
+    await prefs.setStringList(keyDietGoalOptions, selectedGoalBasedOptions);
+    await prefs.setStringList(keyDietAllergies, selectedAllergies);
+    await prefs.setStringList(keyDietSpecialNeeds, selectedSpecialNeeds);
 
     print("✅ Diet preferences saved:");
     print({
-      "diet_level": dietLevel,
-      "goal_options": goalOptions,
-      "allergies": allergies,
-      "special_needs": specialNeeds,
+      "diet_level": selectedBasicOptions,
+      "goal_options": selectedGoalBasedOptions,
+      "allergies": selectedAllergies,
+      "special_needs": selectedSpecialNeeds,
     });
   }
 

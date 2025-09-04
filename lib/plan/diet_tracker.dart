@@ -1,15 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:test_app/api/api_service.dart';
+import 'package:test_app/shared_preferences.dart';
 
 //import '/rounded_circular_progress.dart'; // <-- your custom progress file
 import 'package:test_app/utils/circlular progressbar.dart';
 import 'package:test_app/utils/custom_checkbox.dart';
 
-class DietScreen extends StatelessWidget {
+class DietScreen extends StatefulWidget {
   const DietScreen({super.key});
 
   @override
+  State<DietScreen> createState() => _DietScreenState();
+}
+
+class _DietScreenState extends State<DietScreen> {
+  Map<String, dynamic>? dietData;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDietData();
+  }
+
+  Future<void> fetchDietData() async {
+    setState(() => isLoading = true);
+    try {
+      // 🔹 Call global ApiService
+      final data = await ApiService.getRequest("user/");
+      setState(() {
+        dietData = data['current_diet']; // store current_diet
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("Error fetching diet data: $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (dietData == null) {
+      return const Center(child: Text("No diet data available"));
+    } 
+
+    // Extract meals
+    final meals = dietData!['meals'] ?? {};
+    final breakfast = meals['breakfast'];
+    final lunch = meals['lunch'];
+    final dinner = meals['dinner'];
+
+    final macros = dietData!['macros'] ?? {};
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -36,36 +83,49 @@ class DietScreen extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: const Text(
                       "Macronutrient Breakdown",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // ✅ Custom Circular Progress
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      const RoundedCircularProgress(
-                        progress: 0.6,
-                        remainingText: "400 Kcal\nRemaining",
+                      RoundedCircularProgress(
+                        progress:
+                            (macros['protein_grams'] ?? 0) /
+                            ((macros['protein_grams'] ?? 1) + 1), // example
+                        remainingText:
+                            "${dietData!['daily_calories']} Kcal\nRemaining",
                       ),
-                      const Text(
-                        "400 Kcal\nRemaining",
+                      Text(
+                        "${dietData!['daily_calories']} Kcal\nRemaining",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Macronutrient stats
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: const [
-                      _MacroStat(label: "Carbs", value: "54/76g"),
-                      _MacroStat(label: "Protein", value: "12/18g"),
-                      _MacroStat(label: "Fat", value: "14/19g"),
+                    children: [
+                      _MacroStat(
+                        label: "Carbs",
+                        value:
+                            "${macros['carbs_grams'] ?? 0}/${macros['carbs_grams'] ?? 1}g",
+                      ),
+                      _MacroStat(
+                        label: "Protein",
+                        value:
+                            "${macros['protein_grams'] ?? 0}/${macros['protein_grams'] ?? 1}g",
+                      ),
+                      _MacroStat(
+                        label: "Fat",
+                        value:
+                            "${macros['fats_grams'] ?? 0}/${macros['fats_grams'] ?? 1}g",
+                      ),
                     ],
                   ),
                 ],
@@ -86,8 +146,8 @@ class DietScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                children: [
-                  const Expanded(
+                children: const [
+                  Expanded(
                     child: Text(
                       "💬 Ask Luna to modify or change your plan",
                       style: TextStyle(
@@ -108,20 +168,33 @@ class DietScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Breakfast
-            const Text("Breakfast", style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            const MealCard(),
-
-            const SizedBox(height: 16),
-            const Text("Lunch", style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            const MealCard(),
-
-            const SizedBox(height: 16),
-            const Text("Dinner", style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            const MealCard(),
+            // Meals
+            if (breakfast != null) ...[
+              const Text(
+                "Breakfast",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              MealCardDynamic(meal: breakfast),
+            ],
+            if (lunch != null) ...[
+              const SizedBox(height: 16),
+              const Text(
+                "Lunch",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              MealCardDynamic(meal: lunch),
+            ],
+            if (dinner != null) ...[
+              const SizedBox(height: 16),
+              const Text(
+                "Dinner",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              MealCardDynamic(meal: dinner),
+            ],
           ],
         ),
       ),
@@ -134,11 +207,7 @@ class _MacroStat extends StatelessWidget {
   final String label;
   final String value;
 
-  const _MacroStat({
-    super.key,
-    required this.label,
-    required this.value,
-  });
+  const _MacroStat({super.key, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -189,28 +258,29 @@ class _MacroStat extends StatelessWidget {
 }
 
 // Reusable Meal Card
-class MealCard extends StatefulWidget {
-  const MealCard({super.key});
+class MealCardDynamic extends StatefulWidget {
+  final Map<String, dynamic> meal;
+  const MealCardDynamic({super.key, required this.meal});
 
   @override
-  State<MealCard> createState() => _MealCardState();
+  State<MealCardDynamic> createState() => _MealCardDynamicState();
 }
 
-class _MealCardState extends State<MealCard> {
-  bool isChecked = false; // <-- checkbox state
+class _MealCardDynamicState extends State<MealCardDynamic> {
+  bool isChecked = false;
 
-  // 🔹 Show bottom sheet when calendar is clicked
   void _showMealDetailsBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const MealDetailsBottomSheet(),
+      builder: (context) => MealDetailsBottomSheetDynamic(meal: widget.meal),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final meal = widget.meal;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -220,12 +290,11 @@ class _MealCardState extends State<MealCard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔹 Left side: Title + Image
           Column(
             children: [
-              const Text(
-                "4 Bean Chilli",
-                style: TextStyle(fontWeight: FontWeight.w600),
+              Text(
+                meal['name'] ?? "Meal",
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
               Container(
@@ -235,94 +304,46 @@ class _MealCardState extends State<MealCard> {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    "assets/icons_update/besan.svg",
-                    width: 36,
-                    height: 36,
-                  ),
-                ),
+                child: const Center(child: Icon(Icons.fastfood)),
               ),
             ],
           ),
-
           const SizedBox(width: 12),
-
-          // 🔹 Right side: Meal Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 4),
-                const Text("Gram Flour Pancake",
-                    style: TextStyle(color: Colors.black54, fontSize: 12)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      "assets/icons_update/mdi_fire.svg",
-                      height: 16,
-                      width: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text("360 Kcal"),
-                  ],
+                Text(
+                  meal['name'] ?? "",
+                  style: const TextStyle(color: Colors.black54, fontSize: 12),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Row(
                   children: [
-                    Row(
-                      children: [
-                        SvgPicture.asset("assets/icons_update/carbs.svg",
-                            height: 14),
-                        const SizedBox(width: 4),
-                        const Text("C: 20gm",
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.black54)),
-                      ],
-                    ),
-                    const SizedBox(width: 12),
-                    Row(
-                      children: [
-                        SvgPicture.asset("assets/icons_update/protein.svg",
-                            height: 14),
-                        const SizedBox(width: 4),
-                        const Text("P: 20gm",
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.black54)),
-                      ],
-                    ),
-                    const SizedBox(width: 12),
-                    Row(
-                      children: [
-                        SvgPicture.asset("assets/icons_update/fat.svg",
-                            height: 14),
-                        const SizedBox(width: 4),
-                        const Text("F: 10gm",
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.black54)),
-                      ],
-                    ),
+                    const Icon(Icons.local_fire_department, size: 16),
+                    const SizedBox(width: 4),
+                    Text("${meal['calories'] ?? 0} Kcal"),
                   ],
                 ),
               ],
             ),
           ),
-
-          // 🔹 Calendar + Checkbox
           Row(
             children: [
               GestureDetector(
                 onTap: () => _showMealDetailsBottomSheet(context),
-                child: const Icon(Icons.calendar_today,
-                    size: 16, color: Colors.black),
+                child: const Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(width: 12),
-              CustomSvgCheckbox(
+              Checkbox(
                 value: isChecked,
-                onChanged: (newValue) {
+                onChanged: (val) {
                   setState(() {
-                    isChecked = newValue ?? false;
+                    isChecked = val ?? false;
                   });
                 },
               ),
@@ -335,11 +356,13 @@ class _MealCardState extends State<MealCard> {
 }
 
 // 🔹 Bottom Sheet Widget - exactly matching your image
-class MealDetailsBottomSheet extends StatelessWidget {
-  const MealDetailsBottomSheet({super.key});
+class MealDetailsBottomSheetDynamic extends StatelessWidget {
+  final Map<String, dynamic> meal;
+  const MealDetailsBottomSheetDynamic({super.key, required this.meal});
 
   @override
   Widget build(BuildContext context) {
+    final ingredients = meal['ingredients'] ?? [];
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       decoration: const BoxDecoration(
@@ -351,7 +374,6 @@ class MealDetailsBottomSheet extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // 🔹 Handle bar
           Container(
             margin: const EdgeInsets.only(top: 8),
             height: 4,
@@ -361,15 +383,13 @@ class MealDetailsBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-
-          // 🔹 Header with title
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            padding: const EdgeInsets.all(16),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: const Text(
-                "Besan Chilla",
-                style: TextStyle(
+              child: Text(
+                meal['name'] ?? "Meal",
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
@@ -377,49 +397,24 @@ class MealDetailsBottomSheet extends StatelessWidget {
               ),
             ),
           ),
-
-          // 🔹 Ingredients header
-    Padding(
-  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-  child: Row(
-    children: [
-      SvgPicture.asset(
-        "assets/icons_update/incredient.svg", // your image path
-        width: 20,
-        height: 20,
-      ),
-      const SizedBox(width: 8), // space between image & text
-      const Text(
-        "Ingredients",
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Colors.black87,
-        ),
-      ),
-    ],
-  ),
-),
-
-
-          // 🔹 Ingredients List
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Text(
+              "Ingredients",
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: const [
-                  _IngredientRow(ingredient: "Gram flour", quantity: "1 cup"),
-                  _IngredientRow(ingredient: "Onion (finely chopped)", quantity: "1 medium"),
-                  _IngredientRow(ingredient: "Tomato (finely chopped)", quantity: "1 medium"),
-                  _IngredientRow(ingredient: "Green chili (chopped)", quantity: "2"),
-                  _IngredientRow(ingredient: "Coriander leaves (chopped)", quantity: "2 tbsp"),
-                  _IngredientRow(ingredient: "Ginger-garlic paste", quantity: "1 tsp"),
-                  _IngredientRow(ingredient: "Turmeric powder", quantity: "1/2 tsp"),
-                  _IngredientRow(ingredient: "Red chili powder", quantity: "1/2 tsp"),
-                  _IngredientRow(ingredient: "Salt", quantity: "to taste"),
-                  _IngredientRow(ingredient: "Water", quantity: "as needed"),
-                  _IngredientRow(ingredient: "Oil", quantity: "for cooking"),
-                ],
+              child: ListView.builder(
+                itemCount: ingredients.length,
+                itemBuilder: (context, index) {
+                  return _IngredientRow(
+                    ingredient: ingredients[index],
+                    quantity: "", // API doesn’t have quantity
+                  );
+                },
               ),
             ),
           ),
@@ -457,7 +452,7 @@ class _IngredientRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          
+
           // 🔹 Ingredient text
           Expanded(
             child: Text(
@@ -469,7 +464,7 @@ class _IngredientRow extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // 🔹 Quantity
           Text(
             quantity,

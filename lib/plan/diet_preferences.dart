@@ -15,8 +15,8 @@ class DietPreferencesScreen extends StatefulWidget {
 }
 
 class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
-  String selectedLevel = '';
-  List<String> selectedWorkoutTypes = [];
+  String selectedBasicOptions = '';
+  List<String> selectedGoalBasedOptions = [];
   List<String> selectedAllergies = []; // Changed to support multiple selections
   List<String> selectedSpecialNeeds = [];
 
@@ -29,16 +29,16 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final savedLevels = prefs.getStringList("diet_level") ?? [];
-    selectedLevel = savedLevels.isNotEmpty ? savedLevels.first : "";
+    final savedBasicOptions = prefs.getStringList("diet_basic_options") ?? [];
+    selectedBasicOptions = savedBasicOptions.isNotEmpty ? savedBasicOptions.first : "";
 
-    selectedWorkoutTypes = prefs.getStringList("diet_goal_options") ?? [];
+    selectedGoalBasedOptions = prefs.getStringList("diet_goal_options") ?? [];
     selectedAllergies = prefs.getStringList("diet_allergies") ?? [];
     selectedSpecialNeeds = prefs.getStringList("diet_special_needs") ?? [];
 
     print("📂 Loaded Diet Preferences:");
-    print("Level: $selectedLevel");
-    print("Goals: $selectedWorkoutTypes");
+    print("Level: $savedBasicOptions");
+    print("Goals: $selectedGoalBasedOptions");
     print("Allergies: $selectedAllergies");
     print("Special Needs: $selectedSpecialNeeds");
 
@@ -89,18 +89,18 @@ Future<void> _submitAll() async {
     final prefs = await SharedPreferences.getInstance();
 
     // Save level (single string, so wrap it into a list if you want array-style)
-    if (selectedLevel.isNotEmpty) {
-      await prefs.setStringList("diet_level", [selectedLevel]);
+    if (selectedBasicOptions.isNotEmpty) {
+      await prefs.setStringList("diet_level", [selectedBasicOptions]);
     }
 
     // Save as arrays
-    await prefs.setStringList("diet_goal_options", selectedWorkoutTypes);
+    await prefs.setStringList("diet_goal_options", selectedGoalBasedOptions);
     await prefs.setStringList("diet_allergies", selectedAllergies);
     await prefs.setStringList("diet_special_needs", selectedSpecialNeeds);
 
     print("✅ Saved Diet Preferences:");
-    print("Level: $selectedLevel");
-    print("Goals: $selectedWorkoutTypes");
+    print("Level: $selectedBasicOptions");
+    print("Goals: $selectedGoalBasedOptions");
     print("Allergies: $selectedAllergies");
     print("Special Needs: $selectedSpecialNeeds");
   }
@@ -135,12 +135,12 @@ Future<void> _submitAll() async {
                 children: [
                   _buildSection(
                     title: 'Basic Options',
-                    children: [_buildLevelOptions()],
+                    children: [_buildBasicOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
                     title: 'Goal Based Options',
-                    children: [_buildWorkoutTypeOptions()],
+                    children: [_buildGoalBasedOptions()],
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
@@ -209,17 +209,17 @@ onPressed: _isButtonEnabled ? _submitAll : null,
     );
   }
 
-  Widget _buildLevelOptions() {
-    final options = ['Beginner', 'Intermediate', 'Advanced'];
+  Widget _buildBasicOptions() {
+    final options = ['Vegetarian', 'Non-Vegetarian', 'Vegan','Eggetarian','Pescatarian (Fish Eater)'];
     return _buildResponsiveChipGrid(
       options: options,
-      selectedItems: selectedLevel.isEmpty ? [] : [selectedLevel],
-      onToggle: (option) => setState(() => selectedLevel = option),
+      selectedItems: selectedBasicOptions.isEmpty ? [] : [selectedBasicOptions],
+      onToggle: (option) => setState(() => selectedBasicOptions = option),
       allowMultiple: false,
     );
   }
 
-  Widget _buildWorkoutTypeOptions() {
+  Widget _buildGoalBasedOptions() {
     final options = [
       'High Protein',
       'Low Carb / Keto',
@@ -231,7 +231,7 @@ onPressed: _isButtonEnabled ? _submitAll : null,
     ];
     return _buildResponsiveChipGrid(
       options: options,
-      selectedItems: selectedWorkoutTypes,
+      selectedItems: selectedGoalBasedOptions,
       onToggle: _toggleWorkoutType,
       allowMultiple: true,
     );
@@ -353,10 +353,10 @@ onPressed: _isButtonEnabled ? _submitAll : null,
 
   void _toggleWorkoutType(String workoutType) {
     setState(() {
-      if (selectedWorkoutTypes.contains(workoutType)) {
-        selectedWorkoutTypes.remove(workoutType);
+      if (selectedGoalBasedOptions.contains(workoutType)) {
+        selectedGoalBasedOptions.remove(workoutType);
       } else {
-        selectedWorkoutTypes.add(workoutType);
+        selectedGoalBasedOptions.add(workoutType);
       }
     });
   }

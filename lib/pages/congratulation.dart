@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/pages/logout.dart';
 import 'package:test_app/plan/fitness_wellness.dart';
 import 'package:test_app/shared_preferences.dart';
 import 'package:test_app/web_socket/chat_socket.dart';
@@ -236,7 +237,7 @@ class CongratulationsScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const FitnessWellnessScreen(),
+                    builder: (context) => const LogoutButton(),
                   ),
                 );
               },
