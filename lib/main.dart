@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:test_app/login/login_page.dart';
+import 'package:test_app/plan/fitness_wellness.dart';
 
 import 'pages/user_details.dart';
 import 'theme/app_theme.dart';
@@ -53,7 +54,9 @@ class _MyAppState extends State<MyApp> {
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
       home:
-          _user == null ? const LoginSelectionPage() : const UserDetailsPage(),
+          _user == null
+              ? const LoginSelectionPage()
+              : const FitnessWellnessScreen(),
     );
   }
 }

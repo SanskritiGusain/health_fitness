@@ -4,9 +4,8 @@ import 'package:test_app/pages/gif_splash_page.dart';
 import 'package:test_app/pages/height_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/api/api_service.dart';
+import 'package:test_app/pages/logout.dart';
 import 'package:test_app/shared_preferences.dart' as userApi;
-
-
 
 class WeightInputPage extends StatefulWidget {
   final double height;
@@ -43,7 +42,7 @@ class _WeightInputPageState extends State<WeightInputPage> {
     _controllerLbs = FixedExtentScrollController(
       initialItem: lbsValues.indexOf(selectedWeightLbs),
     );
-      _loadSavedWeight(); 
+    _loadSavedWeight();
   }
 
   @override
@@ -53,7 +52,7 @@ class _WeightInputPageState extends State<WeightInputPage> {
     super.dispose();
   }
 
- Future<void> _loadSavedWeight() async {
+  Future<void> _loadSavedWeight() async {
     final prefs = await SharedPreferences.getInstance();
     final savedWeight = prefs.getDouble("user_weight"); // always stored in kg
 
@@ -68,11 +67,13 @@ class _WeightInputPageState extends State<WeightInputPage> {
       });
     }
   }
-    Future<void> _saveWeight(double weightKg) async {
+
+  Future<void> _saveWeight(double weightKg) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble("user_weight", weightKg);
   }
-void _submit() async {
+
+  void _submit() async {
     setState(() => _isButtonEnabled = false);
 
     try {
@@ -140,16 +141,11 @@ void _submit() async {
                           height: 24,
                         ),
                         onPressed: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(builder: (context) => const HeightInputPage()),
-                          // );
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const GifSplashPage(),
-                            ),
+                            MaterialPageRoute(builder: (context) => const LogoutButton()),
                           );
+                          // Navigator.of(context).pop();
                         },
                       ),
                       Expanded(
@@ -193,6 +189,7 @@ void _submit() async {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -229,6 +226,7 @@ void _submit() async {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        color: Colors.black,
                       ),
                     ),
                   ],

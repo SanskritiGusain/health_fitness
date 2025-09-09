@@ -94,7 +94,7 @@ class _GifSplashPageState extends State<GifSplashPage>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
               ),

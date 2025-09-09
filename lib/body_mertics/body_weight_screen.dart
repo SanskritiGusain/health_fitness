@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/api/api_service.dart';
+import 'package:test_app/api/matrics_service.dart';
+// Add this import
 
 class BodyWeightScreen extends StatefulWidget {
   const BodyWeightScreen({super.key});
@@ -12,6 +15,10 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
   int selectedWeightKg = 55;
   int selectedWeightLbs = 121;
   String selectedTimeFrame = 'Weekly'; // Add this for dropdown
+  bool _isButtonEnabled = true;
+  double _currentWeight = 0.0;
+  List<WeightDataPoint> _weightData = []; // Store API weight data
+  bool _isLoadingData = true; // Loading state
 
   final List<int> kgValues = List.generate(
     171,
@@ -34,6 +41,7 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
     _controllerLbs = FixedExtentScrollController(
       initialItem: selectedWeightLbs - 66,
     );
+    _loadWeightData(); // Load data on init
   }
 
   @override
@@ -41,6 +49,79 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
     _controllerKg.dispose();
     _controllerLbs.dispose();
     super.dispose();
+  }
+
+  // Load weight data from API
+  Future<void> _loadWeightData() async {
+    try {
+      setState(() {
+        _isLoadingData = true;
+      });
+
+      print("🔹 Fetching weight data from API..."); // <-- Add this
+
+      final data = await MatricApi.getMatricByType('weight');
+
+      print("✅ API Response: $data"); // <-- Log raw response
+
+      if (data != null && data is List) {
+        final List<WeightDataPoint> weightPoints = [];
+
+        for (var item in data) {
+          if (item['value'] != null && item['created_at'] != null) {
+            weightPoints.add(
+              WeightDataPoint(
+                value: (item['value'] as num).toDouble(),
+                date: DateTime.parse(item['created_at']),
+              ),
+            );
+          }
+        }
+
+        weightPoints.sort((a, b) => a.date.compareTo(b.date));
+
+        setState(() {
+          _weightData = weightPoints;
+          _isLoadingData = false;
+
+          print(
+            "📊 Parsed ${_weightData.length} weight entries:",
+          ); // <-- Log parsed
+          for (var entry in _weightData) {
+            print(
+              "  • ${entry.value.toStringAsFixed(2)} at ${entry.date.toIso8601String()}",
+            );
+          }
+
+          if (weightPoints.isNotEmpty) {
+            _currentWeight = weightPoints.last.value;
+            selectedWeightKg = _currentWeight.round();
+            selectedWeightLbs = (_currentWeight * 2.20462).round();
+          }
+        });
+      } else {
+        setState(() {
+          _isLoadingData = false;
+        });
+        print("⚠️ No data received or invalid format");
+      }
+    } catch (e, stackTrace) {
+      print('❌ Error loading weight data: $e'); // <-- Log error
+      print('StackTrace: $stackTrace');
+
+      setState(() {
+        _isLoadingData = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load weight data: $e"),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
   }
 
   void _toggleUnit() {
@@ -64,6 +145,46 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
         );
       }
     });
+  }
+
+  Future<void> _updateWeight(double newWeightKg) async {
+    if (!mounted) return;
+
+    try {
+      setState(() {
+        _isButtonEnabled = false;
+      });
+
+      final body = {"current_weight": newWeightKg}; // keep it here
+
+      await ApiService.putRequest("user/", body);
+
+      setState(() {
+        _currentWeight = newWeightKg; // ✅ see next fix
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("✅ Weight updated successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Reload weight data after successful update
+      _loadWeightData();
+    } catch (e) {
+      setState(() {
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("❌ Failed to update weight: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -95,6 +216,13 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
           ),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          // Add refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Color(0xFF222326), size: 20),
+            onPressed: _loadWeightData,
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -338,13 +466,9 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
                       ],
                     ),
                     // Custom styled dropdown
-                    StyledDropdownButton(
+                StyledDropdownButton(
                       value: selectedTimeFrame,
-                      items: const ['Weekly', 'Monthly', 'Quarterly', 'Yearly'],
-                      buttonColor: const Color(0xFFF8FBFB),
-
-                      textColor: Color(0xFF222326),
-
+                      items: const ['Weekly', 'Monthly', 'Yearly'],
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           setState(() {
@@ -353,6 +477,7 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
                         }
                       },
                     ),
+
                   ],
                 ),
               ),
@@ -379,35 +504,23 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
                     color: const Color(0xFFF8FBFB),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: CustomPaint(
-                    painter: WeightChartPainter(
-                      isKg: isKg,
-                      timeFrame: selectedTimeFrame,
-                    ),
-                    size: const Size(double.infinity, 200),
-                  ),
+                  child:
+                      _isLoadingData
+                          ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF2196F3),
+                            ),
+                          )
+                          : CustomPaint(
+                            painter: WeightChartPainter(
+                              isKg: isKg,
+                              timeFrame: selectedTimeFrame,
+                              weightData: _weightData, // Pass real data
+                            ),
+                            size: const Size(double.infinity, 200),
+                          ),
                 ),
               ),
-              // SizedBox(
-              //   width: double.infinity, // 🔹 makes it full width
-              //   child: ElevatedButton(
-              //     style: ElevatedButton.styleFrom(
-              //       backgroundColor: Colors.black, // button color
-              //       foregroundColor: Colors.white, // text color
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(10), // rounded corners
-              //       ),
-              //       padding: const EdgeInsets.symmetric(
-              //         horizontal: 20,
-              //         vertical: 12,
-              //       ),
-              //     ),
-              //     onPressed: () {
-              //       // 👉 action
-              //     },
-              //     child: const Text("update"),
-              //   ),
-              // ),
             ],
           ),
         ),
@@ -441,9 +554,21 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
                     vertical: 10,
                   ),
                 ),
-                onPressed: () {
-                  // 👉 action
-                },
+                onPressed:
+                    _isButtonEnabled
+                        ? () async {
+                          final double updatedWeightKg =
+                              isKg
+                                  ? selectedWeightKg.toDouble()
+                                  : selectedWeightLbs / 2.20462;
+
+                          await _updateWeight(updatedWeightKg);
+
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
+                        }
+                        : null,
                 child: const Text(
                   "Update",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -455,6 +580,14 @@ class _BodyWeightScreenState extends State<BodyWeightScreen> {
       ),
     );
   }
+}
+
+// Data model for weight data points
+class WeightDataPoint {
+  final double value;
+  final DateTime date;
+
+  WeightDataPoint({required this.value, required this.date});
 }
 
 // Custom Styled Dropdown Button
@@ -619,12 +752,17 @@ class _StyledDropdownButtonState extends State<StyledDropdownButton> {
   }
 }
 
-// Your existing WeightChartPainter class remains the same
+// Updated WeightChartPainter class with API data
 class WeightChartPainter extends CustomPainter {
   final bool isKg;
   final String timeFrame;
+  final List<WeightDataPoint> weightData;
 
-  WeightChartPainter({required this.isKg, required this.timeFrame});
+  WeightChartPainter({
+    required this.isKg,
+    required this.timeFrame,
+    required this.weightData,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -755,145 +893,303 @@ class WeightChartPainter extends CustomPainter {
       }
     }
 
-    // Sample data points for the chart
-    final dataPoints = [
-      Offset(
-        chartRect.left + chartRect.width * 0.05,
-        chartRect.bottom - chartRect.height * 0.2,
-      ), // Jan
-      Offset(
-        chartRect.left + chartRect.width * 0.15,
-        chartRect.bottom - chartRect.height * 0.3,
-      ), // Feb
-      Offset(
-        chartRect.left + chartRect.width * 0.25,
-        chartRect.bottom - chartRect.height * 0.25,
-      ), // Mar
-      Offset(
-        chartRect.left + chartRect.width * 0.35,
-        chartRect.bottom - chartRect.height * 0.4,
-      ), // Apr
-      Offset(
-        chartRect.left + chartRect.width * 0.45,
-        chartRect.bottom - chartRect.height * 0.5,
-      ), // May
-      Offset(
-        chartRect.left + chartRect.width * 0.55,
-        chartRect.bottom - chartRect.height * 0.45,
-      ), // Jun
-      Offset(
-        chartRect.left + chartRect.width * 0.65,
-        chartRect.bottom - chartRect.height * 0.6,
-      ), // Jul
-      Offset(
-        chartRect.left + chartRect.width * 0.75,
-        chartRect.bottom - chartRect.height * 0.55,
-      ), // Aug
-      Offset(
-        chartRect.left + chartRect.width * 0.85,
-        chartRect.bottom - chartRect.height * 0.7,
-      ), // Sep
-      Offset(
-        chartRect.left + chartRect.width * 0.95,
-        chartRect.bottom - chartRect.height * 0.8,
-      ), // Oct
-    ];
+    // Process API data for chart
+    if (weightData.isNotEmpty) {
+      // Filter and sort data based on timeFrame
+      List<WeightDataPoint> filteredData = _filterDataByTimeFrame(
+        weightData,
+        timeFrame,
+      );
 
-    // Draw the line chart connecting all points
-    final path = Path();
-    path.moveTo(dataPoints[0].dx, dataPoints[0].dy);
-    for (int i = 1; i < dataPoints.length; i++) {
-      path.lineTo(dataPoints[i].dx, dataPoints[i].dy);
-    }
-    canvas.drawPath(path, paint);
+      if (filteredData.isNotEmpty) {
+        // Calculate min and max values for scaling
+        final values = filteredData.map((d) => d.value).toList();
+        final minValue = values.reduce((a, b) => a < b ? a : b);
+        final maxValue = values.reduce((a, b) => a > b ? a : b);
+        final valueRange = maxValue - minValue;
 
-    // Draw points
-    final pointPaint =
-        Paint()
-          ..color = const Color(0xFF2196F3)
-          ..style = PaintingStyle.fill;
+        // Create padding for better visualization (10% padding on top and bottom)
+        final padding = valueRange * 0.1;
+        final adjustedMin = minValue - padding;
+        final adjustedMax = maxValue + padding;
+        final adjustedRange = adjustedMax - adjustedMin;
 
-    for (final point in dataPoints) {
-      canvas.drawCircle(point, 3, pointPaint);
-    }
+        // Convert data points to chart coordinates
+        final dataPoints = <Offset>[];
+        for (int i = 0; i < filteredData.length; i++) {
+          final dataPoint = filteredData[i];
+          final x =
+              chartRect.left +
+              (chartRect.width / (filteredData.length - 1)) * i;
+          final normalizedValue =
+              adjustedRange > 0
+                  ? (dataPoint.value - adjustedMin) / adjustedRange
+                  : 0.5;
+          final y = chartRect.bottom - (chartRect.height * normalizedValue);
+          dataPoints.add(Offset(x, y));
+        }
 
-    // Draw average line (dotted)
-    final averageY = chartRect.bottom - chartRect.height * 0.5;
-    _drawDottedLine(
-      canvas,
-      Offset(chartRect.left, averageY),
-      Offset(chartRect.right, averageY),
-      dottedPaint,
-    );
+        // Draw the line chart connecting all points
+        if (dataPoints.length > 1) {
+          final path = Path();
+          path.moveTo(dataPoints[0].dx, dataPoints[0].dy);
+          for (int i = 1; i < dataPoints.length; i++) {
+            path.lineTo(dataPoints[i].dx, dataPoints[i].dy);
+          }
+          canvas.drawPath(path, paint);
+        }
 
-    // Draw "Avg." text
-    final avgTextPainter = TextPainter(
-      text: const TextSpan(
-        text: 'Avg.',
-        style: TextStyle(
-          color: Color(0xFF9E9E9E),
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    avgTextPainter.layout();
-    avgTextPainter.paint(canvas, Offset(chartRect.right + 5, averageY - 8));
+        // Draw points
+        final pointPaint =
+            Paint()
+              ..color = const Color(0xFF2196F3)
+              ..style = PaintingStyle.fill;
 
-    // Draw Y-axis labels (5 values)
-    final yLabels =
-        isKg
-            ? ['52.0', '53.0', '54.0', '55.0', '56.0']
-            : ['114', '117', '119', '121', '123'];
-    for (int i = 0; i < yLabels.length; i++) {
-      final y =
-          chartRect.bottom - (chartRect.height / (yLabels.length - 1)) * i;
-      final labelPainter = TextPainter(
-        text: TextSpan(
-          text: yLabels[i],
-          style: const TextStyle(
+        for (final point in dataPoints) {
+          canvas.drawCircle(point, 3, pointPaint);
+        }
+
+        // Draw average line (dotted) - calculate average from actual data
+        final averageValue = values.reduce((a, b) => a + b) / values.length;
+        final normalizedAvg =
+            adjustedRange > 0
+                ? (averageValue - adjustedMin) / adjustedRange
+                : 0.5;
+        final averageY = chartRect.bottom - (chartRect.height * normalizedAvg);
+        _drawDottedLine(
+          canvas,
+          Offset(chartRect.left, averageY),
+          Offset(chartRect.right, averageY),
+          dottedPaint,
+        );
+
+        // Draw "Avg." text
+        final avgTextPainter = TextPainter(
+          text: const TextSpan(
+            text: 'Avg.',
+            style: TextStyle(
+              color: Color(0xFF9E9E9E),
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        avgTextPainter.layout();
+        avgTextPainter.paint(canvas, Offset(chartRect.right + 5, averageY - 8));
+
+        // Draw Y-axis labels based on actual data
+        final yLabels = _generateYAxisLabels(adjustedMin, adjustedMax, isKg);
+        for (int i = 0; i < yLabels.length; i++) {
+          final y =
+              chartRect.bottom - (chartRect.height / (yLabels.length - 1)) * i;
+          final labelPainter = TextPainter(
+            text: TextSpan(
+              text: yLabels[i],
+              style: const TextStyle(
+                color: Color(0xFF9E9E9E),
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          );
+          labelPainter.layout();
+          labelPainter.paint(
+            canvas,
+            Offset(chartRect.left - labelPainter.width - 8, y - 6),
+          );
+        }
+
+        // Draw X-axis labels based on actual dates
+        final xLabels = _generateXAxisLabels(filteredData, timeFrame);
+        for (int i = 0; i < xLabels.length && i < filteredData.length; i++) {
+          final x =
+              chartRect.left +
+              (chartRect.width / (filteredData.length - 1)) * i;
+          final labelPainter = TextPainter(
+            text: TextSpan(
+              text: xLabels[i],
+              style: const TextStyle(
+                color: Color(0xFF9E9E9E),
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          );
+          labelPainter.layout();
+          labelPainter.paint(
+            canvas,
+            Offset(x - labelPainter.width / 2, chartRect.bottom + 10),
+          );
+        }
+      } else {
+        // No data available - show message
+        final noDataPainter = TextPainter(
+          text: const TextSpan(
+            text: 'No data available',
+            style: TextStyle(
+              color: Color(0xFF9E9E9E),
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        noDataPainter.layout();
+        noDataPainter.paint(
+          canvas,
+          Offset(
+            chartRect.left + (chartRect.width - noDataPainter.width) / 2,
+            chartRect.top + (chartRect.height - noDataPainter.height) / 2,
+          ),
+        );
+      }
+    } else {
+      // No data loaded yet or empty data - show loading or no data message
+      final noDataPainter = TextPainter(
+        text: const TextSpan(
+          text: 'Loading weight data...',
+          style: TextStyle(
             color: Color(0xFF9E9E9E),
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: FontWeight.w400,
           ),
         ),
         textDirection: TextDirection.ltr,
       );
-      labelPainter.layout();
-      labelPainter.paint(
+      noDataPainter.layout();
+      noDataPainter.paint(
         canvas,
-        Offset(chartRect.left - labelPainter.width - 8, y - 6),
+        Offset(
+          chartRect.left + (chartRect.width - noDataPainter.width) / 2,
+          chartRect.top + (chartRect.height - noDataPainter.height) / 2,
+        ),
       );
     }
+  }
 
-    // Draw X-axis labels based on timeFrame
-    final xLabels =
-        timeFrame == 'Weekly'
-            ? ['Jan', 'Mar', 'May', 'Jul', 'Sep']
-            : timeFrame == 'Monthly'
-            ? ['Q1', 'Q2', 'Q3', 'Q4', 'Q5']
-            : timeFrame == 'Quarterly'
-            ? ['2023', '2024', '2025', '2026', '2027']
-            : ['1Y', '2Y', '3Y', '4Y', '5Y'];
-    for (int i = 0; i < xLabels.length; i++) {
-      final x = chartRect.left + (chartRect.width / (xLabels.length - 1)) * i;
-      final labelPainter = TextPainter(
-        text: TextSpan(
-          text: xLabels[i],
-          style: const TextStyle(
-            color: Color(0xFF9E9E9E),
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      labelPainter.layout();
-      labelPainter.paint(
-        canvas,
-        Offset(x - labelPainter.width / 2, chartRect.bottom + 10),
-      );
+ List<WeightDataPoint> _filterDataByTimeFrame(
+    List<WeightDataPoint> data,
+    String timeFrame,
+  ) {
+    final now = DateTime.now();
+    final sortedData = List<WeightDataPoint>.from(data)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    switch (timeFrame) {
+      case 'Weekly':
+        return sortedData.length >= 7
+            ? List<WeightDataPoint>.from(
+              sortedData.sublist(sortedData.length - 7),
+            )
+            : sortedData;
+      case 'Monthly':
+        final lastOfDay = <String, WeightDataPoint>{};
+        for (final point in sortedData) {
+          final dayKey =
+              '${point.date.year}-${point.date.month}-${point.date.day}';
+          lastOfDay[dayKey] = point; // keep last of day
+        }
+        final dailyLasts = List<WeightDataPoint>.from(
+          lastOfDay.values.toList()..sort((a, b) => a.date.compareTo(b.date)),
+        );
+        return dailyLasts.length > 30
+            ? List<WeightDataPoint>.from(
+              dailyLasts.sublist(dailyLasts.length - 30),
+            )
+            : dailyLasts;
+      case 'Yearly':
+        final lastOfMonth = <String, WeightDataPoint>{};
+        for (final point in sortedData) {
+          final monthKey = '${point.date.year}-${point.date.month}';
+          lastOfMonth[monthKey] = point; // keep last of month
+        }
+        final monthlyLasts = List<WeightDataPoint>.from(
+          lastOfMonth.values.toList()..sort((a, b) => a.date.compareTo(b.date)),
+        );
+        return monthlyLasts.length > 12
+            ? List<WeightDataPoint>.from(
+              monthlyLasts.sublist(monthlyLasts.length - 12),
+            )
+            : monthlyLasts;
+      default:
+        return sortedData;
+    }
+  }
+
+  // Generate Y-axis labels based on data range
+  List<String> _generateYAxisLabels(double min, double max, bool isKg) {
+    const labelCount = 5;
+    final labels = <String>[];
+
+    for (int i = 0; i < labelCount; i++) {
+      final value = min + (max - min) * i / (labelCount - 1);
+      if (isKg) {
+        labels.add(value.toStringAsFixed(1));
+      } else {
+        final lbsValue = value * 2.20462;
+        labels.add(lbsValue.round().toString());
+      }
+    }
+
+    return labels;
+  }
+
+  List<String> _generateXAxisLabels(
+    List<WeightDataPoint> data,
+    String timeFrame,
+  ) {
+    if (data.isEmpty) return [];
+
+    switch (timeFrame) {
+      case 'Weekly':
+        // For weekly view, show entry numbers or time if same day
+        if (data.length <= 7) {
+          return List.generate(data.length, (index) => '${index + 1}');
+        } else {
+          // Show day names for actual weekly data
+          return data
+              .map(
+                (d) =>
+                    [
+                      'Sun',
+                      'Mon',
+                      'Tue',
+                      'Wed',
+                      'Thu',
+                      'Fri',
+                      'Sat',
+                    ][d.date.weekday % 7],
+              )
+              .toList();
+        }
+
+      case 'Monthly':
+        // Show day of month for monthly view
+        return data.map((d) => '${d.date.day}').toList();
+
+      case 'Yearly':
+        // Show month names for yearly view
+        final months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
+        return data.map((d) => months[d.date.month - 1]).toList();
+
+      default:
+        return data.map((d) => '${d.date.day}/${d.date.month}').toList();
     }
   }
 
@@ -915,5 +1211,12 @@ class WeightChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    if (oldDelegate is WeightChartPainter) {
+      return oldDelegate.isKg != isKg ||
+          oldDelegate.timeFrame != timeFrame ||
+          oldDelegate.weightData != weightData;
+    }
+    return true;
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/api/api_service.dart';
 
 // In each of your measurement screen files
 // Enum for different body parts
@@ -37,7 +38,8 @@ class _BodyMeasurementScreenState extends State<BodyMeasurementScreen> {
   bool isCm = true;
   int selectedValueCm = 35;
   double selectedValueIn = 13.8;
-
+bool _isButtonEnabled = true;
+  double _currentBody = 0.0;
   final Map<BodyPart, Map<String, dynamic>> bodyPartConfig = {
     BodyPart.neck: {
       'name': 'Neck',
@@ -126,6 +128,47 @@ class _BodyMeasurementScreenState extends State<BodyMeasurementScreen> {
     _controllerCm.dispose();
     _controllerIn.dispose();
     super.dispose();
+  }
+Future<void> _updateBodyPart(double newBodyPartKg) async {
+    if (!mounted) return;
+
+    try {
+      setState(() {
+        _isButtonEnabled = false;
+      });
+
+ final body = {
+        "current_${widget.bodyPart.name.toLowerCase()}": newBodyPartKg,
+      };
+      // keep it here
+
+      await ApiService.putRequest("user/", body);
+
+      setState(() {
+        _currentBody = newBodyPartKg; // ✅ see next fix
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("✅ Weight updated successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+  
+    } catch (e) {
+      setState(() {
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("❌ Failed to update weight: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _toggleUnit() {

@@ -26,8 +26,12 @@ class _HeightInputPageState extends State<HeightInputPage> {
   @override
   void initState() {
     super.initState();
-    _controllerCm = FixedExtentScrollController(initialItem: selectedHeightCm - 50);
-    _controllerIn = FixedExtentScrollController(initialItem: selectedHeightInch - 20);
+    _controllerCm = FixedExtentScrollController(
+      initialItem: selectedHeightCm - 50,
+    );
+    _controllerIn = FixedExtentScrollController(
+      initialItem: selectedHeightInch - 20,
+    );
     _loadSavedHeight();
   }
 
@@ -54,7 +58,8 @@ class _HeightInputPageState extends State<HeightInputPage> {
   }
 
   void _submit() async {
-    final heightInCm = isCm ? selectedHeightCm.toDouble() : selectedHeightInch * 2.54;
+    final heightInCm =
+        isCm ? selectedHeightCm.toDouble() : selectedHeightInch * 2.54;
 
     // Save height using utility class
     await PersistentData.saveHeight(heightInCm);
@@ -140,7 +145,11 @@ class _HeightInputPageState extends State<HeightInputPage> {
               children: [
                 const Text(
                   'cm',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 GestureDetector(
@@ -155,7 +164,8 @@ class _HeightInputPageState extends State<HeightInputPage> {
                     ),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 200),
-                      alignment: isCm ? Alignment.centerLeft : Alignment.centerRight,
+                      alignment:
+                          isCm ? Alignment.centerLeft : Alignment.centerRight,
                       child: Container(
                         width: 20,
                         height: 20,
@@ -191,7 +201,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: isCm ? '$selectedHeightCm' : '$selectedHeightInch',
+                            text:
+                                isCm
+                                    ? '$selectedHeightCm'
+                                    : '$selectedHeightInch',
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -267,9 +280,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
                                           child: Container(
                                             width: isLong ? 60 : 35,
                                             height: 1,
-                                            color: isLong
-                                                ? const Color(0xFF222326)
-                                                : const Color(0xFF9EA3A9),
+                                            color:
+                                                isLong
+                                                    ? const Color(0xFF222326)
+                                                    : const Color(0xFF9EA3A9),
                                           ),
                                         ),
                                       ),
@@ -314,9 +328,10 @@ class _HeightInputPageState extends State<HeightInputPage> {
                 child: ElevatedButton(
                   onPressed: _isButtonEnabled ? _submit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isButtonEnabled
-                        ? const Color(0xFF0C0C0C)
-                        : const Color(0xFF7F8180),
+                    backgroundColor:
+                        _isButtonEnabled
+                            ? const Color(0xFF0C0C0C)
+                            : const Color(0xFF7F8180),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

@@ -132,7 +132,10 @@ class CongratulationsScreen extends StatelessWidget {
               child: IconButton(
                 onPressed: () {
                   // Handle back navigation
-                  // Navigator.pop();
+                  //  Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => const ChatScreen()),
+                  // );
                 },
                 icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
               ),
@@ -237,7 +240,7 @@ class CongratulationsScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const LogoutButton(),
+                    builder: (context) => const FitnessWellnessScreen(),
                   ),
                 );
               },

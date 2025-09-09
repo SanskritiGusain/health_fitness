@@ -95,23 +95,23 @@ class CallScheduledSuccessScreen extends StatelessWidget {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              final exercises = [
-                                WorkoutExercise(
-                                  name: 'Squats',
-                                  details: '3 sets × 15 reps',
-                                  category: 'Strength',
-                                ),
-                                WorkoutExercise(
-                                  name: 'Cycling',
-                                  details: '1 hour', 
-                                  category: 'Cardio',
-                                ),
-                                WorkoutExercise(
-                                  name: 'Standing Forward Bend',
-                                  details: '1 hour',
-                                  category: 'Flexibility',
-                                ),
-                              ];
+                              // final exercises = [
+                              //   WorkoutExercise(
+                              //     name: 'Squats',
+                              //     details: '3 sets × 15 reps',
+                              //     category: 'Strength',
+                              //   ),
+                              //   WorkoutExercise(
+                              //     name: 'Cycling',
+                              //     details: '1 hour', 
+                              //     category: 'Cardio',
+                              //   ),
+                              //   WorkoutExercise(
+                              //     name: 'Standing Forward Bend',
+                              //     details: '1 hour',
+                              //     category: 'Flexibility',
+                              //   ),
+                              // ];
 
                               Navigator.push(
                                 context,

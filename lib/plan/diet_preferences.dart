@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/api/api_service.dart';
 import 'package:test_app/pages/congratulation.dart';
+import 'package:test_app/pages/logout.dart';
 import 'package:test_app/pages/transformation.dart';
 import 'package:test_app/plan/fitness_goal_loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/shared_preferences.dart' as userApi;
-
 
 class DietPreferencesScreen extends StatefulWidget {
   const DietPreferencesScreen({Key? key}) : super(key: key);
@@ -25,12 +25,13 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
     super.initState();
     _loadPreferences(); // ✅ Load saved prefs on screen open
   }
-  
+
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
 
     final savedBasicOptions = prefs.getStringList("diet_basic_options") ?? [];
-    selectedBasicOptions = savedBasicOptions.isNotEmpty ? savedBasicOptions.first : "";
+    selectedBasicOptions =
+        savedBasicOptions.isNotEmpty ? savedBasicOptions.first : "";
 
     selectedGoalBasedOptions = prefs.getStringList("diet_goal_options") ?? [];
     selectedAllergies = prefs.getStringList("diet_allergies") ?? [];
@@ -44,8 +45,9 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
 
     setState(() {});
   }
-bool _isButtonEnabled = true;
-Future<void> _submitAll() async {
+
+  bool _isButtonEnabled = true;
+  Future<void> _submitAll() async {
     setState(() => _isButtonEnabled = false);
 
     try {
@@ -54,7 +56,7 @@ Future<void> _submitAll() async {
 
       // ✅ Collect everything from SharedPreferences
       final body = await userApi.PersistentData.getAllPersistentData();
-  
+
       // 🖥️ Debug log
       print("📤 API Request Body (user/): $body");
 
@@ -72,9 +74,9 @@ Future<void> _submitAll() async {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) =>  FitnessGoalLoadingScreen()),
+        MaterialPageRoute(builder: (_) => FitnessGoalLoadingScreen()),
       );
-    }  catch (e) {
+    } catch (e) {
       print("🔥 Exception in submit: $e");
       ScaffoldMessenger.of(
         context,
@@ -84,8 +86,7 @@ Future<void> _submitAll() async {
     }
   }
 
-
-   Future<void> _savePreferences() async {
+  Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
 
     // Save level (single string, so wrap it into a list if you want array-style)
@@ -114,7 +115,12 @@ Future<void> _submitAll() async {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LogoutButton()),
+            );
+          },
         ),
         title: const Text(
           'Dietary Preferences',
@@ -163,10 +169,9 @@ Future<void> _submitAll() async {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-onPressed: _isButtonEnabled ? _submitAll : null,
+                onPressed: _isButtonEnabled ? _submitAll : null,
 
-
-    style: ElevatedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -210,7 +215,13 @@ onPressed: _isButtonEnabled ? _submitAll : null,
   }
 
   Widget _buildBasicOptions() {
-    final options = ['Vegetarian', 'Non-Vegetarian', 'Vegan','Eggetarian','Pescatarian (Fish Eater)'];
+    final options = [
+      'Vegetarian',
+      'Non-Vegetarian',
+      'Vegan',
+      'Eggetarian',
+      'Pescatarian (Fish Eater)',
+    ];
     return _buildResponsiveChipGrid(
       options: options,
       selectedItems: selectedBasicOptions.isEmpty ? [] : [selectedBasicOptions],
@@ -380,7 +391,4 @@ onPressed: _isButtonEnabled ? _submitAll : null,
       }
     });
   }
-  
-
-
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_app/api/api_service.dart';
 
 // Make sure this import path is correct
 
@@ -13,7 +14,9 @@ class _BodyHeightScreenState extends State<BodyHeightScreen> {
   bool isCm = true;
   int selectedHeightCm = 165;
   int selectedHeightInch = 165;
-
+  bool _isLoadingData = true;
+  bool _isButtonEnabled = true;
+    double _currentHeight = 0.0;
   final List<int> cmValues = List.generate(
     200,
     (index) => index + 20,
@@ -43,7 +46,46 @@ class _BodyHeightScreenState extends State<BodyHeightScreen> {
     _controllerIn.dispose();
     super.dispose();
   }
+  
+  Future<void> _updateHeight(double newWeightKg) async {
+    if (!mounted) return;
 
+    try {
+      setState(() {
+        _isButtonEnabled = false;
+      });
+
+      final body = {"current_weight": newWeightKg}; // keep it here
+
+      await ApiService.putRequest("user/", body);
+
+      setState(() {
+        _currentHeight = newWeightKg; // ✅ see next fix
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("✅ Weight updated successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Reload weight data after successful update
+     
+    } catch (e) {
+      setState(() {
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("❌ Failed to update weight: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final controller = isCm ? _controllerCm : _controllerIn;
@@ -283,9 +325,23 @@ class _BodyHeightScreenState extends State<BodyHeightScreen> {
                     vertical: 10,
                   ),
                 ),
-                onPressed: () {
-                  // 👉 action
-                },
+               onPressed:
+                    _isButtonEnabled
+                        ? () async {
+                          // Convert to cm if currently in inches
+                          final double updatedHeightCm =
+                              isCm
+                                  ? selectedHeightCm.toDouble()
+                                  : selectedHeightInch * 2.54;
+
+                          await _updateHeight(updatedHeightCm);
+
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
+                        }
+                        : null,
+
                 child: const Text(
                   "Update",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),

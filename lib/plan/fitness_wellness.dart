@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:test_app/api/api_service.dart';
+import 'package:test_app/api/matrics_service.dart';
 import 'package:test_app/chat/chat_start.dart';
+import 'package:test_app/new/sleep_tracking.dart';
+import 'package:test_app/pages/logout.dart';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:test_app/pages/weight_input.dart';
+import 'package:test_app/plan/calorie_tracker.dart';
 import 'package:test_app/plan/diet_tracker.dart';
-
+import 'package:test_app/plan/step_screen.dart';
 import 'package:test_app/plan/workout.dart';
 import 'package:test_app/shift/nutrition_tracker.dart';
+import 'package:test_app/shift/water.dart';
 import 'package:test_app/utils/custom_bottom_nav.dart';
-// ... other imports ...
 
 class FitnessWellnessScreen extends StatefulWidget {
   const FitnessWellnessScreen({Key? key}) : super(key: key);
@@ -31,28 +36,39 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
 
   late FixedExtentScrollController _controllerKg;
   late FixedExtentScrollController _controllerLbs;
+
   // State variables
   bool isKg = true;
   int selectedWeightKg = 60;
   int selectedWeightLbs = 132;
   bool _isButtonEnabled = true;
   int selectedDay = DateTime.now().day;
-  double currentWeight = 78;
-  double goalWeight = 70;
-  double initialWeight = 85;
+
+  // Weight variables
+  double currentWeight = 0;
+  double goalWeight = 0;
+  double initialWeight = 0;
+
   File? selectedImage;
   final ImagePicker _picker = ImagePicker();
+  bool isLoadingWeight = true;
+  String? weightError;
 
   // Calculate progress (0.0 to 1.0)
-  double get progress =>
-      (initialWeight - currentWeight) /
-      (initialWeight - goalWeight).clamp(0.1, 1.0);
+  double get progress {
+    if (initialWeight == 0 || goalWeight == 0 || initialWeight == goalWeight) {
+      return 0.0;
+    }
+    return ((initialWeight - currentWeight) / (initialWeight - goalWeight))
+        .clamp(0.0, 1.0);
+  }
 
   // Data maps
   final Map<String, dynamic> fitnessData = {
     'steps': 8543,
     'activeMinutes': 45,
     'caloriesBurned': 420,
+    'sleep': 7.5, // Fixed: added sleep data
   };
 
   final Map<String, dynamic> nutritionData = {
@@ -66,7 +82,112 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
     'sleepHours': 7.5,
     'sleepQuality': 85,
   };
-  void _submit() {}
+
+  @override
+  void initState() {
+    super.initState();
+    _controllerKg = FixedExtentScrollController(
+      initialItem: kgValues.indexOf(selectedWeightKg),
+    );
+    _controllerLbs = FixedExtentScrollController(
+      initialItem: lbsValues.indexOf(selectedWeightLbs),
+    );
+    _fetchWeightData(); // Fixed: renamed method
+  }
+
+  Future<void> _fetchWeightData() async {
+    try {
+      setState(() {
+        isLoadingWeight = true;
+        weightError = null;
+      });
+
+      // Get user data (contains current_weight and target_weight)
+      final userData = await ApiService.getRequest("user/");
+
+      // Get initial weight from matrics API (first weight entry)
+      final weightData = await MatricApi.getMatricByType('weight');
+
+      setState(() {
+        // Set current weight from user API
+        currentWeight = (userData['current_weight'] ?? 0).toDouble();
+
+        // Set goal weight from user API (note: using 'target_weight' not 'targetweight')
+        goalWeight = (userData['target_weight'] ?? 0).toDouble();
+
+        // Set initial weight from matrics API - get the FIRST (oldest) weight entry
+        if (weightData != null && weightData.isNotEmpty) {
+          // Sort by created_at to get the oldest entry first
+          weightData.sort(
+            (a, b) => DateTime.parse(
+              a['created_at'],
+            ).compareTo(DateTime.parse(b['created_at'])),
+          );
+          initialWeight =
+              (weightData.first['value'] ?? currentWeight).toDouble();
+        } else {
+          // Fallback to current weight if no matrics data
+          initialWeight = currentWeight;
+        }
+
+        // Update selected weight for bottom sheet
+        selectedWeightKg = currentWeight.toInt();
+        selectedWeightLbs = (currentWeight * 2.20462).toInt();
+
+        // Update controllers
+        _controllerKg = FixedExtentScrollController(
+          initialItem: kgValues.indexOf(selectedWeightKg.clamp(30, 200)),
+        );
+        _controllerLbs = FixedExtentScrollController(
+          initialItem: lbsValues.indexOf(selectedWeightLbs.clamp(66, 336)),
+        );
+
+        isLoadingWeight = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingWeight = false;
+        weightError = "Failed to load weight data: ${e.toString()}";
+      });
+    }
+  }
+
+  Future<void> _updateWeight(double newWeightKg) async {
+    if (!mounted) return;
+
+    try {
+      setState(() {
+        _isButtonEnabled = false;
+      });
+
+      final body = {"current_weight": newWeightKg.toInt()};
+      await ApiService.putRequest("user/", body);
+
+      setState(() {
+        currentWeight = newWeightKg;
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Weight updated successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _isButtonEnabled = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to update weight: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(source: source);
@@ -87,34 +208,128 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
     }
   }
 
-void _showWeightBottomSheet(BuildContext context, double height) {
-  final controller = isKg ? _controllerKg : _controllerLbs;
-  final values = isKg ? kgValues : lbsValues;
+  void _showWeightBottomSheet(BuildContext context, double height) {
+    final controller =
+        isKg ? _controllerKg : _controllerLbs; // Fixed: removed asterisks
+    final values = isKg ? kgValues : lbsValues;
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.55,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            child: Column(
-              children: [
-                // ... Title, toggle, etc.
-                Expanded(
-                  child: Stack(
-                    alignment: Alignment.center,
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.45,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Select Weight",
+                    style: TextStyle(
+                      fontFamily: 'Merriweather',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF222326),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: RotatedBox(
+                      const Text(
+                        "kg",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => setModalState(() => isKg = !isKg),
+                        child: Container(
+                          width: 44,
+                          height: 24,
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0C0C0C),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: AnimatedAlign(
+                            duration: const Duration(milliseconds: 200),
+                            alignment:
+                                isKg
+                                    ? Alignment.centerLeft
+                                    : Alignment.centerRight,
+                            child: Container(
+                              width: 18,
+                              height: 18,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "lbs",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    isKg ? "$selectedWeightKg kg" : "$selectedWeightLbs lbs",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF222326),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.96,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFDCE2EA),
+                        width: 1,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        RotatedBox(
                           quarterTurns: 3,
                           child: ListWheelScrollView.useDelegate(
                             controller: controller,
@@ -122,7 +337,7 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                             diameterRatio: 100,
                             physics: const FixedExtentScrollPhysics(),
                             onSelectedItemChanged: (index) {
-                              setState(() {
+                              setModalState(() {
                                 if (isKg) {
                                   selectedWeightKg = kgValues[index];
                                 } else {
@@ -142,12 +357,12 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                                     children: [
                                       SizedBox(
                                         width: 20,
-                                        height: 60,
+                                        height: 50,
                                         child: Align(
                                           alignment: Alignment.topCenter,
                                           child: Container(
                                             width: 1,
-                                            height: isLong ? 60 : 35,
+                                            height: isLong ? 50 : 30,
                                             color:
                                                 isLong
                                                     ? const Color(0xFF222326)
@@ -158,12 +373,13 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                                       if (isLong)
                                         Padding(
                                           padding: const EdgeInsets.only(
-                                            top: 8,
+                                            top: 4,
                                           ),
                                           child: Text(
                                             '$val',
                                             style: const TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 12,
+                                              color: Colors.black,
                                             ),
                                           ),
                                         ),
@@ -174,86 +390,149 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        top: 35,
-                        bottom: 55,
-                        child: Container(
-                          width: 2,
-                          color: const Color(0xFF0C0C0C),
+                        Positioned(
+                          top: 20,
+                          bottom: 20,
+                          child: Container(
+                            width: 2,
+                            color: const Color(0xFF0C0C0C),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton(
+                        onPressed:
+                            _isButtonEnabled
+                                ? () async {
+                                  final double updatedWeightKg =
+                                      isKg
+                                          ? selectedWeightKg.toDouble()
+                                          : selectedWeightLbs / 2.20462;
 
+                                  await _updateWeight(updatedWeightKg);
+
+                                  if (mounted) {
+                                    Navigator.pop(context);
+                                  }
+                                }
+                                : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0C0C0C),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 3,
+                        ),
+                        child:
+                            _isButtonEnabled
+                                ? const Text(
+                                  "Done",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _showImageSourceDialog() {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('Select Image Source'),
+            title: const Text('Select Image Source'),
             actions: [
               TextButton(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                child: Text('Gallery'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+                child: const Text('Gallery'),
               ),
               TextButton(
-                onPressed: () => _pickImage(ImageSource.camera),
-                child: Text('Camera'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+                child: const Text('Camera'),
               ),
             ],
           ),
     );
   }
 
- Widget _buildPlanCard(String title, String subtitle, String iconPath, BuildContext context, Widget targetScreen) {
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => targetScreen,
+  Widget _buildPlanCard(
+    String title,
+    String subtitle,
+    String iconPath,
+    BuildContext context,
+    Widget targetScreen,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => targetScreen),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFFFF),
+          borderRadius: BorderRadius.circular(12),
         ),
-      );
-    },
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(iconPath, height: 58, width: 64),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF707070),
-              fontWeight: FontWeight.w500,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(iconPath, height: 58, width: 64),
+            const SizedBox(height: 6),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
             ),
-          ),
-        ],
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF707070),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildDateSelector() {
     return SizedBox(
@@ -263,14 +542,13 @@ void _showWeightBottomSheet(BuildContext context, double height) {
         itemCount: 100,
         itemBuilder: (context, index) {
           final day = 1 + index;
-
           final isSelected = day == selectedDay;
 
           return GestureDetector(
             onTap: () => setState(() => selectedDay = day),
             child: Container(
               width: 60,
-              margin: EdgeInsets.only(right: 12),
+              margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 color: isSelected ? Colors.black : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
@@ -286,7 +564,7 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     day.toString(),
                     style: TextStyle(
@@ -305,8 +583,54 @@ void _showWeightBottomSheet(BuildContext context, double height) {
   }
 
   Widget _buildWeightTracker() {
+    if (isLoadingWeight) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F4F7),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 8),
+              Text("Loading weight data..."),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (weightError != null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F4F7),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.error, color: Colors.red, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              weightError!,
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _fetchWeightData,
+              child: const Text("Retry"),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F4F7),
         borderRadius: BorderRadius.circular(16),
@@ -316,26 +640,17 @@ void _showWeightBottomSheet(BuildContext context, double height) {
           Stack(
             alignment: Alignment.center,
             children: [
-              // Half circle painter
               SizedBox(
-                height: 120, // more than 80
+                height: 120,
                 width: 160,
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: CustomPaint(
                     size: const Size(160, 80),
-                    painter: RainbowHalfCirclePainter(progress: 0.7),
+                    painter: RainbowHalfCirclePainter(progress: progress),
                   ),
                 ),
               ),
-              // CustomPaint(
-              //   size: const Size(200, 100), // adjust size as needed
-              //   painter: RainbowHalfCirclePainter(
-              //     progress: 0.7,
-              //   ), // 70% progress
-              // ),
-
-              // Current weight in the middle
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -349,8 +664,6 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                   ),
                 ],
               ),
-
-              // Initial weight (left)
               Positioned(
                 left: 0,
                 bottom: 0,
@@ -363,8 +676,6 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                   ),
                 ),
               ),
-
-              // Goal weight (right)
               Positioned(
                 right: 0,
                 bottom: 0,
@@ -379,28 +690,26 @@ void _showWeightBottomSheet(BuildContext context, double height) {
               ),
             ],
           ),
-
-          SizedBox(width: 6),
+          const SizedBox(width: 6),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   'Weight Goal: ${goalWeight.toStringAsFixed(0)} kg',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
                 ),
-                SizedBox(height: 6),
-
+                
+                const SizedBox(height: 6),
                 OutlinedButton(
-                  onPressed: () {
-                    _showWeightBottomSheet(context, 170); // pass height
-                  },
+                  onPressed: () => _showWeightBottomSheet(context, 170),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black, // text color
-                    side: const BorderSide(
-                      color: Colors.black, // border color
-                      width: 1,
-                    ),
+                    foregroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.black, width: 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -408,9 +717,9 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                       horizontal: 16,
                       vertical: 6,
                     ),
-                    backgroundColor: Colors.transparent, // keep transparent
+                    backgroundColor: Colors.transparent,
                   ),
-                  child: Text(
+                  child: const Text(
                     '+ Update Weight',
                     style: TextStyle(fontSize: 12),
                   ),
@@ -423,34 +732,43 @@ void _showWeightBottomSheet(BuildContext context, double height) {
     );
   }
 
-  Widget _buildActivityCard(
+ Widget _buildActivityCard(
     String title,
     String value,
     String unit,
     String icon,
+    Widget destinationScreen, // 👈 add screen to navigate
   ) {
-    // VoidCallback onTap
     return GestureDetector(
-      // onTap: onTap,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => destinationScreen),
+        );
+      },
       child: Container(
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Color(0xFFF1F4F7),
+          color: const Color(0xFFF1F4F7),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
             Image.asset(icon, width: 34, height: 34),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             RichText(
               text: TextSpan(
                 text: value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
@@ -458,7 +776,11 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                 children: [
                   TextSpan(
                     text: unit,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
                   ),
                 ],
               ),
@@ -469,33 +791,21 @@ void _showWeightBottomSheet(BuildContext context, double height) {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _controllerKg = FixedExtentScrollController(
-      initialItem: kgValues.indexOf(selectedWeightKg),
-    );
-    _controllerLbs = FixedExtentScrollController(
-      initialItem: lbsValues.indexOf(selectedWeightLbs),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = isKg ? _controllerKg : _controllerLbs;
-    final values = isKg ? kgValues : lbsValues;
     return Scaffold(
-      backgroundColor: Color(0xFFF8FBFB),
+      backgroundColor: const Color(0xFFF8FBFB),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -517,33 +827,32 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                   ),
                   Row(
                     children: [
-                      IconButton(icon: Icon(Icons.search), onPressed: () {}),
                       IconButton(
-                        icon: Icon(Icons.notifications_outlined),
+                        icon: const Icon(Icons.search),
                         onPressed: () {},
                       ),
-                      CircleAvatar(radius: 16, child: Icon(Icons.person)),
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined),
+                        onPressed: () {},
+                      ),
+                      const CircleAvatar(radius: 16, child: Icon(Icons.person)),
                     ],
                   ),
                 ],
               ),
-
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               _buildDateSelector(),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               _buildWeightTracker(),
-              SizedBox(height: 24),
-
-              // Today's Plan
-              Align(
+              const SizedBox(height: 24),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "Today's Plan is ready",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700,color: Colors.black),
                 ),
               ),
-
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -551,39 +860,34 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                       'Diet',
                       '2000 kcal target',
                       'assets/icons/diet_icon.png',
-                       context,
-                     
-                     DietScreen()
+                      context,
+                      DietScreen(),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: _buildPlanCard(
                       'Workout',
                       '15-30 min session',
                       'assets/icons/fitness_icon.png',
-                       context,WorkoutScreen()
-                      
+                      context,
+                      WorkoutScreen(),
                     ),
                   ),
                 ],
               ),
-
-              SizedBox(height: 34),
-
-              Align(
+              const SizedBox(height: 34),
+              const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "My Activity",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700,color: Colors.black),
                 ),
               ),
-              SizedBox(height: 12),
-
-              // Activity Grid
+              const SizedBox(height: 12),
               GridView.count(
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
                 childAspectRatio: 1.5,
                 crossAxisSpacing: 12,
@@ -594,60 +898,53 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                     '${nutritionData['caloriesEaten']}',
                     '/2,500',
                     'assets/icons/food.png',
-                    // () => Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (_) => CalorieTrackerScreen()),
-                    // )
+                    CalorieTrackerScreen(),
                   ),
                   _buildActivityCard(
                     'Calories Burned',
                     '${fitnessData['caloriesBurned']}',
                     '/2,500',
                     'assets/icons/calories.png',
-                    // () => Navigator.push(context,
-                    //   MaterialPageRoute(builder: (_) => StepsScreen()))
+                    CalorieTrackerScreen(),
                   ),
                   _buildActivityCard(
                     'Steps',
                     '${fitnessData['steps']}',
                     '/20,000',
                     'assets/icons/steps.png',
-                    // () => Navigator.push(context,
-                    //   MaterialPageRoute(builder: (_) => StepsScreen()))
+                    StepsScreen(),
                   ),
                   _buildActivityCard(
                     'Water',
                     '${nutritionData['water']}',
                     '/6 Lt',
                     'assets/icons/water.png',
-                    // () => Navigator.push(context,
-                    //   MaterialPageRoute(builder: (_) => WaterIntakeScreen()))
+                    WaterIntakeScreen(),
                   ),
                   _buildActivityCard(
                     'Sleep',
                     '${fitnessData['sleep']}',
-                    '/4hr',
+                    '/8hr',
                     'assets/icons/sleep.png',
-                    // () => Navigator.push(context,
-                    //   MaterialPageRoute(builder: (_) => StepsScreen()))
+                    SleepTrackerScreen(),
                   ),
                 ],
               ),
-
-              SizedBox(height: 24),
-              // Progress Journey
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Progress Journey',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.black),
                   ),
-                  TextButton(onPressed: () {}, child: Text('View all images')),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('View all images'),
+                  ),
                 ],
               ),
-
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               GestureDetector(
                 onTap: _showImageSourceDialog,
                 child: Container(
@@ -672,7 +969,7 @@ void _showWeightBottomSheet(BuildContext context, double height) {
                               fit: BoxFit.cover,
                             ),
                           )
-                          : Column(
+                          : const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.add, size: 24),
@@ -685,22 +982,14 @@ void _showWeightBottomSheet(BuildContext context, double height) {
           ),
         ),
       ),
-      // bottomNavigationBar: CustomBottomNav(
-      //   currentIndex: 0,
-      //   onTap: (index) {
-      //     // Navigation logic
-      //   },
-      // ),
-       bottomNavigationBar: const CustomNavBar(currentIndex: 0),
-             floatingActionButton: SizedBox(
+      bottomNavigationBar: const CustomNavBar(currentIndex: 0),
+      floatingActionButton: SizedBox(
         height: 46,
         child: FloatingActionButton.extended(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const ChatScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const LogoutButton()),
             );
           },
           backgroundColor: const Color.fromARGB(255, 170, 207, 171),
@@ -720,13 +1009,12 @@ void _showWeightBottomSheet(BuildContext context, double height) {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-    
     );
   }
 }
 
 class RainbowHalfCirclePainter extends CustomPainter {
-  final double progress; // 0.0 → 1.0
+  final double progress;
 
   RainbowHalfCirclePainter({required this.progress});
 
@@ -735,30 +1023,21 @@ class RainbowHalfCirclePainter extends CustomPainter {
     final strokeWidth = 14.0;
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - strokeWidth;
-
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // 1️⃣ Draw background arc (light grey or white)
     final bgPaint =
         Paint()
-          ..color = Color(0xFFC9C9C9)
+          ..color = const Color(0xFFC9C9C9)
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
           ..strokeWidth = strokeWidth;
 
-    canvas.drawArc(
-      rect,
-      math.pi, // start from left
-      math.pi, // full half circle
-      false,
-      bgPaint,
-    );
+    canvas.drawArc(rect, math.pi, math.pi, false, bgPaint);
 
-    // 2️⃣ Draw progress arc with rainbow gradient
-    final gradient = SweepGradient(
+    final gradient = const SweepGradient(
       startAngle: math.pi,
       endAngle: 2 * math.pi,
-      colors: const [Colors.red, Colors.orange, Colors.yellow, Colors.green],
+      colors: [Colors.red, Colors.orange, Colors.yellow, Colors.green],
     );
 
     final progressPaint =
@@ -769,7 +1048,6 @@ class RainbowHalfCirclePainter extends CustomPainter {
           ..strokeWidth = strokeWidth;
 
     final sweepAngle = math.pi * progress;
-
     canvas.drawArc(rect, math.pi, sweepAngle, false, progressPaint);
   }
 
