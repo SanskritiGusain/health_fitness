@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:test_app/chat/chat_start.dart';
+import 'package:test_app/utils/custom_bottom_nav.dart';
 import 'body_weight_screen.dart';
 import 'body_height_screen.dart';
 import 'body_neck_screen.dart';
@@ -103,11 +105,17 @@ class _MeasurementScreenState extends State<MeasurementScreen> {
           ),
         ],
       ),
+     
+      
+       bottomNavigationBar: const CustomNavBar(currentIndex: 3),
       floatingActionButton: SizedBox(
         height: 46,
         child: FloatingActionButton.extended(
           onPressed: () {
-            // TODO: Add Ask Luna API here
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
+            );
           },
           backgroundColor: const Color.fromARGB(255, 170, 207, 171),
           label: const Text(
@@ -126,37 +134,6 @@ class _MeasurementScreenState extends State<MeasurementScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 3,
-        onTap: (index) {
-          // Handle navigation to different screens based on index
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/icons/home.png", height: 24),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/icons/diet.png", height: 24),
-            label: "Diet",
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/icons/workout.png", height: 24),
-            label: "Workout",
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/icons/metrics.png", height: 24),
-            label: "Metrics",
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset("assets/icons/tools .png", height: 24),
-            label: "Tools",
-          ),
-        ],
-      ),
     );
   }
 

@@ -1,19 +1,20 @@
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:test_app/api/api_service.dart';
 import 'package:test_app/api/matrics_service.dart';
 import 'package:test_app/chat/chat_start.dart';
+import 'package:test_app/gamification/gamification_screen.dart';
 import 'package:test_app/new/sleep_tracking.dart';
-import 'package:test_app/pages/logout.dart';
-import 'dart:io';
-import 'dart:math' as math;
-import 'package:test_app/pages/weight_input.dart';
+
 import 'package:test_app/plan/calorie_tracker.dart';
 import 'package:test_app/plan/diet_tracker.dart';
 import 'package:test_app/plan/step_screen.dart';
 import 'package:test_app/plan/workout.dart';
-import 'package:test_app/shift/nutrition_tracker.dart';
+import 'package:test_app/profile/profile_screen.dart';
 import 'package:test_app/shift/water.dart';
 import 'package:test_app/utils/custom_bottom_nav.dart';
 
@@ -827,16 +828,64 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
                   ),
                   Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {},
+                       IconButton(
+          icon: SvgPicture.asset(
+            'assets/icons_update/trophy.svg', // Your SVG file path
+            width: 24,
+            height: 24,
+     
+          ),
+                        onPressed: () {
+                            Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => GamificationScreen()),
+        );
+                        },
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.notifications_outlined),
-                        onPressed: () {},
+                        IconButton(
+          icon: SvgPicture.asset(
+            'assets/icons_update/notification.svg', // Your SVG file path
+            width: 24,
+            height: 24,
+          
+          ),
+                        onPressed: () {
+                              Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfileScreen()),
+        );  
+                        },
                       ),
-                      const CircleAvatar(radius: 16, child: Icon(Icons.person)),
-                    ],
+ // Clickable Avatar
+        GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfileScreen()),
+    );
+  },
+  child: CircleAvatar(
+    radius: 16,
+    backgroundColor: Colors.grey,
+    child: ClipOval(
+      child: Image.asset(
+        'assets/icons_update/profile_image.jpg',
+        width: 32,
+        height: 32,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          // Show person icon when image fails to load
+          return const Icon(
+            Icons.person,
+            size: 20,
+            color: Colors.white,
+          );
+        },
+      ),
+    ),
+  ),
+),
+                   ],
                   ),
                 ],
               ),
@@ -989,7 +1038,7 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const LogoutButton()),
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
             );
           },
           backgroundColor: const Color.fromARGB(255, 170, 207, 171),

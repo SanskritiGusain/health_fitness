@@ -5,7 +5,7 @@ import 'package:test_app/plan/step_screen.dart';
 import 'package:test_app/new/cycle_tracker.dart';
 import 'package:test_app/new/sleep_tracking.dart';
 import 'package:test_app/shift/water.dart';
-import 'package:test_app/theme/app_theme.dart'; // Import for theme extension access
+ // Import for theme extension access
 import 'package:test_app/utils/custom_app_bars.dart';
 import 'package:test_app/utils/custom_bottom_nav.dart';
 
@@ -91,66 +91,8 @@ class HealthMetricsScreen extends StatelessWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
-      // bottomNavigationBar: Container(
-      //   height: 78,
-      //   decoration: BoxDecoration(
-      //     color: theme.colorScheme.onPrimary,
-      //     boxShadow: [
-      //       BoxShadow(
-      //         color: Colors.black.withOpacity(0.08),
-      //         blurRadius: 10,
-      //         offset: const Offset(0, -2), // subtle shadow above navbar
-      //       ),
-      //     ],
-      //   ),
-      //   child: BottomNavigationBar(
-      //     type: BottomNavigationBarType.fixed,
-      //     selectedItemColor: theme.colorScheme.secondary,
-      //     unselectedItemColor: theme.colorScheme.onSurfaceVariant,
-      //     currentIndex: 3,
-      //     selectedIconTheme: IconThemeData(
-      //       color: theme.colorScheme.secondary,
-      //       // bigger selected icon
-      //     ),
-      //     unselectedIconTheme: IconThemeData(
-      //       color: theme.colorScheme.onSurfaceVariant,
-      //     ),
-      //     selectedLabelStyle: theme.textTheme.bodyMedium,
-      //     unselectedLabelStyle: theme.textTheme.bodyMedium,
-      //     onTap: (index) {
-      //       // TODO: Handle navigation
-      //     },
-      //     items: [
-      //       BottomNavigationBarItem(
-      //         icon: Image.asset("assets/icons/home.png", height: 26),
-      //         label: "Home",
-      //       ),
-      //       BottomNavigationBarItem(
-      //         icon: Image.asset("assets/icons/diet.png", height: 26),
-      //         label: "Diet",
-      //       ),
-      //       BottomNavigationBarItem(
-      //         icon: Image.asset("assets/icons/workout.png", height: 26),
-      //         label: "Workout",
-      //       ),
-      //       BottomNavigationBarItem(
-      //         icon: Image.asset("assets/icons/metrics.png", height: 26),
-      //         label: "Metrics",
-      //       ),
-      //       BottomNavigationBarItem(
-      //         icon: Image.asset("assets/icons/tools .png", height: 26),
-      //         label: "Tools",
-      //       ),
-      //     ],
-      //   ),
-      // ⬅️ custom height
-      //),
-      // bottomNavigationBar: CustomNavBar(
-      //   currentIndex: 3, // example
-      //   onTap: (index) {
-      //     // handle navigation
-      //   },
-      // ),
+      
+           bottomNavigationBar: const CustomNavBar(currentIndex: 4),
     );
   }
 
@@ -160,7 +102,7 @@ class HealthMetricsScreen extends StatelessWidget {
     String iconPath,
     Widget destination,
   ) {
-    final theme = Theme.of(context);
+
 
     return GestureDetector(
       onTap: () {
@@ -171,11 +113,11 @@ class HealthMetricsScreen extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: theme.cardTheme.color,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: theme.shadowColor.withOpacity(0.08),
+           color: Colors.white12,
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),
@@ -186,7 +128,7 @@ class HealthMetricsScreen extends StatelessWidget {
           children: [
             Image.asset(iconPath, height: 44),
             const SizedBox(height: 8),
-            Text(title, style: theme.textTheme.headlineMedium),
+            Text(title, ),
           ],
         ),
       ),

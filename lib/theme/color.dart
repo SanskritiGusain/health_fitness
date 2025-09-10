@@ -12,7 +12,7 @@ class AppColors {
   static const Color textPrimaryLight = Color(0xFF0C0C0C); 
   static const Color toogleFieldLight =Color(0xFF8E8E93);
 
-  static const Color textSecondaryLight = Color(0xFFFAFAFA);
+static const Color textSecondaryLight = Color(0xFF0C0C0C); // Medium gray for better contrast
 
   static const Color placeHolderLight = Color(0xFFC9C9C9); // Light Blue
   static const Color placeHolderWhitebg = Color(0xFF949BA2);

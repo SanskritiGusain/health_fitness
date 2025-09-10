@@ -46,6 +46,7 @@ class AppTheme {
       headlineMedium: AppTypography.headlineMedium.copyWith(
         color: AppColors.textPrimaryLight,
       ),
+      
       bodyLarge: AppTypography.bodyLarge.copyWith(
         color: AppColors.textPrimaryLight,
       ),

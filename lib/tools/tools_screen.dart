@@ -120,27 +120,7 @@ class ToolsScreen extends StatelessWidget {
           ],
         ),
       ),
-//  bottomNavigationBar: CustomBottomNav(
-//       currentIndex: 4, // 0 for Home
-//       onTap: (index) {
-//         if (index == 4) return; // Already on home
-        
-//         switch (index) {
-//           case 1:
-//             Navigator.push(context, MaterialPageRoute(builder: (context) => HealthDashboardScreen()));
-//             break;
-//           case 2:
-//             Navigator.push(context, MaterialPageRoute(builder: (context) => ChatWelcomeScreen()));
-//             break;
-//           case 3:
-//             Navigator.push(context, MaterialPageRoute(builder: (context) => GamificationScreen()));
-//             break;
-//           case 0:
-//             // Navigator.push(context, MaterialPageRoute(builder: (context) => FitnessWellnessScreen()));
-//             break;
-//         }
-//       },
-//  ),
+  bottomNavigationBar: const CustomNavBar(currentIndex: 3),
     );
   }
 }

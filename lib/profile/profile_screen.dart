@@ -1,5 +1,6 @@
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:test_app/login/login_page.dart';
 import 'package:test_app/new/subscription.dart';
 import 'package:test_app/profile/alert_screen.dart';
 import 'package:test_app/profile/profile_edit.dart';
@@ -7,7 +8,7 @@ import 'package:test_app/profile/refer_friend.dart';
 import 'package:test_app/profile/setting_screen.dart';
 import 'package:test_app/profile/help_screen.dart';
 import 'package:test_app/new/subscription.dart';
-
+import '../auth/google_auth.dart'; 
 import 'package:test_app/utils/custom_app_bars.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -303,6 +304,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+        final googleAuth = GoogleAuth();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -360,10 +362,23 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                       onPressed: () async {
-                        Navigator.pop(context); // Close the dialog first
-                        // await signout(); // Then sign out
-                      },
+                        onPressed: () async {
+                           Navigator.pop(context); 
+        await googleAuth.signOut();
+
+        // Navigate to LoginPage after logout
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginSelectionPage()),
+            (route) => false, // remove all previous routes
+          );
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logged out successfully')),
+        );
+      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,

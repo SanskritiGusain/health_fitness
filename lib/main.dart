@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/login/login_page.dart';
 import 'package:test_app/plan/fitness_wellness.dart';
+import 'package:test_app/profile/setting_screen.dart';
 
 import 'pages/user_details.dart';
 import 'theme/app_theme.dart';
@@ -37,12 +39,34 @@ class _MyAppState extends State<MyApp> {
         _user = user;
       });
     });
+    
+    _loadSavedTheme();
   }
 
+  void _loadSavedTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTheme = prefs.getString('selected_theme');
+    if (savedTheme != null) {
+      setState(() {
+        _themeMode = _getThemeMode(savedTheme);
+      });
+    }
+  }
   void setThemeMode(ThemeMode mode) {
     setState(() {
       _themeMode = mode;
     });
+  }
+
+  ThemeMode _getThemeMode(String theme) {
+    switch (theme) {
+      case 'Light':
+        return ThemeMode.light;
+      case 'Dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
   }
 
   @override
@@ -53,10 +77,9 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-      home:
-          _user == null
-              ? const LoginSelectionPage()
-              : const FitnessWellnessScreen(),
+     home: FitnessWellnessScreen(), // later you can navigate to SettingsPage
+
+
     );
   }
 }

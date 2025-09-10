@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test_app/body_mertics/bmi_screen.dart';
-import 'package:test_app/pages/gif_splash_page.dart';
-import 'package:test_app/pages/height_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/api/api_service.dart';
-import 'package:test_app/pages/logout.dart';
+import 'package:test_app/pages/gif_splash_page.dart';
 import 'package:test_app/shared_preferences.dart' as userApi;
 
 class WeightInputPage extends StatefulWidget {
@@ -141,10 +138,7 @@ class _WeightInputPageState extends State<WeightInputPage> {
                           height: 24,
                         ),
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LogoutButton()),
-                          );
+                                                   Navigator.pop(context);
                           // Navigator.of(context).pop();
                         },
                       ),

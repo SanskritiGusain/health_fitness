@@ -1,6 +1,8 @@
 // lib/widgets/custom_nav_bar.dart
 import 'package:flutter/material.dart';
+import 'package:test_app/new/health_metrics.dart';
 import 'package:test_app/pages/home_page.dart';
+import 'package:test_app/plan/diet_tracker.dart';
 import 'package:test_app/plan/fitness_wellness.dart';
 
 import 'package:test_app/plan/workout.dart';
@@ -21,13 +23,13 @@ class CustomNavBar extends StatelessWidget {
         destination = const FitnessWellnessScreen();
         break;
       case 1:
-        destination = const NutritionScreen();
+        destination = const DietScreen();
         break;
       case 2:
         destination = const WorkoutScreen();
         break;
       case 3:
-        destination = const MeasurementScreen();
+        destination = const HealthMetricsScreen();
         break;
       case 4:
         destination = const ToolsScreen();

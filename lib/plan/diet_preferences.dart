@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test_app/api/api_service.dart';
-import 'package:test_app/pages/congratulation.dart';
-import 'package:test_app/pages/logout.dart';
-import 'package:test_app/pages/transformation.dart';
-import 'package:test_app/plan/fitness_goal_loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_app/api/api_service.dart';
+import 'package:test_app/plan/fitness_goal_loading.dart';
 import 'package:test_app/shared_preferences.dart' as userApi;
 
 class DietPreferencesScreen extends StatefulWidget {
@@ -116,10 +113,7 @@ class _DietPreferencesScreenState extends State<DietPreferencesScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LogoutButton()),
-            );
+                                      Navigator.pop(context);
           },
         ),
         title: const Text(

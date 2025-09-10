@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_app/api/api_service.dart';
+import 'package:test_app/chat/chat_start.dart';
 
 // Make sure this import path is correct
 
@@ -351,6 +352,32 @@ class _BodyHeightScreenState extends State<BodyHeightScreen> {
           ),
         ),
       ),
+       floatingActionButton: SizedBox(
+        height: 46,
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
+            );
+          },
+          backgroundColor: const Color.fromARGB(255, 170, 207, 171),
+          label: const Text(
+            "Ask Luna",
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+          icon: Image.asset("assets/icons/ai.png", height: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
