@@ -730,6 +730,8 @@ class _BMIScreenState extends State<BMIScreen> {
                               ),
                             ),
                             onPressed: () {
+                   //           PersistentData.saveLastScreen("WorkoutPreferencesPage");
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

@@ -31,7 +31,7 @@ class _SignupEmailState extends State<SignupEmail> {
   int _resendAttempts = 0;
 
   // API Configuration
-  static const String baseUrl = 'http://192.168.1.12:8000';
+  static const String baseUrl = 'http://192.168.1.35:8000';
   static const String sendOtpEndpoint = '/auth/signup/email';
   static const String verifyOtpEndpoint = '/auth/verify-otp';
 

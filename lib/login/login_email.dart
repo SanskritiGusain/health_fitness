@@ -34,7 +34,7 @@ class _LoginEmailState extends State<LoginEmail> {
   int _resendAttempts = 0;
 
   // API Configuration
-  static const String baseUrl = 'http://192.168.1.30:8000';
+  static const String baseUrl = 'http://192.168.1.35:8000';
   static const String sendOtpEndpoint = '/send_otp_and_register';
   static const String verifyOtpEndpoint = '/verify_otp_for_register';
 

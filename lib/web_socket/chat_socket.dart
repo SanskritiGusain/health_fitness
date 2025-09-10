@@ -31,7 +31,7 @@ class _ChatSocketPageState extends State<ChatSocketPage> {
     }
 
     channel = WebSocketChannel.connect(
-      Uri.parse("ws://192.168.1.30:8000/chat/ws/user?token=$token"),
+      Uri.parse("ws://192.168.1.35:8000/chat/ws/user?token=$token"),
     );
 
     channel.stream.listen(

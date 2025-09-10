@@ -51,7 +51,7 @@ class GoogleAuth {
       // Send Firebase token to backend and receive access token
       if (firebaseIdToken != null) {
         final response = await http.post(
-          Uri.parse("http://192.168.1.30:8000/google"),
+          Uri.parse("http://192.168.1.35:8000/google"),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"idToken": firebaseIdToken}),
         );

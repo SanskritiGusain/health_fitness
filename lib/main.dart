@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-     home: FitnessWellnessScreen(), // later you can navigate to SettingsPage
+     home: UserDetailsPage(), // later you can navigate to SettingsPage
 
 
     );

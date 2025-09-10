@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:test_app/shared_preferences.dart'; // your PersistentData path
 
 class MatricApi {
-  static const String baseUrl = "http://192.168.1.30:8000/matric/";
+  static const String baseUrl = "http://192.168.1.35:8000/matric/";
 
   // Get headers with optional Authorization
 
