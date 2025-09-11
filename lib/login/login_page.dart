@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:test_app/login/login_email.dart';
 import 'package:test_app/pages/home_page.dart';
 import '../auth/google_auth.dart';
-
+import 'package:test_app/signUp/signup_page.dart';
 
 class LoginSelectionPage extends StatefulWidget {
   const LoginSelectionPage({super.key});
@@ -169,8 +169,8 @@ final GoogleAuth _googleAuth = GoogleAuth();
                       width: double.infinity,
                       child: GestureDetector(
                    onTap: () async {
-                        await _googleAuth.signInAndNotify(context);
-                        },
+   await _googleAuth.signInAndNotify(context);
+  },
 
                         child: Container(
                           decoration: BoxDecoration(
@@ -252,31 +252,33 @@ final GoogleAuth _googleAuth = GoogleAuth();
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: screenHeight * 0.03),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HomePage()),
-                        );
-                      },
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.035,
-                            color: const Color(0xFF000000),
-                            fontFamily: 'DM Sans',
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: const [
-                            TextSpan(text: 'Don’t have an account? '),
-                            TextSpan(
-                              text: 'Sign up',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                   GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SignupSelectionPage(), // FIXED NAVIGATION
+      ),
+    );
+  },
+  child: RichText(
+    text: TextSpan(
+      style: TextStyle(
+        fontSize: screenWidth * 0.035,
+        color: const Color(0xFF000000),
+        fontFamily: 'DM Sans',
+        fontWeight: FontWeight.w500,
+      ),
+      children: const [
+        TextSpan(text: 'Don\'t have an account? '),
+        TextSpan(
+          text: 'Sign up',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ],
+    ),
+  ),
+),
                     SizedBox(height: screenHeight * 0.04),
                   ],
                 ),

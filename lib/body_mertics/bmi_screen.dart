@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:test_app/api/api_service.dart';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_app/pages/weight_input.dart';
 
 import 'package:test_app/plan/workout_preferences.dart';
 
@@ -177,31 +178,40 @@ class BMIGaugePainter extends CustomPainter {
     }
 
     // Needle calculation
-    final angle = _getNeedleAngle(bmi);
-    _drawNeedle(canvas, center, angle, radius - 60);
+final needleLength = radius - 35 + 20; // extend slightly beyond inner arc
+final angle = _getNeedleAngle(bmi);
+_drawNeedle(canvas, center, angle, needleLength);
+
+  }
+double _getNeedleAngle(double bmi) {
+  if (categories.isEmpty) return -pi;
+
+  final sweepPerRange = pi / categories.length;
+  final startAngle = -pi;
+
+  for (int i = 0; i < categories.length; i++) {
+    final min = categories[i].bmiMin;
+    final max = categories[i].bmiMax ?? (min + 10); // assume width for last category
+
+    if (bmi >= min && bmi <= max) {
+      final percent = (bmi - min) / (max - min);
+      return startAngle + (i + percent) * sweepPerRange;
+    }
   }
 
-  double _getNeedleAngle(double bmi) {
-    int index = 0;
-    for (int i = 0; i < categories.length; i++) {
-      final min = categories[i].bmiMin;
-      final max = categories[i].bmiMax;
-      if (max != null && bmi >= min && bmi < max) {
-        index = i;
-        break;
-      } else if (max == null && bmi >= min) {
-        index = i;
-        break;
-      }
-    }
-    final rangeStart = categories[index].bmiMin;
-    final rangeEnd = categories[index].bmiMax ?? (categories[index].bmiMin + 5);
-    double percent = (bmi - rangeStart) / (rangeEnd - rangeStart);
-    final sweepPerRange = pi / categories.length;
-    final startAngle = -pi;
-    const needleOffset = -0.2;
-    return startAngle + (index + percent) * sweepPerRange + needleOffset;
-  }
+  // If BMI < first category → far left
+  if (bmi < categories.first.bmiMin) return startAngle;
+
+  // If BMI > last category → center of last category
+  final lastIndex = categories.length - 1;
+  final lastMin = categories[lastIndex].bmiMin;
+  final lastMax = categories[lastIndex].bmiMax ?? (lastMin + 10);
+  final centerPercent = 0.5; // always center
+  return startAngle + (lastIndex + centerPercent) * sweepPerRange;
+}
+
+
+
 
   void _drawNeedle(Canvas canvas, Offset center, double angle, double length) {
     const needleWidth = 13;
@@ -368,23 +378,22 @@ class _BMIScreenState extends State<BMIScreen> {
   }
 
   // Dynamic Color Logic
-  Color _targetWeightColor(double weight) {
-    final idealCat = categories.firstWhere(
-      (c) => c.label.toLowerCase().contains("normal"),
-      orElse: () => categories[0],
-    );
-    final minW = idealCat.bmiMin * pow(height! / 100, 2);
-    final maxW = idealCat.bmiMax! * pow(height! / 100, 2);
+Color _targetWeightColor(double targetWeight) {
+  if (height == null || categories.isEmpty) return Colors.grey;
 
-    if (weight >= minW && weight <= maxW) {
-      return Colors.green; // ✅ Normal
-    } else if ((weight < minW && weight >= minW - 5) ||
-        (weight > maxW && weight <= maxW + 5)) {
-      return Colors.orange; // ⚠️ Slightly outside
-    } else {
-      return Colors.red; // ❌ Far outside
+  final bmi = targetWeight / pow(height! / 100, 2);
+  for (var c in categories) {
+    final min = c.bmiMin;
+    final max = c.bmiMax ?? double.infinity;
+    if (bmi >= min && bmi <= max) {
+      if (c.label.toLowerCase().contains("normal")) return Colors.green;
+      return Colors.orange; // other category
     }
   }
+  return Colors.red; // outside all categories
+}
+
+
 
   Future<void> _loadUserBMI() async {
     try {
@@ -395,6 +404,12 @@ class _BMIScreenState extends State<BMIScreen> {
         weight = data["weight"];
         targetWeight = data["targetWeight"];
         categories = data["categories"];
+        print("BMI: $bmi");
+print("Height: $height, Weight: $weight, Target: $targetWeight");
+for (var c in categories) {
+  print("${c.label}: ${c.bmiMin}-${c.bmiMax}, Color: ${c.color}");
+}
+
         isLoading = false;
       });
     } catch (e) {
@@ -427,21 +442,22 @@ class _BMIScreenState extends State<BMIScreen> {
     return "You're in the ${currentCategory.label} range.";
   }
 
-  String get targetWeightMessage {
-    final targetBmi = targetWeight! / ((height! / 100) * (height! / 100));
-    final idealCat = categories.firstWhere(
-      (c) => c.label.toLowerCase().contains("normal"),
-      orElse: () => categories[0],
-    );
-    if (targetBmi >= idealCat.bmiMin &&
-        (idealCat.bmiMax == null || targetBmi <= idealCat.bmiMax!)) {
-      return "Your target weight is set to ${targetWeight!.toStringAsFixed(1)}kg.\nYou're aiming lean stay consistent and you'll hit it strong and healthy.";
-    } else if (targetBmi < idealCat.bmiMin) {
-      return "Your target weight is set to ${targetWeight!.toStringAsFixed(1)}kg.\nYour goal seems a bit unrealistic. Let's aim for a healthier target";
-    } else {
-      return "Your target weight is set to ${targetWeight!.toStringAsFixed(1)}kg.\nGood effort. If you reach here, we'll guide you further.";
-    }
+String get targetWeightMessage {
+  final bmi = targetWeight! / pow(height! / 100, 2);
+  final normalCat = categories.firstWhere(
+    (c) => c.label.toLowerCase().contains("normal"),
+    orElse: () => categories[0],
+  );
+
+  if (bmi >= normalCat.bmiMin && (normalCat.bmiMax == null || bmi <= normalCat.bmiMax!)) {
+    return "Your target weight is ${targetWeight!.toStringAsFixed(1)}kg. You're in the healthy range.";
+  } else if (bmi < normalCat.bmiMin) {
+    return "Your target weight is ${targetWeight!.toStringAsFixed(1)}kg. It's below the healthy range, consider adjusting.";
+  } else {
+    return "Your target weight is ${targetWeight!.toStringAsFixed(1)}kg. It's above the healthy range, let's aim carefully.";
   }
+}
+
 
   String get idealWeightRange {
     final idealCat = categories.firstWhere(
@@ -482,7 +498,16 @@ class _BMIScreenState extends State<BMIScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black, size: 26),
-          onPressed: () => Navigator.pop(context),
+         onPressed: () {
+                   //           PersistentData.saveLastScreen("WorkoutPreferencesPage");
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>WeightInputPage(),
+                                ),
+                              );
+                            },
         ),
         title: Container(
           margin: const EdgeInsets.only(right: 16),

@@ -28,7 +28,7 @@ class CongratulationsScreen extends StatelessWidget {
     debugPrint("🟢 Auth token: $token");
     try {
       final channel = WebSocketChannel.connect(
-        Uri.parse("ws://192.168.1.30:8000/chat/ws/user?token=$token"),
+        Uri.parse("ws://192.168.1.35:8000/chat/ws/user?token=$token"),
       );
 
       // Send user details once

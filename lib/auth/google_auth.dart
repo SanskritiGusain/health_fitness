@@ -5,7 +5,9 @@ import 'package:http/http.dart' as http; // For API call
 import 'dart:convert';
 
 import 'package:test_app/pages/user_details.dart';
+import 'package:test_app/plan/fitness_wellness.dart';
 import 'package:test_app/shared_preferences.dart';
+import 'package:test_app/api/api_service.dart';
 
 class GoogleAuth {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -68,25 +70,50 @@ class GoogleAuth {
 
           print("✅ Backend Full Response: $data");
 
-          // Navigate to next page
-          if (backendAccessToken != null && context.mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const UserDetailsPage()),
-            );
+          // ✅ After saving token, fetch user info
+          final userResponse = await ApiService.getRequest("user/");
+
+          final currentDiet = userResponse['current_diet'];
+          final currentWorkout = userResponse['current_workout'];
+
+          final hasDiet = currentDiet != null &&
+              currentDiet is Map &&
+              currentDiet.isNotEmpty;
+          final hasWorkout = currentWorkout != null &&
+              currentWorkout is Map &&
+              currentWorkout.isNotEmpty;
+
+          print("🍽️ current_diet = $currentDiet");
+          print("💪 current_workout = $currentWorkout");
+          print("✅ hasDiet = $hasDiet, hasWorkout = $hasWorkout");
+
+          // ✅ Decide navigation
+          if (context.mounted) {
+            if (hasDiet && hasWorkout) {
+              print("🎉 Both plans found → going to FitnessWellnessScreen");
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const FitnessWellnessScreen()),
+              );
+            } else {
+              print("⚠️ Missing plan → going to UserDetailsPage");
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const UserDetailsPage()),
+              );
+            }
           }
-        }
- else {
+        } else {
           print("❌ Backend rejected token: ${response.body}");
         }
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signed in and backend token received!'),
-          ),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(
+        //     content: Text('Signed in and backend token received!'),
+        //   ),
+        // );
       }
     } catch (e) {
       print("❌ Firebase Sign-In Error: $e");

@@ -24,7 +24,7 @@ class _LocationSelectionPageState extends State<LocationSelectionPage> {
   List<Map<String, dynamic>> countries = [];
   List<Map<String, dynamic>> states = [];
 
-  @override
+  @override 
   void initState() {
     super.initState();
     _fetchCountries();
@@ -57,7 +57,7 @@ if (savedCountryId != null && savedCountryName != null) {
   }
 
  Future<void> _fetchCountries() async {
-    final url = Uri.parse("http://192.168.1.30:8000/public/countries");
+    final url = Uri.parse("http://192.168.1.35:8000/public/countries");
 
     try {
       final response = await http.get(url);
@@ -109,7 +109,7 @@ if (savedCountryId != null && savedCountryName != null) {
       return;
     }
 
-    final url = Uri.parse("http://192.168.1.30:8000/public/countries/$countryId/states");
+    final url = Uri.parse("http://192.168.1.35:8000/public/countries/$countryId/states");
     final response = await http.get(url);
 print("🌍 Fetching countries from: $url");
     print("📡 Response: ${response.statusCode} ${response.body}");

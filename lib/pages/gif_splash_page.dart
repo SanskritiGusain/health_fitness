@@ -13,32 +13,29 @@ class GifSplashPage extends StatefulWidget {
 class _GifSplashPageState extends State<GifSplashPage>
     with SingleTickerProviderStateMixin {
   bool hasNavigated = false;
+@override
+void initState() {
+  super.initState();
+  // 9-second splash
+  Future.delayed(const Duration(seconds: 9), _navigateToNext);
+}
 
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 9000), _navigateToNext);
+ void _navigateToNext() {
+  if (!hasNavigated) {
+    hasNavigated = true;
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 600),
+        pageBuilder: (_, __, ___) => const BMIScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
+}
 
-  void _navigateToNext() {
-    if (!hasNavigated) {
-      hasNavigated = true;
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 600),
-          pageBuilder: (_, __, ___) => const   BMIScreen(), 
-          transitionsBuilder: (_, animation, __, child) {
-            final springAnimation = CurvedAnimation(
-              parent: animation,
-              curve: const SpringCurve(stiffness: 711.1, damping: 40),
-            );
-            return FadeTransition(opacity: springAnimation, child: child);
-          },
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,21 +81,7 @@ class _GifSplashPageState extends State<GifSplashPage>
             ),
 
             // Skip button
-            Positioned(
-              top: 16,
-              right: 16,
-              child: TextButton(
-                onPressed: _navigateToNext,
-                child: const Text(
-                  "Skip",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+            
           ],
         ),
       ),

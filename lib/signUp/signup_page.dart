@@ -342,7 +342,7 @@ class _SignupSelectionPageState extends State<SignupSelectionPage> {
                               ),
                               SizedBox(width: screenWidth * 0.03),
                               Text(
-                                "SignUp in with Email",
+                                "Sign up in with Email",
                                 style: TextStyle(
                                   fontSize: screenWidth * 0.035,
                                   color: Colors.black,
@@ -474,33 +474,33 @@ class _SignupSelectionPageState extends State<SignupSelectionPage> {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: screenHeight * 0.03),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginSelectionPage(),
-                          ),
-                        );
-                      },
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: screenWidth * 0.035,
-                            color: const Color(0xFF000000),
-                            fontFamily: 'DM Sans',
-                            fontWeight: FontWeight.w500,
-                          ),
-                          children: const [
-                            TextSpan(text: 'Don’t have an account? '),
-                            TextSpan(
-                              text: 'Sign up',
-                              style: TextStyle(fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+               GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginSelectionPage(),
+      ),
+    );
+  },
+  child: RichText(
+    text: TextSpan(
+      style: TextStyle(
+        fontSize: screenWidth * 0.035,
+        color: const Color(0xFF000000),
+        fontFamily: 'DM Sans',
+        fontWeight: FontWeight.w500,
+      ),
+      children: const [
+        TextSpan(text: 'Already have an account? '), // FIXED TEXT
+        TextSpan(
+          text: 'Log in',                              // FIXED TEXT
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ],
+    ),
+  ),
+),
                     SizedBox(height: screenHeight * 0.04),
                   ],
                 ),

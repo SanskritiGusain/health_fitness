@@ -22,9 +22,9 @@ class CustomNavBar extends StatelessWidget {
       case 0:
         destination = const FitnessWellnessScreen();
         break;
-      case 1:
-        destination = const DietScreen();
-        break;
+      // case 1:
+      //   destination = const  DietScreen(day: selectedDayIndex + 1);
+      //   break;
       case 2:
         destination = const WorkoutScreen();
         break;

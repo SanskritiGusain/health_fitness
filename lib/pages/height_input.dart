@@ -67,7 +67,7 @@ class _HeightInputPageState extends State<HeightInputPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => WeightInputPage(height: heightInCm),
+        builder: (context) => WeightInputPage(),
       ),
     );
   }

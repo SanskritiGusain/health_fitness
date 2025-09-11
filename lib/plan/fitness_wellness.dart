@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
-
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -43,7 +43,7 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
   int selectedWeightKg = 60;
   int selectedWeightLbs = 132;
   bool _isButtonEnabled = true;
-  int selectedDay = DateTime.now().day;
+  
 
   // Weight variables
   double currentWeight = 0;
@@ -54,6 +54,7 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
   final ImagePicker _picker = ImagePicker();
   bool isLoadingWeight = true;
   String? weightError;
+String userName = '';
 
   // Calculate progress (0.0 to 1.0)
   double get progress {
@@ -63,7 +64,31 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
     return ((initialWeight - currentWeight) / (initialWeight - goalWeight))
         .clamp(0.0, 1.0);
   }
+String getTodayWorkoutDuration(Map<String, dynamic> workoutData) {
+  if (workoutData.isEmpty || workoutData['weekly_schedule'] == null) return 'N/A';
 
+  final today = DateTime.now();
+  final weekdayNames = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday'
+  ];
+
+  final todayKey = weekdayNames[today.weekday - 1]; // weekday: 1 = Monday
+  final todayWorkout = workoutData['weekly_schedule'][todayKey];
+
+  if (todayWorkout != null && todayWorkout['duration'] != null) {
+    return todayWorkout['duration'];
+  }
+
+  return 'N/A';
+}
+Map<String, dynamic> currentWorkout = {};
+  String workoutDuration = ''; 
   // Data maps
   final Map<String, dynamic> fitnessData = {
     'steps': 8543,
@@ -83,7 +108,14 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
     'sleepHours': 7.5,
     'sleepQuality': 85,
   };
+int get daysPassed {
+  if (createdAt == null) return 1;
+  return DateTime.now().difference(createdAt!).inDays + 1;
+}
 
+DateTime? createdAt;
+  int selectedDayIndex = 0; // index of currently selected day
+  int totalDaysToShow = 8;
   @override
   void initState() {
     super.initState();
@@ -93,8 +125,94 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
     _controllerLbs = FixedExtentScrollController(
       initialItem: lbsValues.indexOf(selectedWeightLbs),
     );
-    _fetchWeightData(); // Fixed: renamed method
+    _fetchWeightData();
+      if (createdAt != null) {
+    _fetchDailyPlan(selectedDayIndex + 1);
   }
+    fetchUser(); // Fixed: renamed method
+  }
+ // default value
+  int dailyCalories = 0;
+Future<void> _fetchDailyPlan(int day) async {
+  try {
+    final data = await ApiService.getRequest('user/daily-plan?day=$day');
+
+    if (!mounted) return;
+
+    setState(() {
+      final plan = data['plan'] ?? {};
+
+      // Extract workout
+      currentWorkout = plan['workout'] ?? {};
+      workoutDuration = currentWorkout['duration'] ?? '';
+
+      // ✅ Extract diet info safely
+      final diet = plan['diet'];
+      if (diet != null) {
+        final calories = diet['diet_plan']?['daily_calories'] ?? diet['daily_calories'];
+        if (calories is num) {
+          dailyCalories = calories.round(); // handles int & double
+        } else {
+          dailyCalories = 0;
+        }
+      } else {
+        dailyCalories = 0;
+      }
+
+      // Debug prints
+      debugPrint('Workout: $currentWorkout');
+      debugPrint('Duration: $workoutDuration');
+      debugPrint('Calories: $dailyCalories');
+    });
+
+    debugPrint('Fetched daily plan (Day $day): $data');
+  } catch (e) {
+    debugPrint('Error fetching daily plan: $e');
+  }
+}
+
+
+
+      
+
+
+
+
+
+Future<void> fetchUser() async {
+  try {
+    final data = await ApiService.getRequest('user');
+
+    if (!mounted) return;
+setState(() {
+  createdAt = data['created_at'] != null
+      ? DateTime.parse(data['created_at'])
+      : DateTime.now();
+
+  userName = data['name'] ?? 'User';
+
+
+});
+
+  } catch (e) {
+    // Fallback in case of error
+    setState(() {
+      createdAt = DateTime.now();
+      userName = 'User';
+      
+    });
+    debugPrint('Error fetching user: $e');
+  }
+}
+
+String formatWorkoutDuration(dynamic duration) {
+  if (duration == null || duration == "N/A") {
+    return "Rest Day";  // 👈 No session suffix
+  }
+  return "$duration session"; // 👈 Add session suffix
+}
+
+
 
   Future<void> _fetchWeightData() async {
     try {
@@ -463,6 +581,19 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
       },
     );
   }
+String getGreeting() {
+  final hour = DateTime.now().hour;
+
+  if (hour >= 5 && hour < 12) {
+    return 'Good Morning';
+  } else if (hour >= 12 && hour < 17) {
+    return 'Good Afternoon';
+  } else if (hour >= 17 && hour < 21) {
+    return 'Good Evening';
+  } else {
+    return 'Good Night';
+  }
+}
 
   void _showImageSourceDialog() {
     showDialog(
@@ -534,54 +665,76 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
       ),
     );
   }
-
-  Widget _buildDateSelector() {
-    return SizedBox(
-      height: 80,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 100,
-        itemBuilder: (context, index) {
-          final day = 1 + index;
-          final isSelected = day == selectedDay;
-
-          return GestureDetector(
-            onTap: () => setState(() => selectedDay = day),
-            child: Container(
-              width: 60,
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.black : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Day',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[600],
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    day.toString(),
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey[600],
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
+Widget _buildDateSelector() {
+  if (createdAt == null) {
+    return const Center(child: CircularProgressIndicator());
   }
+
+  final DateTime today = DateTime.now();
+  final int daysSinceCreation = today.difference(createdAt!).inDays + 1;
+  final int totalDaysToShow = daysSinceCreation + 7; // today + next 7 days
+
+  // Ensure default selection is today
+  selectedDayIndex = selectedDayIndex.clamp(0, totalDaysToShow - 1);
+
+  // Call API for default day (today)
+
+
+  return SizedBox(
+    height: 80,
+    child: ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: totalDaysToShow,
+      itemBuilder: (context, index) {
+        final dayNumber = index + 1; // start from 1
+        final isToday = dayNumber == daysSinceCreation;
+        final isSelected = index == selectedDayIndex;
+
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              selectedDayIndex = index;
+            });
+            _fetchDailyPlan(dayNumber); // API call for selected day
+          },
+          child: Container(
+            width: 60,
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.black : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Day',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  dayNumber.toString(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
 
   Widget _buildWeightTracker() {
     if (isLoadingWeight) {
@@ -806,24 +959,27 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Hello Jane',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        'Good Morning',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+Text(
+  'Hello ${userName.isNotEmpty ? userName : 'User'}', // remove const
+  style: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+  ),
+),
+
+
+                  Text(
+  getGreeting(),
+  style: const TextStyle(
+    fontSize: 14,
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+  ),
+)
+
                     ],
                   ),
                   Row(
@@ -904,25 +1060,31 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
-                    child: _buildPlanCard(
-                      'Diet',
-                      '2000 kcal target',
-                      'assets/icons/diet_icon.png',
-                      context,
-                      DietScreen(),
-                    ),
-                  ),
+              Expanded(
+  child: _buildPlanCard(
+    'Diet',
+   '${dailyCalories} kcal target',
+// will now show API value
+    'assets/icons/diet_icon.png',
+    context,
+    DietScreen(day: selectedDayIndex + 1),
+  ),
+),
+//day: selectedDayIndex + 1
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildPlanCard(
-                      'Workout',
-                      '15-30 min session',
-                      'assets/icons/fitness_icon.png',
-                      context,
-                      WorkoutScreen(),
-                    ),
-                  ),
+                 Expanded(
+child: _buildPlanCard(
+  'Workout',
+  formatWorkoutDuration(currentWorkout['duration']),
+  'assets/icons/fitness_icon.png',
+  context,
+  WorkoutScreen(),
+),
+
+
+
+),
+
                 ],
               ),
               const SizedBox(height: 34),
@@ -945,7 +1107,7 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
                   _buildActivityCard(
                     'Calories Consumed',
                     '${nutritionData['caloriesEaten']}',
-                    '/2,500',
+                   '/$dailyCalories',
                     'assets/icons/food.png',
                     CalorieTrackerScreen(),
                   ),
@@ -989,7 +1151,8 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: const Text('View all images'),
+                    child: const Text('View all images',   style: TextStyle(color: Colors.white),),
+                
                   ),
                 ],
               ),

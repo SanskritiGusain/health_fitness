@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_app/api/api_service.dart';
 import 'package:test_app/pages/gif_splash_page.dart';
+import 'package:test_app/pages/height_input.dart';
 import 'package:test_app/shared_preferences.dart' as userApi;
 
 class WeightInputPage extends StatefulWidget {
-  final double height;
-  const WeightInputPage({super.key, required this.height});
+ 
+  const WeightInputPage({super.key});
 
   @override
   State<WeightInputPage> createState() => _WeightInputPageState();
@@ -96,7 +97,7 @@ class _WeightInputPageState extends State<WeightInputPage> {
 
       // Navigate to GifSplashPage after successful API call
       if (mounted) {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const GifSplashPage()),
         );
@@ -137,10 +138,20 @@ class _WeightInputPageState extends State<WeightInputPage> {
                           width: 24,
                           height: 24,
                         ),
-                        onPressed: () {
-                                                   Navigator.pop(context);
-                          // Navigator.of(context).pop();
-                        },
+                     onPressed: () {
+  // Navigator.pushReplacement(
+  //   context,
+  //   MaterialPageRoute(builder: (_) => const HeightInputPage()),
+  // );
+
+  Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(builder: (_) => const HeightInputPage()),
+  (Route<dynamic> route) => false,
+);
+
+}
+
                       ),
                       Expanded(
                         child: ClipRRect(

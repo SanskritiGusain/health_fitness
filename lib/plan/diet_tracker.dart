@@ -7,11 +7,14 @@ import 'package:test_app/utils/custom_bottom_nav.dart';
 import 'package:test_app/utils/custom_checkbox.dart';
 
 class DietScreen extends StatefulWidget {
-  const DietScreen({super.key});
+  final int day;
+
+  const DietScreen({super.key, required this.day});
 
   @override
   State<DietScreen> createState() => _DietScreenState();
 }
+
 
 class _DietScreenState extends State<DietScreen> {
   Map<String, dynamic>? dietData;
@@ -42,40 +45,57 @@ class _DietScreenState extends State<DietScreen> {
     super.initState();
     _fetchDietData();
   }
+Future<void> _fetchDietData() async {
+  try {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
 
-  Future<void> _fetchDietData() async {
-    try {
-      setState(() {
-        isLoading = true;
-        errorMessage = null;
-      });
+    final response = await ApiService.getRequest('user/daily-plan?day=${widget.day}');
+    print("Raw Response => $response");
 
-      final response = await ApiService.getRequest('user/');
-      final data = response['current_diet'] as Map<String, dynamic>?;
+    final diet = response['plan']?['diet'];
+    Map<String, dynamic>? data;
 
-      // Build meal index + reset selections
+    if (diet != null) {
+      if (diet is Map && diet['diet_plan'] != null && diet['diet_plan'] is Map) {
+        data = Map<String, dynamic>.from(diet['diet_plan']);
+      } else if (diet is Map) {
+        data = Map<String, dynamic>.from(diet);
+      }
+    }
+
+    if (data?['meals'] == null) {
+      print("⚠️ No meals field found in data: $data");
+    }
+
+    if (data != null) {
       _mealsByKey.clear();
       _selected.clear();
-
-      if (data != null) {
-        _indexMeals(data);
-        _calculateTargets();
-      }
+      _indexMeals(data);
+      _calculateTargets();
 
       setState(() {
         dietData = data;
         isLoading = false;
       });
 
-      // Recalculate once (will be zeros if nothing selected)
       _recalculateTotals();
-    } catch (e) {
+    } else {
       setState(() {
-        errorMessage = e.toString();
+        dietData = null;
         isLoading = false;
       });
     }
+  } catch (e) {
+    setState(() {
+      errorMessage = e.toString();
+      isLoading = false;
+    });
   }
+}
+
 
   // Create a stable key for a meal (use id if present, else a composite)
   String _makeKey(Map<String, dynamic> meal, String slot, int idx) {
@@ -118,13 +138,15 @@ class _DietScreenState extends State<DietScreen> {
     _mealsByKey.forEach((key, meal) {
       if (meal == null) return;
 
-      final macros = (meal['macros'] ?? {}) as Map<String, dynamic>;
+ final macros = meal['macros'] != null 
+    ? Map<String, dynamic>.from(meal['macros'])
+    : <String, dynamic>{};
 
-      cals += ((meal['calories'] ?? 0) as num).toDouble();
-      carbs += ((macros['carbs_grams'] ?? 0) as num).toDouble();
-      prot += ((macros['protein_grams'] ?? 0) as num).toDouble();
-      fat += ((macros['fats_grams'] ?? 0) as num).toDouble();
-    });
+cals += ((meal['calories'] ?? 0) as num).toDouble();
+carbs += ((macros['carbs_grams'] ?? 0) as num).toDouble();
+prot  += ((macros['protein_grams'] ?? 0) as num).toDouble();
+fat   += ((macros['fats_grams'] ?? 0) as num).toDouble();
+ });
 
     setState(() {
       targetCalories = cals;
@@ -149,7 +171,10 @@ class _DietScreenState extends State<DietScreen> {
       final meal = _mealsByKey[key];
       if (meal == null) return;
 
-      final macros = (meal['macros'] ?? {}) as Map<String, dynamic>;
+     final macros = meal['macros'] != null 
+    ? Map<String, dynamic>.from(meal['macros'])
+    : <String, dynamic>{};
+
 
       cals += ((meal['calories'] ?? 0) as num).toDouble();
       carbs += ((macros['carbs_grams'] ?? 0) as num).toDouble();
@@ -282,51 +307,50 @@ class _DietScreenState extends State<DietScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+List<Widget> _sectionFor(String title, String slot) {
+  final meal = dietData?['meals']?[slot];
+  if (meal == null) return [];
 
-  List<Widget> _sectionFor(String title, String slot) {
-    final meal = dietData!['meals'][slot];
-    if (meal == null) return [];
+  final key = _makeKey(meal, slot, 0);
+  return [
+    Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black)),
+    const SizedBox(height: 8),
+    MealCard(
+      key: ValueKey(key),
+      mealData: meal,
+      isChecked: _selected[key] ?? false,
+      onChecked: (checked) => _toggleMeal(key, checked),
+    ),
+    const SizedBox(height: 16),
+  ];
+}
 
-    final key = _makeKey(meal, slot, 0);
-    return [
-      Text(title, style: const TextStyle(fontWeight: FontWeight.w600,
-          color: Colors.black,
-        )),
-      const SizedBox(height: 8),
-      MealCard(
-        key: ValueKey(key),
-        mealData: meal,
-        isChecked: _selected[key] ?? false,
-        onChecked: (checked) => _toggleMeal(key, checked),
-      ),
-      const SizedBox(height: 16),
-    ];
-  }
+List<Widget> _snacksSection() {
+  final snacks = dietData?['meals']?['snacks'];
+  if (snacks == null || snacks is! List || snacks.isEmpty) return [];
 
-  List<Widget> _snacksSection() {
-    final snacks = dietData!['meals']['snacks'];
-    if (snacks == null || snacks is! List || snacks.isEmpty) return [];
+  return [
+    const SizedBox(height: 8),
+    const Text("Snacks", style: TextStyle(fontWeight: FontWeight.w600)),
+    const SizedBox(height: 8),
+    ...List<Widget>.generate(snacks.length, (i) {
+      final snack = snacks[i];
+      final key = _makeKey(snack, 'snacks', i);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: MealCard(
+          key: ValueKey(key),
+          mealData: snack,
+          isChecked: _selected[key] ?? false,
+          onChecked: (checked) => _toggleMeal(key, checked),
+        ),
+      );
+    }),
+  ];
+}
 
-    return [
-      const SizedBox(height: 8),
-      const Text("Snacks", style: TextStyle(fontWeight: FontWeight.w600)),
-      const SizedBox(height: 8),
-      ...List<Widget>.generate(snacks.length, (i) {
-        final snack = snacks[i];
-        final key = _makeKey(snack, 'snacks', i);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: MealCard(
-            key: ValueKey(key),
-            mealData: snack,
-            isChecked: _selected[key] ?? false,
-            onChecked: (checked) => _toggleMeal(key, checked),
-          ),
-        );
-      }),
-    ];
-  }
 
+  
   Widget _buildMacronutrientSection() {
     // final macros = (dietData!['macros'] ?? {}) as Map<String, dynamic>;
     final dailyCalories = targetCalories;
@@ -488,7 +512,9 @@ class MealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final macros = (mealData['macros'] ?? {}) as Map<String, dynamic>;
+final macros = mealData['macros'] != null
+    ? Map<String, dynamic>.from(mealData['macros'])
+    : <String, dynamic>{};
 
     return Container(
       padding: const EdgeInsets.all(12),
