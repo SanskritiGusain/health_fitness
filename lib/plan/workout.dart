@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:test_app/api/api_service.dart';
 import 'package:test_app/chat/chat_start.dart';
 import 'package:test_app/plan/today_workout.dart';
 import 'package:test_app/utils/circlular progressbar.dart';
 import 'package:test_app/utils/custom_bottom_nav.dart';
+import 'package:test_app/provider/week_day_provider.dart'; // Import your provider
 
 class WorkoutScreen extends StatefulWidget {
   const WorkoutScreen({super.key});
@@ -17,10 +19,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   Map<String, dynamic>? workoutData;
   bool isLoading = false;
   String? errorMessage;
+  bool _allDone = false;
 
   List<String> dayKeys = [];
-  int _selectedDayIndex = 0;
-  bool _allDone = false;
 
   @override
   void initState() {
@@ -57,6 +58,13 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           dayKeys = sortedKeys;
           isLoading = false;
         });
+
+        // Set default day in provider if not set
+        final provider =
+            Provider.of<SelectedWeekDayProvider>(context, listen: false);
+        if (provider.selectedWeekDay.isEmpty) {
+          provider.setWeekDay(sortedKeys[DateTime.now().weekday - 1]);
+        }
       } else {
         setState(() {
           errorMessage = "No workout data found.";
@@ -73,6 +81,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SelectedWeekDayProvider>(context);
+
     if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -81,13 +91,14 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       return Scaffold(body: Center(child: Text(errorMessage!)));
     }
 
-    if (workoutData == null) {
+    if (workoutData == null || dayKeys.isEmpty) {
       return const Scaffold(
         body: Center(child: Text("No workout plan available.")),
       );
     }
 
-    final selectedDayKey = dayKeys[_selectedDayIndex];
+    final selectedDayKey =
+        provider.selectedWeekDay.toLowerCase(); // Get from provider
     final selectedDayData =
         (workoutData![selectedDayKey] as Map<String, dynamic>?) ?? {};
     final exercises = (selectedDayData['exercises'] as List<dynamic>?) ?? [];
@@ -106,12 +117,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _caloriesCard(),
-
             if (!_allDone) const SizedBox(height: 16),
             if (!_allDone) _askLuna(),
-
             const SizedBox(height: 16),
 
+            // Weekday Chips
             SizedBox(
               height: 56,
               child: ListView.separated(
@@ -121,23 +131,26 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 itemBuilder: (context, index) {
                   final key = dayKeys[index];
                   final d = (workoutData![key] as Map<String, dynamic>?) ?? {};
+                  final isSelected =
+                      provider.selectedWeekDay.toLowerCase() == key;
+
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedDayIndex = index),
+                    onTap: () => provider.setWeekDay(key), // Update provider
                     child: _dayChip(
                       key.toUpperCase(),
                       d['type']?.toString() ?? "No Type",
-                      _selectedDayIndex == index,
+                      isSelected,
                     ),
                   );
                 },
               ),
             ),
-
             const SizedBox(height: 16),
 
             Text(
               "${selectedDayKey[0].toUpperCase()}${selectedDayKey.substring(1)} Plan",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
 
@@ -145,15 +158,10 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               const Text("Rest Day – No exercises today")
             else
               Column(
-                children:
-                    exercises
-                        .map(
-                          (w) => _workoutCard(
-                            (w as Map<String, dynamic>?) ?? {},
-                            _allDone,
-                          ),
-                        )
-                        .toList(),
+                children: exercises
+                    .map((w) => _workoutCard((w as Map<String, dynamic>?) ?? {},
+                        _allDone))
+                    .toList(),
               ),
 
             const SizedBox(height: 16),
@@ -163,23 +171,20 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 backgroundColor: Colors.black,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              onPressed:
-                  exercises.isEmpty
-                      ? null
-                      : () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    TodayWorkoutScreen(todayPlan: exercises),
-                          ),
-                        );
-                      },
+              onPressed: exercises.isEmpty
+                  ? null
+                  : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              TodayWorkoutScreen(todayPlan: exercises),
+                        ),
+                      );
+                    },
               icon: const Icon(Icons.play_arrow),
               label: const Text("Start Workout"),
             ),
-
             const SizedBox(height: 8),
             OutlinedButton(
               style: OutlinedButton.styleFrom(
@@ -202,7 +207,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ],
         ),
       ),
-         bottomNavigationBar: const CustomNavBar(currentIndex: 2),
+      bottomNavigationBar: const CustomNavBar(currentIndex: 2),
       floatingActionButton: SizedBox(
         height: 46,
         child: FloatingActionButton.extended(
@@ -233,116 +238,116 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 
   Widget _caloriesCard() => Container(
-    width: double.infinity,
-    margin: const EdgeInsets.symmetric(vertical: 8),
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: const Color(0xFFF7F8FA),
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 10, left: 2),
-          child: Text(
-            "Calories Burned",
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-              color: Colors.black,
-            ),
-          ),
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7F8FA),
+          borderRadius: BorderRadius.circular(16),
         ),
-        Center(
-          child: SizedBox(
-            width: 115,
-            height: 115,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                RoundedCircularProgress(
-                  progress: 0.6,
-                  remainingText: "",
-                  strokeWidth: 9,
-                  progressColor: Colors.orange,
-                  backgroundColor: Colors.grey.shade300,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 10, left: 2),
+              child: Text(
+                "Calories Burned",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  color: Colors.black,
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text(
-                      "400 Kcal",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
+              ),
+            ),
+            Center(
+              child: SizedBox(
+                width: 115,
+                height: 115,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    RoundedCircularProgress(
+                      progress: 0.6,
+                      remainingText: "",
+                      strokeWidth: 9,
+                      progressColor: Colors.orange,
+                      backgroundColor: Colors.grey.shade300,
                     ),
-                    SizedBox(height: 2),
-                    Text(
-                      "Remaining",
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text(
+                          "400 Kcal",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "Remaining",
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   Widget _askLuna() => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [Color(0xFFE3F8B6), Color(0xFFB2F8F4)],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-      ),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: const Text(
-      "💬 Ask Luna to modify or change your plan",
-      style: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Colors.black87,
-      ),
-    ),
-  );
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFE3F8B6), Color(0xFFB2F8F4)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          "💬 Ask Luna to modify or change your plan",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+      );
 
   Widget _dayChip(String day, String? subtitle, bool selected) => Container(
-    width: 148,
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    decoration: BoxDecoration(
-      color: selected ? Colors.black : Colors.grey.shade200,
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          day,
-          style: TextStyle(
-            color: selected ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          ),
+        width: 148,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.black : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(8),
         ),
-        Text(
-          subtitle ?? "No Type",
-          style: TextStyle(
-            color: selected ? Colors.white70 : Colors.black54,
-            fontSize: 11,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              day,
+              style: TextStyle(
+                color: selected ? Colors.white : Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+            Text(
+              subtitle ?? "No Type",
+              style: TextStyle(
+                color: selected ? Colors.white70 : Colors.black54,
+                fontSize: 11,
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   Widget _workoutCard(Map<String, dynamic> workout, bool completed) {
     final name = workout["name"]?.toString() ?? "Unnamed Exercise";

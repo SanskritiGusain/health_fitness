@@ -4,6 +4,10 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:test_app/provider/day_provider.dart';
+import 'package:test_app/provider/week_day_provider.dart';
+import 'package:provider/provider.dart';
+
 
 import 'package:test_app/shared_preferences.dart';
 
@@ -122,7 +126,7 @@ int get daysPassed {
 }
 
 DateTime? createdAt;
-  int selectedDayIndex = 0; // index of currently selected day
+ // index of currently selected day
   int totalDaysToShow = 8;
   @override
   void initState() {
@@ -135,7 +139,11 @@ DateTime? createdAt;
     );
     _fetchWeightData();
       if (createdAt != null) {
-    _fetchDailyPlan(selectedDayIndex + 1);
+  final selectedDay = context.watch<SelectedDayProvider>().selectedDay;
+
+// use `selectedDay` to fetch or display data
+_fetchDailyPlan(selectedDay);
+
   }
     fetchUser(); // Fixed: renamed method
   }
@@ -234,29 +242,39 @@ int getDayNumber(DateTime imageDate) {
 
 
 
-
 Future<void> fetchUser() async {
   try {
     final data = await ApiService.getRequest('user');
 
     if (!mounted) return;
-setState(() {
-  createdAt = data['created_at'] != null
-      ? DateTime.parse(data['created_at'])
-      : DateTime.now();
 
-  userName = data['name'] ?? 'User';
+    setState(() {
+      createdAt = data['created_at'] != null
+          ? DateTime.parse(data['created_at'])
+          : DateTime.now();
 
+      userName = data['name'] ?? 'User';
+    });
 
-});
+    // Calculate default day
+    final int defaultDay = createdAt != null
+        ? DateTime.now().difference(createdAt!).inDays + 1
+        : 1;
+
+    // Set default day in provider
+final dayProvider = context.read<SelectedDayProvider>();
+final weekDayProvider = context.read<SelectedWeekDayProvider>();
+
+    dayProvider.setDay(defaultDay);
+
+    // Fetch data for default day
+    _fetchDailyPlan(defaultDay);
+if (createdAt != null) {
+  weekDayProvider.setDefaultWeekDay(createdAt!, defaultDay);
+}
+
 
   } catch (e) {
-    // Fallback in case of error
-    setState(() {
-      createdAt = DateTime.now();
-      userName = 'User';
-      
-    });
     debugPrint('Error fetching user: $e');
   }
 }
@@ -734,62 +752,63 @@ Widget _buildDateSelector() {
 
   final DateTime today = DateTime.now();
   final int daysSinceCreation = today.difference(createdAt!).inDays + 1;
-  final int totalDaysToShow = daysSinceCreation + 7; // today + next 7 days
-
-  // Ensure default selection is today
-  selectedDayIndex = selectedDayIndex.clamp(0, totalDaysToShow - 1);
-
-  // Call API for default day (today)
-
+  final int totalDaysToShow = daysSinceCreation + 7;
 
   return SizedBox(
     height: 80,
-    child: ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: totalDaysToShow,
-      itemBuilder: (context, index) {
-        final dayNumber = index + 1; // start from 1
-        final isToday = dayNumber == daysSinceCreation;
-        final isSelected = index == selectedDayIndex;
+    child: Consumer<SelectedDayProvider>(
+      builder: (context, dayProvider, _) {
+        // Ensure selected day is in valid range
+        dayProvider.setDay(dayProvider.selectedDay.clamp(1, totalDaysToShow));
 
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              selectedDayIndex = index;
-            });
-            _fetchDailyPlan(dayNumber); // API call for selected day
+        return ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: totalDaysToShow,
+          itemBuilder: (context, index) {
+            final dayNumber = index + 1;
+            final isSelected = dayNumber == dayProvider.selectedDay;
+
+            return GestureDetector(
+              onTap: () {
+                // Update provider
+                dayProvider.setDay(dayNumber);
+
+                // Fetch data for new day
+                _fetchDailyPlan(dayNumber);
+              },
+              child: Container(
+                width: 60,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.black : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Day',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? Colors.white : Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      dayNumber.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? Colors.white : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           },
-          child: Container(
-            width: 60,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: isSelected ? Colors.black : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Day',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  dayNumber.toString(),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
         );
       },
     ),
@@ -1129,7 +1148,8 @@ Text(
 // will now show API value
     'assets/icons/diet_icon.png',
     context,
-    DietScreen(day: selectedDayIndex + 1),
+     DietScreen(),
+    // WorkoutScreen(),
   ),
 ),
 //day: selectedDayIndex + 1

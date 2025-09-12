@@ -3,18 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:provider/provider.dart';
+import 'package:test_app/provider/day_provider.dart';
 import 'package:test_app/login/login_page.dart';
 import 'package:test_app/plan/fitness_wellness.dart';
 import 'package:test_app/pages/user_details.dart';
 import 'package:test_app/theme/app_theme.dart';
 import 'package:test_app/firebase_options.dart';
 import 'package:test_app/api/api_service.dart';
-
+import 'package:provider/provider.dart';
+import 'package:test_app/provider/day_provider.dart';
+import 'package:test_app/provider/week_day_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => SelectedDayProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SelectedWeekDayProvider(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {

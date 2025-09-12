@@ -5,11 +5,10 @@ import 'package:test_app/chat/chat_start.dart';
 import 'package:test_app/utils/circlular progressbar.dart';
 import 'package:test_app/utils/custom_bottom_nav.dart';
 import 'package:test_app/utils/custom_checkbox.dart';
-
+import 'package:provider/provider.dart';
+import 'package:test_app/provider/day_provider.dart';
 class DietScreen extends StatefulWidget {
-  final int day;
-
-  const DietScreen({super.key, required this.day});
+  const DietScreen({super.key});
 
   @override
   State<DietScreen> createState() => _DietScreenState();
@@ -40,19 +39,22 @@ class _DietScreenState extends State<DietScreen> {
   // Selection state lives ONLY here (single source of truth)
   final Map<String, bool> _selected = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchDietData();
-  }
-Future<void> _fetchDietData() async {
+@override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  final selectedDay = context.watch<SelectedDayProvider>().selectedDay;
+  _fetchDietData(selectedDay);
+}
+
+
+Future<void> _fetchDietData(int day) async {
   try {
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    final response = await ApiService.getRequest('user/daily-plan?day=${widget.day}');
+    final response = await ApiService.getRequest('user/daily-plan?day=$day');
     print("Raw Response => $response");
 
     final diet = response['plan']?['diet'];
@@ -64,10 +66,6 @@ Future<void> _fetchDietData() async {
       } else if (diet is Map) {
         data = Map<String, dynamic>.from(diet);
       }
-    }
-
-    if (data?['meals'] == null) {
-      print("⚠️ No meals field found in data: $data");
     }
 
     if (data != null) {
@@ -95,7 +93,6 @@ Future<void> _fetchDietData() async {
     });
   }
 }
-
 
   // Create a stable key for a meal (use id if present, else a composite)
   String _makeKey(Map<String, dynamic> meal, String slot, int idx) {
@@ -192,25 +189,29 @@ fat   += ((macros['fats_grams'] ?? 0) as num).toDouble();
 
   @override
   Widget build(BuildContext context) {
+                  final selectedDay = context.read<SelectedDayProvider>().selectedDay;
     final body =
         isLoading
             ? const Center(child: CircularProgressIndicator())
             : errorMessage != null
             ? Center(
+
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Error: $errorMessage',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _fetchDietData,
-                    child: const Text('Retry'),
-                  ),
-                ],
+  Text(
+    'Error: $errorMessage',
+    style: const TextStyle(color: Colors.red),
+    textAlign: TextAlign.center,
+  ),
+  const SizedBox(height: 16),
+//final selectedDay = context.read<SelectedDayProvider>().selectedDay; // ❌ invalid here
+  ElevatedButton(
+    onPressed: () => _fetchDietData(selectedDay),
+    child: const Text('Retry'),
+  ),
+],
+
               ),
             )
             : dietData == null
@@ -249,8 +250,8 @@ fat   += ((macros['fats_grams'] ?? 0) as num).toDouble();
                   ),
                   const SizedBox(height: 20),
 
-                  const Text(
-                    "Today's Plan",
+                   Text(
+                    "Today Plan",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
                       color: Colors.black),
                   ),
