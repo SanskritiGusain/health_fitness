@@ -1,6 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:dotted_border/dotted_border.dart';
+
+import 'package:test_app/shared_preferences.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +15,7 @@ import 'package:test_app/api/matrics_service.dart';
 import 'package:test_app/chat/chat_start.dart';
 import 'package:test_app/gamification/gamification_screen.dart';
 import 'package:test_app/new/sleep_tracking.dart';
+import 'package:test_app/new/view_all_image.dart';
 
 import 'package:test_app/plan/calorie_tracker.dart';
 import 'package:test_app/plan/diet_tracker.dart';
@@ -50,7 +57,8 @@ class _FitnessWellnessScreenState extends State<FitnessWellnessScreen> {
   double goalWeight = 0;
   double initialWeight = 0;
 
-  File? selectedImage;
+ List<File> selectedImages = [];
+
   final ImagePicker _picker = ImagePicker();
   bool isLoadingWeight = true;
   String? weightError;
@@ -133,6 +141,50 @@ DateTime? createdAt;
   }
  // default value
   int dailyCalories = 0;
+
+
+
+
+Future<void> uploadImage(File image) async {
+  try {
+    // base url came from globaly i can manage it later on 
+    var uri = Uri.parse('http://192.168.1.35:8000/upload-image/');
+    var request = http.MultipartRequest('POST', uri);
+
+    // ✅ Fetch token from PersistentData
+    String? token = await PersistentData.getAuthToken();
+
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = token; // add token here
+      print("🔑 Using token: $token");
+    } else {
+      print("⚠️ No token found in SharedPreferences!");
+    }
+
+    // Add image file
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        image.path,
+        contentType: MediaType('image', 'png'),
+      ),
+    );
+
+    // Send request
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      print('✅ Image uploaded successfully!');
+    } else {
+      print('❌ Upload failed: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('⚠️ Error uploading image: $e');
+  }
+}
+
+
+
 Future<void> _fetchDailyPlan(int day) async {
   try {
     final data = await ApiService.getRequest('user/daily-plan?day=$day');
@@ -172,6 +224,10 @@ Future<void> _fetchDailyPlan(int day) async {
 }
 
 
+int getDayNumber(DateTime imageDate) {
+  if (createdAt == null) return 1;
+  return imageDate.difference(createdAt!).inDays + 1;
+}
 
       
 
@@ -307,25 +363,31 @@ String formatWorkoutDuration(dynamic duration) {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image != null) {
-        setState(() => selectedImage = File(image.path));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Image ${source == ImageSource.camera ? 'captured' : 'uploaded'}',
-            ),
+Future<void> _pickImage(ImageSource source) async {
+  try {
+    final XFile? image = await _picker.pickImage(source: source);
+    if (image != null) {
+      setState(() {
+        selectedImages.add(File(image.path));
+      });
+
+      // Upload immediately
+      await uploadImage(File(image.path));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Image ${source == ImageSource.camera ? 'captured' : 'uploaded'}',
           ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ),
+      );
     }
+  } catch (e) {
+    print('Error picking image: $e');
   }
+}
+
+
 
   void _showWeightBottomSheet(BuildContext context, double height) {
     final controller =
@@ -1149,47 +1211,135 @@ child: _buildPlanCard(
                     'Progress Journey',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.black),
                   ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('View all images',   style: TextStyle(color: Colors.white),),
-                
-                  ),
+             TextButton(
+  onPressed: () {
+    if (createdAt != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ViewAllImagesPage(
+            userCreatedAt: createdAt!,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User creation date not loaded yet.")),
+      );
+    }
+  },
+  child: const Text(
+    'View all images',
+    style: TextStyle(color: Colors.white),
+  ),
+),
+
+
+
                 ],
               ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: _showImageSourceDialog,
-                child: Container(
-                  width: 120,
-                  height: 142,
-                  decoration: BoxDecoration(
-                    border:
-                        selectedImage == null
-                            ? Border.all(
-                              color: Colors.grey,
-                              style: BorderStyle.solid,
-                            )
-                            : null,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child:
-                      selectedImage != null
-                          ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              selectedImage!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                          : const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add, size: 24),
-                              Text('Add photo', style: TextStyle(fontSize: 12)),
-                            ],
-                          ),
+            const SizedBox(height: 16),
+SizedBox(
+  height: 150,
+  child: ListView.builder(
+    scrollDirection: Axis.horizontal,
+    itemCount: selectedImages.length + 1, // +1 for Add Image box
+    itemBuilder: (context, index) {
+      const double boxWidth = 120;
+      const double boxHeight = 150;
+
+      // --- Add photo box ---
+      if (index == 0) {
+        return Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: GestureDetector(
+            onTap: _showImageSourceDialog,
+            child: DottedBorder(   // 👈 needs dotted_border package
+              borderType: BorderType.RRect,
+              radius: const Radius.circular(12),
+              color: Colors.grey,
+              dashPattern: [6, 3],
+              strokeWidth: 1.2,
+              child: Container(
+                width: boxWidth,
+                height: boxHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.add, size: 24, color: Colors.grey),
+                    SizedBox(height: 8),
+                    Text('Add photo',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
                 ),
               ),
+            ),
+          ),
+        );
+      }
+
+      // --- Uploaded images ---
+      final image = selectedImages[index - 1];
+      final imageDay = getDayNumber(DateTime.now());
+
+      return Padding(
+        padding: const EdgeInsets.only(right: 8.0),
+        child: Container(
+          width: boxWidth,
+          height: boxHeight,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                child: Image.file(
+                  image,
+                  width: boxWidth,
+                  height: boxHeight - 30, // space for day label
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Container(
+                width: boxWidth,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  'Day $imageDay',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  ),
+),
+
+
+
+
             ],
           ),
         ),

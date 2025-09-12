@@ -29,7 +29,10 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
+  
     sdk: flutter
+
+
   dropdown_button2: ^2.3.9
   flutter_screenutil: ^5.6.1
   cupertino_icons: ^1.0.8
