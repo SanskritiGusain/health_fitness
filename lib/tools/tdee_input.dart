@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:test_app/tools/tdee_result_screen.dart'; 
-
-
+import 'package:test_app/tools/tdee_result_screen.dart';
+import 'package:test_app/utils/textflied_unit_dropdown.dart';
 
 class TDEEScreenInput extends StatefulWidget {
   const TDEEScreenInput({super.key});
@@ -26,6 +25,9 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
     'Heavy exercise (6–7 days a week)',
     'Athlete-level training',
   ];
+
+  final List<String> weightUnits = ['kg', 'lbs'];
+  final List<String> heightUnits = ['cm', 'inch'];
 
   void _calculateTDEE() {
     final double? height = double.tryParse(_heightController.text);
@@ -79,12 +81,12 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
 
     double tdee = bmr * activityFactor;
 
-   Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => TdeeResultScreen(tdee: tdee),
-  ),
-);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TdeeResultScreen(tdee: tdee),
+      ),
+    );
   }
 
   @override
@@ -95,7 +97,7 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
         backgroundColor: const Color(0xFFF8FBFB),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF000000)),
+          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF000000)),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -118,9 +120,8 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildDropdownField(
+              _buildSimpleDropdown(
                 hint: "Gender",
-                hintStyle: const TextStyle(color: Color(0xFFC9C9C9), fontSize: 14, fontWeight: FontWeight.w500),
                 value: selectedGender,
                 items: const ['Female', 'Male', 'Other'],
                 onChanged: (value) {
@@ -130,15 +131,26 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
                 },
               ),
               const SizedBox(height: 16),
-              _buildTextField(_ageController, "Age", TextInputType.number),
+              _buildSimpleInput(_ageController, "Age"),
               const SizedBox(height: 16),
-              _buildWeightInputField(),
+              CustomInputWithDropdown(
+                controller: _weightController,
+                hintText: "Weight",
+                value: weightUnit,
+                items: weightUnits,
+                onChanged: (val) => setState(() => weightUnit = val!),
+              ),
               const SizedBox(height: 16),
-              _buildHeightInputField(),
+              CustomInputWithDropdown(
+                controller: _heightController,
+                hintText: "Height",
+                value: _selectedHeightUnit,
+                items: heightUnits,
+                onChanged: (val) => setState(() => _selectedHeightUnit = val!),
+              ),
               const SizedBox(height: 16),
-              _buildDropdownField(
+              _buildSimpleDropdown(
                 hint: "Activity Level",
-                hintStyle: const TextStyle(color: Color(0xFFC9C9C9), fontSize: 14, fontWeight: FontWeight.w500),
                 value: selectedActivityLevel,
                 items: activityLevels,
                 onChanged: (String? value) {
@@ -161,7 +173,7 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
             child: ElevatedButton(
               onPressed: _calculateTDEE,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF0C0C0C),
+                backgroundColor: const Color(0xFF0C0C0C),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -173,210 +185,71 @@ class _TDEEScreenInputState extends State<TDEEScreenInput> {
               ),
             ),
           ),
-          const Divider(height: 1),
-          BottomNavigationBar(
-            currentIndex: 4,
-            selectedItemColor: Colors.black,
-            unselectedItemColor: Colors.grey,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            items: [
-              BottomNavigationBarItem(
-                icon: Image.asset('assets/icons/ant-design_home-outlined.png', width: 24, height: 24),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Image.asset('assets/icons/plan.png', width: 24, height: 24),
-                label: 'My Plan',
-              ),
-              BottomNavigationBarItem(
-                icon: Image.asset('assets/icons/tabler_message.png', width: 24, height: 24),
-                label: 'Chat',
-              ),
-              BottomNavigationBarItem(
-                icon: Image.asset('assets/icons/heroicons_trophy.png', width: 24, height: 24),
-                label: 'Merits',
-              ),
-              BottomNavigationBarItem(
-                icon: Image.asset('assets/icons/hugeicons_tools.png', width: 24, height: 24),
-                label: 'Tools',
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, TextInputType keyboardType) {
+  Widget _buildSimpleInput(TextEditingController controller, String hint) {
     return TextField(
       controller: controller,
-      keyboardType: keyboardType,
+      keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        isDense: true,
-        filled: true,
-        fillColor: Color(0xFFFFFFFF),
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFC9C9C9), fontSize: 14, fontWeight: FontWeight.w500),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFDDE5F0)),
+        hintStyle: const TextStyle(
+          fontSize: 14,
+          color: Color(0xFFC9C9C9),
+          fontWeight: FontWeight.w500,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF0C0C0C)),
-        ),
+        filled: true,
+        fillColor: Colors.white,
+          border: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
     );
   }
 
-  Widget _buildDropdownField({
+  Widget _buildSimpleDropdown({
     required String hint,
-    required TextStyle hintStyle,
     required String? value,
     required List<String> items,
     required Function(String?) onChanged,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xFFFFFFFF),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDE5F0)),
+ 
       ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        hint: Text(hint, style: hintStyle),
-        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-        isExpanded: true,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: hintStyle,
-          isDense: true,
-          filled: true,
-          fillColor: Color(0xFFFFFFFF),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Text(
+            hint,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFFC9C9C9),
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFFC9C9C9)),
+          items: items
+              .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(
+                      e,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                  ))
+              .toList(),
+          onChanged: onChanged,
         ),
-        items: items.map((e) => DropdownMenuItem(
-          value: e,
-          child: Text(
-            e,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-        )).toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  Widget _buildHeightInputField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDE5F0)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _heightController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: 'Height',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              ),
-            ),
-          ),
-          Container(width: 1, height: 30, color: const Color(0xFFE0E0E0)),
-          Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: DropdownButton<String>(
-              value: _selectedHeightUnit,
-              underline: const SizedBox(),
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFFC9C9C9)),
-              items: const [
-                DropdownMenuItem(
-                  value: 'cm',
-                  child: Text('cm', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                ),
-                DropdownMenuItem(
-                  value: 'inch',
-                  child: Text('inch', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedHeightUnit = value!;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWeightInputField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFFFFFFFF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDDE5F0)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _weightController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                hintText: 'Weight',
-                hintStyle: TextStyle(color: Color(0xFFC9C9C9), fontSize: 14, fontWeight: FontWeight.w500),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              ),
-            ),
-          ),
-          Container(width: 1, height: 30, color: const Color(0xFFE0E0E0)),
-          Container(
-            height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: DropdownButton<String>(
-              value: weightUnit,
-              underline: const SizedBox(),
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFFC9C9C9)),
-              items: const [
-                DropdownMenuItem(
-                  value: 'kg',
-                  child: Text('kg', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                ),
-                DropdownMenuItem(
-                  value: 'lbs',
-                  child: Text('lbs', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  weightUnit = value!;
-                });
-              },
-            ),
-          ),
-        ],
       ),
     );
   }

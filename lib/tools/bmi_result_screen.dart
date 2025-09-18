@@ -71,23 +71,31 @@ class _BMIResultScreenState extends State<BMIResultScreen> {
               const SizedBox(height: 200),
 
               // Gauge Card (Red background like screenshot)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 0),
-                child: Container(
-                  width: double.infinity,
-                    height:40,
-                  decoration: BoxDecoration(
-                    color: Colors.white, // Deep red background
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                child: Center( // <-- Centers both horizontally and vertically
-      child: CustomPaint(
-        size: const Size(260, 130),
-        painter: BMIGaugePainter(bmi),
+   
+// Replace your existing Gauge Card with this
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal:0),
+  child: Card(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    elevation: 4,
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        height: 200, // height of the gauge card
+        width: double.infinity,
+        child: Center(
+          child: CustomPaint(
+            size: const Size(260, 130), // fill the card width
+            painter: BMIGaugePainter(bmi),
+          ),
+        ),
       ),
     ),
-                ),
-              ),
+  ),
+),
 
               const SizedBox(height: 20),
 
@@ -107,56 +115,9 @@ class _BMIResultScreenState extends State<BMIResultScreen> {
           ),
         ),
       ),
-      bottomNavigationBar:  BottomNavigationBar(
-  currentIndex: 4,
-  selectedItemColor: Colors.black,
-  unselectedItemColor: Colors.grey,
-  type: BottomNavigationBarType.fixed,
-  backgroundColor: Colors.white,
-  items: [
- BottomNavigationBarItem(
-  icon: Image.asset(
-    'assets/icons/ant-design_home-outlined.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-  ),
-  label: 'Home',
-),
+    
 
-    BottomNavigationBarItem(
-    icon: Image.asset(
-                    'assets/icons/plan.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'My Plan',
-    ),
-    BottomNavigationBarItem(
-    icon: Image.asset(
-                'assets/icons/tabler_message.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Chat',
-    ),
-    BottomNavigationBarItem(
-    icon:Image.asset(
-                  'assets/icons/heroicons_trophy.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Merits',
-    ),
-    BottomNavigationBarItem(
-      icon:Image.asset(
-                   'assets/icons/hugeicons_tools.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Tools',
-    ),
-  ],
-),
+
     );
   }
 

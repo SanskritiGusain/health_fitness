@@ -14,6 +14,7 @@ import 'package:test_app/api/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:test_app/provider/day_provider.dart';
 import 'package:test_app/provider/week_day_provider.dart';
+import 'package:test_app/tools/tools_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -150,11 +151,13 @@ Future<void> _decideHomeScreen() async {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-      home: _isLoading
-          ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            )
-          : _homeScreen,
+     
+      home: const ToolsScreen(),
+      //_isLoading
+      //     ? const Scaffold(
+      //         body: Center(child: CircularProgressIndicator()),
+      //       )
+      //     : _homeScreen,
     );
   }
 }

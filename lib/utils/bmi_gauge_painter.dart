@@ -27,56 +27,56 @@ class BMIGaugePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 6.15);
-    final radius = size.width / 2.2;
+    final center = Offset(size.width / 2, size.height * 0.75); // Better vertical positioning
+    final radius = size.width * 0.4; // More proportional radius
     final sweepPerRange = pi / (bmiRanges.length - 1);
     final startAngle = -pi;
 
     // Outer dark blue border
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius + 48),
+      Rect.fromCircle(center: center, radius: radius + 40),
       pi,
       pi,
       false,
       Paint()
         ..color = Color(0xFF003176)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 6,
+        ..strokeWidth = 4,
     );
 
     // Light grey background stroke
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius + 30),
+      Rect.fromCircle(center: center, radius: radius + 25),
       pi,
       pi,
       false,
       Paint()
         ..color = Colors.grey.shade200
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 30,
+        ..strokeWidth = 25,
     );
 
     // Inner grey stroke
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - 89),
+      Rect.fromCircle(center: center, radius: radius - 75),
       pi,
       pi,
       false,
       Paint()
         ..color = Colors.grey.shade400
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4,
+        ..strokeWidth = 3,
     );
 
-    // Colored ranges
+    // Colored ranges with improved positioning
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 105;
+      ..strokeWidth = 85;
 
     for (int i = 0; i < colors.length; i++) {
       paint.color = colors[i];
       canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius - 35),
+        Rect.fromCircle(center: center, radius: radius - 30),
         startAngle + i * sweepPerRange,
         sweepPerRange,
         false,
@@ -86,43 +86,57 @@ class BMIGaugePainter extends CustomPainter {
 
     // Top grey stroke
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius + 18),
+      Rect.fromCircle(center: center, radius: radius + 15),
       pi,
       pi,
       false,
       Paint()
         ..color = Colors.grey.shade400
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4,
+        ..strokeWidth = 3,
     );
 
-    // Category labels
+    // Category labels with better spacing
     for (int i = 0; i < categories.length; i++) {
       final sectionStart = startAngle + i * sweepPerRange;
       final sectionEnd = startAngle + (i + 1) * sweepPerRange;
-      _drawCircularText(canvas, categories[i], center, radius + 30,
-          sectionStart, sectionEnd,
-          fontSize: 12, color: Color(0xFF6B6B6B), fontWeight: FontWeight.w700);
+      _drawCircularText(
+        canvas, 
+        categories[i], 
+        center, 
+        radius + 28,
+        sectionStart, 
+        sectionEnd,
+        fontSize: 10, 
+        color: Color(0xFF6B6B6B), 
+        fontWeight: FontWeight.w600
+      );
     }
 
-    // BMI range labels
+    // BMI range labels with better positioning
     for (int i = 0; i < labels.length; i++) {
       final sectionStart = startAngle + i * sweepPerRange;
       final sectionEnd = startAngle + (i + 1) * sweepPerRange;
-      _drawCircularText(canvas, labels[i], center, radius - 30, sectionStart,
-          sectionEnd,
-          fontSize: 12,
-          color: Color(0xFFF8FBFB),
-          fontWeight: FontWeight.bold);
+      _drawCircularText(
+        canvas, 
+        labels[i], 
+        center, 
+        radius - 25, 
+        sectionStart,
+        sectionEnd,
+        fontSize: 10,
+        color: Colors.white,
+        fontWeight: FontWeight.bold
+      );
     }
 
-    // Needle
+    // Needle with improved positioning
     final angle = _getNeedleAngle(bmi);
-    _drawNeedle(canvas, center, angle, radius - 60);
+    _drawNeedle(canvas, center, angle, radius - 50);
   }
 
   void _drawNeedle(Canvas canvas, Offset center, double angle, double length) {
-    final needleWidth = 13;
+    final needleWidth = 10; // Slightly thinner needle
     final tip = Offset(center.dx + length * cos(angle),
         center.dy + length * sin(angle));
     final baseLeft = Offset(center.dx + needleWidth * cos(angle + pi / 2),
@@ -143,72 +157,73 @@ class BMIGaugePainter extends CustomPainter {
           ..color = Colors.black26
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2));
 
-    // Needle fill
+    // Needle fill with improved gradient
     canvas.drawPath(
         path,
         Paint()
-          ..shader = LinearGradient(colors: [
-            Color(0xFF111111),
-            Color(0xFF0E0E0E),
-            Color(0xFF000000)
-          ], stops: [
-            0.0,
-            0.5,
-            1.0
-          ]).createShader(Rect.fromPoints(baseLeft, tip)));
+          ..shader = LinearGradient(
+            colors: [
+              Color(0xFF2C2C2C),
+              Color(0xFF1A1A1A),
+              Color(0xFF000000)
+            ], 
+            stops: [0.0, 0.5, 1.0]
+          ).createShader(Rect.fromPoints(baseLeft, tip)));
 
     // Center hub
     const hubRadius = 12.0;
+    
+    // Hub shadow
     canvas.drawCircle(
         Offset(center.dx + 1, center.dy + 1),
         hubRadius,
-        Paint()
-          ..color = Colors.black26);
+        Paint()..color = Colors.black26);
 
+    // Main hub
     canvas.drawCircle(
         center,
         hubRadius,
         Paint()
-          ..shader = RadialGradient(colors: [
-            Color(0xFF1A1A1A),
-            Color(0xFF0A0A0A),
-          ]).createShader(Rect.fromCircle(center: center, radius: hubRadius)));
+          ..shader = RadialGradient(
+            colors: [
+              Color(0xFF2A2A2A),
+              Color(0xFF0F0F0F),
+            ]
+          ).createShader(Rect.fromCircle(center: center, radius: hubRadius)));
 
+    // Hub border
     canvas.drawCircle(
         center,
         hubRadius,
         Paint()
-          ..color = Color(0xFF0B0B0B)
+          ..color = Color(0xFF1C1C1C)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5);
 
+    // Inner hub highlight
     canvas.drawCircle(
         center,
         hubRadius * 0.6,
         Paint()
-          ..color = Color(0xFF6A6A6A)
+          ..color = Color(0xFF505050)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1);
+          ..strokeWidth = 0.8);
   }
 
   double _getNeedleAngle(double bmi) {
-    int index = 0;
-    for (int i = 0; i < bmiRanges.length - 1; i++) {
-      if (bmi >= bmiRanges[i] && bmi < bmiRanges[i + 1]) {
-        index = i;
-        break;
-      }
-    }
-    if (bmi >= bmiRanges.last) index = bmiRanges.length - 2;
+    // Clamp BMI to the min and max range
+    final clampedBmi = bmi.clamp(bmiRanges.first, bmiRanges.last);
 
-    double rangeStart = bmiRanges[index];
-    double rangeEnd = bmiRanges[index + 1];
-    double percent = (bmi - rangeStart) / (rangeEnd - rangeStart);
-    final sweepPerRange = pi / (bmiRanges.length - 1);
-    final startAngle = -pi;
-    const needleOffset = -0.2;
+    // Map BMI to 0.0 - 1.0 over the whole range
+    final percent = (clampedBmi - bmiRanges.first) /
+        (bmiRanges.last - bmiRanges.first);
 
-    return startAngle + (index + percent) * sweepPerRange + needleOffset;
+    // Start angle = pi (left), sweep 180° (pi)
+    final startAngle = pi;
+    final endAngle = 2 * pi;
+    final angle = startAngle + percent * (endAngle - startAngle);
+
+    return angle;
   }
 
   void _drawCircularText(Canvas canvas, String text, Offset center,
@@ -217,11 +232,16 @@ class BMIGaugePainter extends CustomPainter {
       Color color = Colors.black,
       FontWeight fontWeight = FontWeight.normal}) {
     final sweep = end - start;
-    final spacing = sweep / (text.length + 1);
+    
+    // Better character spacing calculation
+    final totalChars = text.length;
+    final availableAngle = sweep * 0.8; // Use 80% of available space
+    final charSpacing = availableAngle / (totalChars + 1);
+    final startOffset = (sweep - availableAngle) / 2;
 
-    for (int i = 0; i < text.length; i++) {
+    for (int i = 0; i < totalChars; i++) {
       final char = text[i];
-      final angle = start + (i + 1) * spacing;
+      final angle = start + startOffset + (i + 1) * charSpacing;
       final pos = Offset(center.dx + radius * cos(angle),
           center.dy + radius * sin(angle));
       _drawRotatedText(canvas, char, pos, angle + pi / 2,
@@ -237,7 +257,11 @@ class BMIGaugePainter extends CustomPainter {
         text: TextSpan(
             text: text,
             style: TextStyle(
-                fontSize: fontSize, color: color, fontWeight: fontWeight)),
+                fontSize: fontSize, 
+                color: color, 
+                fontWeight: fontWeight,
+                fontFamily: 'Roboto' // Better font consistency
+            )),
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr)
       ..layout();

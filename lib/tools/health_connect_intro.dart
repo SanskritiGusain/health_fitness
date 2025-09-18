@@ -103,56 +103,7 @@ class HealthConnectIntroScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-  currentIndex: 4,
-  selectedItemColor: Colors.black,
-  unselectedItemColor: Colors.grey,
-  type: BottomNavigationBarType.fixed,
-  backgroundColor: Colors.white,
-  items: [
- BottomNavigationBarItem(
-  icon: Image.asset(
-    'assets/icons/ant-design_home-outlined.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-  ),
-  label: 'Home',
-),
-
-    BottomNavigationBarItem(
-    icon: Image.asset(
-                    'assets/icons/plan.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'My Plan',
-    ),
-    BottomNavigationBarItem(
-    icon: Image.asset(
-                'assets/icons/tabler_message.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Chat',
-    ),
-    BottomNavigationBarItem(
-    icon:Image.asset(
-                  'assets/icons/heroicons_trophy.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Merits',
-    ),
-    BottomNavigationBarItem(
-      icon:Image.asset(
-                   'assets/icons/hugeicons_tools.png', // <-- Your image path here
-    width: 24,
-    height: 24,
-                  ),
-      label: 'Tools',
-    ),
-  ],
-)
+      
     );
   }
 }

@@ -54,6 +54,11 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions for responsiveness
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final responsivePadding = isTablet ? screenWidth * 0.08 : 16.0;
+
     return Scaffold(
       backgroundColor: Color(0xFFF8FBFB),
       appBar: AppBar(
@@ -67,45 +72,59 @@ class _CalorieTrackerScreenState extends State<CalorieTrackerScreen> {
           'Calories',
           style: TextStyle(
             color: Colors.black,
-            fontSize: 18,
+            fontSize: isTablet ? 20 : 18,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildGoalSection(),
-            SizedBox(height: 44),
-            Text(
-              'Net Calories Snapshot',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: isTablet ? 700 : double.infinity,
             ),
-            SizedBox(height: 16),
-            _intakeSection(),
-            SizedBox(height: 24),
-            
-            _buildNetCaloriesSnapshot(),
-            SizedBox(height: 24),
-            _buildAnalyticsChart(),
-            SizedBox(height: 16),
-            _buildTipsSection(),
-          ],
+            child: Padding(
+              padding: EdgeInsets.all(responsivePadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildGoalSection(),
+                  SizedBox(height: 44),
+                  Text(
+                    'Net Calories Snapshot',
+                    style: TextStyle(
+                      fontSize: isTablet ? 20 : 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _intakeSection(),
+                  SizedBox(height: 24),
+                  _buildNetCaloriesSnapshot(),
+                  SizedBox(height: 24),
+                  _buildAnalyticsChart(),
+                  SizedBox(height: 16),
+                  _buildTipsSection(),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-Widget _buildGoalSection() {
+  Widget _buildGoalSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     double burned = 1000; // Example burned calories
     double totalGoal = 2800; // Example total goal
     double resting = 200;
     double active = 800;
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.only(left: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -118,18 +137,18 @@ Widget _buildGoalSection() {
         children: [
           // Circular progress with center text
           Container(
-            width: 100,
-            height: 100,
+            width: isTablet ? 90 : 70,
+            height: isTablet ? 90 : 70,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 // Background circle
                 SizedBox(
-                  width: 100,
-                  height: 100,
+                   width: isTablet ? 90 : 70,
+            height: isTablet ? 90 : 70,
                   child: CircularProgressIndicator(
                     value: 1,
-                    strokeWidth: 10,
+                    strokeWidth: isTablet ? 12 : 10,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       Colors.grey[300]!,
                     ),
@@ -138,11 +157,11 @@ Widget _buildGoalSection() {
 
                 // Progress arc (orange)
                 SizedBox(
-                  width: 100,
-                  height: 100,
+                  width: isTablet ? 120 : 100,
+                  height: isTablet ? 120 : 100,
                   child: CircularProgressIndicator(
                     value: burned / totalGoal,
-                    strokeWidth: 10,
+                    strokeWidth: isTablet ? 12 : 10,
                     backgroundColor: Colors.transparent,
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
                   ),
@@ -155,14 +174,17 @@ Widget _buildGoalSection() {
                     Text(
                       '${burned.toInt()} Kcal',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: isTablet ? 12 : 10,
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
                     Text(
                       'Burned',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: isTablet ? 12 : 10,
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ],
                 ),
@@ -170,70 +192,91 @@ Widget _buildGoalSection() {
             ),
           ),
 
-          SizedBox(width: 24),
+          SizedBox(width: isTablet ? 32 : 24),
 
           // Right-side: stack curve + text
           Expanded(
-            child: Stack(
-               clipBehavior: Clip.none,
-              children: [
-                // Background curve
-               Positioned.fill(
-  child: SvgPicture.asset(
-    'assets/icons/curve.svg',
-    fit: BoxFit.fill, // 👈 fills both height and width
-    color: Colors.orangeAccent,
-  ),
-)
-,
+            child: Container(
+              height: isTablet ? 120 : 100, // Match the circle height
+              child: Stack(
+                children: [
+                  // Background curve - positioned to match your image
+                  Positioned(
+                    top: 0,
+                    right: -20, // Extend beyond container edge
+                    bottom: 0,
+                    width: 80, // Fixed width for the curve
+                    child: SvgPicture.asset(
+                      'assets/icons/curve.svg',
+                      fit: BoxFit.fill, // Fill the entire positioned area
+                      color: Colors.orangeAccent.withOpacity(0.3),
+                    ),
+                  ),
 
-                // Text content on top
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total Goal: ${totalGoal.toInt()} Kcal',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(fontSize: 13, color: Colors.black),
+                  // Text content on top
+                  Positioned.fill(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: 20), // Avoid text overlap with curve
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          TextSpan(text: 'Resting (BMR): '),
-                          TextSpan(
-                            text: '${resting.toInt()} kcal',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          Text(
+                            'Total Goal: ${totalGoal.toInt()} Kcal',
+                            style: TextStyle(
+                              fontSize: isTablet ? 16 : 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.orange,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: isTablet ? 14 : 13,
+                                color: Colors.black,
+                              ),
+                              children: [
+                                TextSpan(text: 'Resting (BMR): '),
+                                TextSpan(
+                                  text: '${resting.toInt()} kcal',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: isTablet ? 14 : 13,
+                                color: Colors.black,
+                              ),
+                              children: [
+                                TextSpan(text: 'Active: '),
+                                TextSpan(
+                                  text: '${active.toInt()} kcal',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(fontSize: 13, color: Colors.black),
-                        children: [
-                          TextSpan(text: 'Active: '),
-                          TextSpan(
-                            text: '${active.toInt()} kcal',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-Widget _intakeSection() {
+
+  Widget _intakeSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Container(
       padding: EdgeInsets.all(4),
       child: Row(
@@ -241,7 +284,7 @@ Widget _intakeSection() {
           // First box
           Expanded(
             child: Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(isTablet ? 20 : 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -256,7 +299,7 @@ Widget _intakeSection() {
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(isTablet ? 16 : 12),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.1),
                       shape: BoxShape.circle,
@@ -264,14 +307,14 @@ Widget _intakeSection() {
                     child: Icon(
                       Icons.restaurant,
                       color: Colors.green,
-                      size: 28,
+                      size: isTablet ? 32 : 28,
                     ),
                   ),
                   SizedBox(height: 4),
                   Text(
                     'Goal',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isTablet ? 18 : 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey,
                     ),
@@ -279,7 +322,10 @@ Widget _intakeSection() {
                   SizedBox(height: 4),
                   Text(
                     '2,500 Kcal',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: isTablet ? 20 : 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -290,7 +336,7 @@ Widget _intakeSection() {
           // Second box
           Expanded(
             child: Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(isTablet ? 20 : 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -305,7 +351,7 @@ Widget _intakeSection() {
               child: Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(isTablet ? 16 : 12),
                     decoration: BoxDecoration(
                       color: Colors.orange.withOpacity(0.1),
                       shape: BoxShape.circle,
@@ -313,14 +359,14 @@ Widget _intakeSection() {
                     child: Icon(
                       Icons.local_fire_department,
                       color: Colors.orange,
-                      size: 28,
+                      size: isTablet ? 32 : 28,
                     ),
                   ),
                   SizedBox(height: 4),
                   Text(
                     'Goal',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: isTablet ? 18 : 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey,
                     ),
@@ -328,7 +374,10 @@ Widget _intakeSection() {
                   SizedBox(height: 4),
                   Text(
                     '2,100 Kcal',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: isTablet ? 20 : 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -339,15 +388,15 @@ Widget _intakeSection() {
     );
   }
 
-
-
   Widget _buildNetCaloriesSnapshot() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        
         Container(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.all(isTablet ? 24 : 20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -361,9 +410,6 @@ Widget _intakeSection() {
           ),
           child: Column(
             children: [
-              // Icons row
-             
-           
               // Values
               _buildKeyValue('Consumed', '2,500kcal'),
               SizedBox(height: 12),
@@ -379,13 +425,16 @@ Widget _intakeSection() {
                   color: Color(0xFFE8F5E8),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                padding: EdgeInsets.symmetric(
+                  vertical: isTablet ? 14 : 10,
+                  horizontal: isTablet ? 16 : 12,
+                ),
                 child: Text(
                   "You're in a calories surplus today",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.green[700],
-                    fontSize: 15,
+                    fontSize: isTablet ? 17 : 15,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -398,14 +447,23 @@ Widget _intakeSection() {
   }
 
   Widget _buildKeyValue(String label, String value, {Color? valueColor}) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: isTablet ? 16 : 14,
+          ),
+        ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: isTablet ? 16 : 14,
             fontWeight: FontWeight.w600,
             color: valueColor ?? Colors.black,
           ),
@@ -415,6 +473,9 @@ Widget _intakeSection() {
   }
 
   Widget _buildAnalyticsChart() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -423,10 +484,16 @@ Widget _intakeSection() {
           children: [
             Text(
               'Analytics',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: isTablet ? 20 : 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 16 : 12,
+                vertical: isTablet ? 8 : 6,
+              ),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[300]!),
                 borderRadius: BorderRadius.circular(6),
@@ -436,13 +503,16 @@ Widget _intakeSection() {
                 children: [
                   Text(
                     viewPeriod,
-                    style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: isTablet ? 14 : 12,
+                    ),
                   ),
                   SizedBox(width: 4),
                   Icon(
                     Icons.keyboard_arrow_down,
                     color: Colors.grey[600],
-                    size: 16,
+                    size: isTablet ? 18 : 16,
                   ),
                 ],
               ),
@@ -452,12 +522,15 @@ Widget _intakeSection() {
         SizedBox(height: 2),
         Text(
           'Calories Burned Vs Calories Consumed',
-          style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: isTablet ? 16 : 14,
+          ),
         ),
         SizedBox(height: 20),
         Container(
-          height: 280,
-          padding: EdgeInsets.all(20),
+          height: isTablet ? 320 : 280,
+          padding: EdgeInsets.all(isTablet ? 24 : 20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -491,7 +564,7 @@ Widget _intakeSection() {
                             getDayLabels()[value.toInt()],
                             style: TextStyle(
                               color: Colors.grey[600],
-                              fontSize: 12,
+                              fontSize: isTablet ? 14 : 12,
                             ),
                           ),
                         );
@@ -503,16 +576,15 @@ Widget _intakeSection() {
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 45,
+                    reservedSize: isTablet ? 55 : 45,
                     interval: 200,
-                    getTitlesWidget:
-                        (value, _) => Text(
-                          '${value.toInt()}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
+                    getTitlesWidget: (value, _) => Text(
+                      '${value.toInt()}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: isTablet ? 14 : 12,
+                      ),
+                    ),
                   ),
                 ),
                 topTitles: AxisTitles(
@@ -530,16 +602,15 @@ Widget _intakeSection() {
                   isCurved: true,
                   curveSmoothness: 0.2,
                   color: Colors.red,
-                  barWidth: 2.5,
+                  barWidth: isTablet ? 3 : 2.5,
                   dotData: FlDotData(
                     show: true,
-                    getDotPainter:
-                        (_, __, ___, ____) => FlDotCirclePainter(
-                          radius: 3,
-                          color: Colors.red,
-                          strokeWidth: 1.5,
-                          strokeColor: Colors.white,
-                        ),
+                    getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                      radius: isTablet ? 4 : 3,
+                      color: Colors.red,
+                      strokeWidth: 1.5,
+                      strokeColor: Colors.white,
+                    ),
                   ),
                   belowBarData: BarAreaData(show: false),
                 ),
@@ -549,16 +620,15 @@ Widget _intakeSection() {
                   isCurved: true,
                   curveSmoothness: 0.2,
                   color: Colors.green,
-                  barWidth: 2.5,
+                  barWidth: isTablet ? 3 : 2.5,
                   dotData: FlDotData(
                     show: true,
-                    getDotPainter:
-                        (_, __, ___, ____) => FlDotCirclePainter(
-                          radius: 3,
-                          color: Colors.green,
-                          strokeWidth: 1.5,
-                          strokeColor: Colors.white,
-                        ),
+                    getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                      radius: isTablet ? 4 : 3,
+                      color: Colors.green,
+                      strokeWidth: 1.5,
+                      strokeColor: Colors.white,
+                    ),
                   ),
                   belowBarData: BarAreaData(show: false),
                 ),
@@ -583,44 +653,59 @@ Widget _intakeSection() {
   }
 
   Widget _buildLegendItem(String label, Color color) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 16,
-          height: 3,
+          width: isTablet ? 20 : 16,
+          height: isTablet ? 4 : 3,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(1.5),
+            borderRadius: BorderRadius.circular(isTablet ? 2 : 1.5),
           ),
         ),
         SizedBox(width: 8),
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: isTablet ? 14 : 12,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildTipsSection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(isTablet ? 24 : 20),
       decoration: BoxDecoration(
         color: Color(0xFFFFF9E6),
         borderRadius: BorderRadius.circular(12),
-        
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: const Color.fromARGB(255, 17, 17, 17), size: 20),
+              Icon(
+                Icons.info_outline,
+                color: const Color.fromARGB(255, 17, 17, 17),
+                size: isTablet ? 24 : 20,
+              ),
               SizedBox(width: 8),
               Text(
                 'Understanding your calories balance',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: const Color.fromARGB(255, 17, 17, 17),
-                  fontSize: 14,
+                  fontSize: isTablet ? 16 : 14,
                 ),
               ),
             ],
@@ -630,22 +715,25 @@ Widget _intakeSection() {
             'When you burn more calories than you consume, you\'re in a calorie deficit. This can lead to weight loss.',
             'When you consume more calories than you burn, you\'re in a calorie surplus. This can lead to weight gain.',
             'The difference between calories consumed and calories burned is your calorie balance for the day.',
-          ].map(_buildTipItem),
+          ].map((text) => _buildTipItem(text)),
         ],
       ),
     );
   }
 
   Widget _buildTipItem(String text) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Padding(
       padding: EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 4,
-            height: 4,
-            margin: EdgeInsets.only(top: 8, right: 12),
+            width: isTablet ? 5 : 4,
+            height: isTablet ? 5 : 4,
+            margin: EdgeInsets.only(top: isTablet ? 10 : 8, right: 12),
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 12, 12, 12),
               shape: BoxShape.circle,
@@ -656,7 +744,7 @@ Widget _intakeSection() {
               text,
               style: TextStyle(
                 color: const Color.fromARGB(255, 7, 7, 7),
-                fontSize: 12,
+                fontSize: isTablet ? 14 : 12,
                 height: 1.4,
               ),
             ),
